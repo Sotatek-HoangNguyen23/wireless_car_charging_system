@@ -34,7 +34,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true, // Kiểm tra Issuer
             ValidateAudience = true, // Kiểm tra Audience
-            ValidateLifetime = false, // Kiểm tra thời hạn của token
+            ValidateLifetime = true, // Kiểm tra thời hạn của token
             ValidateIssuerSigningKey = true, // Kiểm tra chữ ký và private key
             ValidIssuer = jwtSettings["Issuer"], // Cấu hình Issuer hợp lệ
             ValidAudience = jwtSettings["Audience"], // Cấu hình Audience hợp lệ

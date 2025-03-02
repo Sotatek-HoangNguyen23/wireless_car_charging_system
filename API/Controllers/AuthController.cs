@@ -1,5 +1,5 @@
 ﻿using API.Services;
-using DataAccess.DTO.Auth;
+using DataAccess.DTOs.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,11 +55,16 @@ namespace API.Controllers
             }
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken1(string token)
+        public async Task<IActionResult> RefreshToken1()
         {
             try
             {
-                var response = await _authService.RefreshToken(token);
+                if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+                {
+                    return Unauthorized("Refresh token not found.");
+                }
+
+                var response = await _authService.RefreshToken(refreshToken);
                 Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,

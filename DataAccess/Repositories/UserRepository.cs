@@ -1,4 +1,4 @@
-﻿using DataAccess.DTO.Auth;
+﻿using DataAccess.DTOs.Auth;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +36,7 @@ namespace DataAccess.Repositories
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.UserId == id);
         }
+
 
         public async Task SaveUser(RegisterRequest user)
         {

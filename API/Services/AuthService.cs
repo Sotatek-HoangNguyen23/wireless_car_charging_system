@@ -1,5 +1,5 @@
 ﻿using BCrypt.Net;
-using DataAccess.DTO.Auth;
+using DataAccess.DTOs.Auth;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -65,7 +65,7 @@ namespace API.Services
                 throw new ArgumentException("User not found");
             }
 
-            var newAccessToken =  GenerateAccessToken(user);
+            var newAccessToken = GenerateAccessToken(user);
             string newRefreshToken = await GenerateRefreshToken();
 
             await _authRepository.SaveRefreshToken(HashToken(newRefreshToken), user);
@@ -150,7 +150,7 @@ namespace API.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: DateTime.UtcNow.AddMilliseconds(1),
                 signingCredentials: credentials
             );
 
