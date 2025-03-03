@@ -1,5 +1,6 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
+using DataAccess.Models;
 using DataAccess.Repositories;
 
 namespace API.Services
@@ -8,11 +9,13 @@ namespace API.Services
     {
         private readonly IChargingStationRepository _stationRepository;
         private readonly IChargingPointRepository _pointRepository;
+        private readonly IChargingLocationRepository _locationRepository;
 
-        public ChargingStationService(IChargingStationRepository stationRepository, IChargingPointRepository pointRepository)
+        public ChargingStationService(IChargingStationRepository stationRepository, IChargingPointRepository pointRepository, IChargingLocationRepository locationRepository)
         {
             _pointRepository = pointRepository;
             _stationRepository = stationRepository;
+            _locationRepository = locationRepository;
         }
 
         public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal userLat, decimal userLng, int page, int pageSize)
@@ -39,22 +42,66 @@ namespace API.Services
             };
         }
 
-
-        public void SaveChargingStation(NewChargingStationDto chargingStation)
+        public async Task<bool> AddChargingStation(NewChargingStationDto stationDto)
         {
-            _stationRepository.SaveStation(chargingStation);
+            var location = new StationLocation
+            {
+                Address = stationDto.Address,
+                Latitude = stationDto.Latitude,
+                Longitude = stationDto.Longtitude,
+                Description = stationDto.LocationDescription,
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
+            };
+
+            var savedLocation = await _locationRepository.AddStationLocation(location);
+
+            var station = new ChargingStation
+            {
+                StationName = stationDto.StationName,
+                OwnerId = stationDto.OwnerId,
+                StationLocationId = savedLocation.StationLocationId,
+                Status = "Active",
+                MaxConsumPower = 0,
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
+            };
+
+            var savedStation = await _stationRepository.AddChargingStation(station);
+
+            // Tạo danh sách ChargingPoints
+            var points = new List<ChargingPoint>();
+            char pointName = 'A';
+            for (int i = 1; i <= stationDto.TotalPoint; i++)
+            {
+                var chargingPoint = new ChargingPoint
+                {
+                    StationId = savedStation.StationId,
+                    ChargingPointName = stationDto.PointCode + "-" + (char.IsLetter(stationDto.PointName[0]) ? pointName++ : i.ToString()),
+                    Description = stationDto.PointDescription,
+                    Status = "Available",
+                    MaxPower = stationDto.MaxPower,
+                    MaxConsumPower = 0,
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
+                };
+                points.Add(chargingPoint);
+            }
+
+            await _pointRepository.AddChargingPoints(points);
+            return true;
         }
 
-        public void UpdateChargingStation(UpdateChargingStationDto chargingStation)
+        public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
         {
-            _stationRepository.UpdateStation(chargingStation);
+            return await _stationRepository.UpdateChargingStation(stationId, stationDto);
         }
 
-        public void DeleteChargingStation(int stationId)
-        {
-            _stationRepository.DeleteStation(stationId);
-        }
 
+        public async Task<bool> DeleteChargingStation(int stationId)
+        {
+            return await _stationRepository.DeleteChargingStation(stationId);
+        }
 
     }
 }

@@ -17,6 +17,7 @@ builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<IChargingStationRepository, ChargingStationRepository>();
 builder.Services.AddScoped<ChargingStationService>();
 builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
+builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
 
 
 builder.Services.AddControllers();

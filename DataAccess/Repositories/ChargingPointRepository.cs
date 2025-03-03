@@ -70,22 +70,13 @@ namespace DataAccess.Repositories
             return point;
         }
 
-        public void SaveChargingPoint(NewChargingPointDto cp)
+        public async Task AddChargingPoints(List<ChargingPoint> points)
         {
-            var newPoint = new ChargingPoint
-            {
-                StationId = cp.StationId,
-                ChargingPointName = cp.ChargingPointName,
-                Description = cp.Description,
-                Status = cp.Status,
-                MaxPower = cp.MaxPower,
-                CreateAt = cp.CreateAt,
-                MaxConsumPower = cp.MaxConsumPower
-            };
+            if (points == null || points.Count == 0)
+                throw new ArgumentException("Danh sách điểm sạc trống!");
 
-            _context.ChargingPoints.Add(newPoint);
-            _context.SaveChanges();
-
+            await _context.ChargingPoints.AddRangeAsync(points);
+            await _context.SaveChangesAsync();
         }
 
         public void UpdateChargingPoint(UpdateChargingPointDto cp)

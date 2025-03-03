@@ -8,7 +8,7 @@ namespace DataAccess.Interfaces
     {
         PagedResult<ChargingPointDto>? GetAllPointsByStation(int stationId, int page, int pageSize);
         ChargingPointDto GetPointById(int pointId);
-        void SaveChargingPoint(NewChargingPointDto s);
+        Task AddChargingPoints(List<ChargingPoint> points);
         void UpdateChargingPoint(UpdateChargingPointDto s);
         void DeleteChargingPoint(int pointId);
     }

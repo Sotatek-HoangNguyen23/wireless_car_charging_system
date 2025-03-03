@@ -34,6 +34,25 @@
         </nav>
     </div>
 
+    <!-- Modal Xác Nhận Xóa -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmLabel">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa trạm sạc này không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let currentPage = 1;
@@ -84,6 +103,8 @@
                 <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longtitude}">
                 Show on Map
                 </button>
+                <a class="btn btn-info btn-sm">Update</a>
+                <a href="#" class="btn btn-danger btn-sm btn-delete" data-id="${station.stationId}"">Delete</a>
             `);
 
             // Gán sự kiện click cho nút "Show on Map"
@@ -180,6 +201,38 @@
                 }
             });
         }
+
+        $(document).ready(function () {
+            let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
+
+            // Khi click vào nút Delete, mở modal và lưu ID
+            $(document).on("click", ".btn-delete", function (e) {
+                e.preventDefault();
+                stationIdToDelete = $(this).data("id");
+                $("#deleteConfirmModal").modal("show");
+            });
+
+            // Khi nhấn xác nhận xóa
+            $("#confirmDeleteBtn").click(function () {
+                if (!stationIdToDelete) {
+                    alert("Không tìm thấy trạm sạc để xóa!");
+                    return;
+                }
+
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingStation/${stationIdToDelete}`,
+                    type: "DELETE",
+                    success: function () {
+                        $("#deleteConfirmModal").modal("hide"); // Đóng modal
+                        location.reload(); // Làm mới danh sách
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi khi xóa:", xhr.responseText);
+                        alert("Xóa trạm sạc thất bại!");
+                    }
+                });
+            });
+        });
     </script>
 
 </body>
