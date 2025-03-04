@@ -1,5 +1,6 @@
 ﻿using API.Services;
 using DataAccess.DTOs;
+using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -90,6 +91,49 @@ namespace API.Controllers
             
 
             return Ok(new { message = "Car deleted successfully" });
+        }
+
+        [HttpGet("car-models")]
+        public ActionResult<List<CarModel>> GetCarModels([FromQuery] string? search)
+        {
+            
+                var carModels = _carService.GetCarModels(search);
+
+                if (carModels == null || carModels.Count == 0)
+                {
+                    return NotFound(new { message = "No car models found." });
+                }
+
+                return Ok(carModels);
+            
+        }
+
+        [HttpPost("add-car")]
+        public IActionResult AddCar([FromBody] AddCarRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request body is null.");
+            }
+
+            if (request.CarModelId <= 0 || request.UserId <= 0 || string.IsNullOrEmpty(request.LicensePlate) || string.IsNullOrEmpty(request.CarName))
+            {
+                return BadRequest("Invalid input parameters.");
+            }
+
+            try
+            {
+                _carService.addCar(request.CarModelId, request.UserId, request.LicensePlate, request.CarName);
+                return Ok(new { message = "Car added successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while adding the car.", error = ex.Message });
+            }
         }
     }
 }

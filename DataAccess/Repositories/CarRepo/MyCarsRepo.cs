@@ -152,5 +152,73 @@ namespace DataAccess.Repositories.CarRepo
                 _context.SaveChanges(); 
             }
         }
+
+        public List<CarModel> getCarModels(string? search)
+        {
+            var carModels = _context.CarModels.AsQueryable();
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+
+                carModels = carModels.Where(c =>
+                    (c.Type != null && c.Type.ToLower().Contains(search)) ||
+                    (c.Color != null && c.Color.ToLower().Contains(search)) ||
+                    (c.Brand != null && c.Brand.ToLower().Contains(search))
+                );
+            }
+
+            return carModels.ToList();
+        }
+
+        public bool checkDuplicateLicensePlate(string licensePlate)
+        {
+            bool isDuplicate = _context.Cars
+                    .Any(c => c.LicensePlate.ToLower() == licensePlate.ToLower() && (c.IsDeleted ?? false) == false);
+
+            return isDuplicate;
+            
+        }
+
+        public void addCar(int carModel, int userId, string licensePlate, string carName)
+        {
+            //code here
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var car = new Car
+                    {
+                        CarModelId = carModel,
+                        CarName = carName,
+                        LicensePlate = licensePlate,
+                        IsDeleted = false,
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
+                    };
+
+                    _context.Cars.Add(car);
+                    _context.SaveChanges();
+
+                    var userCar = new UserCar
+                    {
+                        UserId = userId,
+                        CarId = car.CarId, 
+                        Role = "Owner",      
+                        IsAllowedToCharge = true,
+                        StartDate = DateTime.Now
+                    };
+
+                    _context.UserCars.Add(userCar);
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception("Error add car: " + ex.Message);
+                }
+            }
+        }
     }
 }

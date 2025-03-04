@@ -20,4 +20,12 @@ namespace DataAccess.DTOs
         public string? Brand { get; set; }
         public string? Img { get; set; }
     }
+
+    public class AddCarRequest
+    {
+        public int CarModelId { get; set; }
+        public int UserId { get; set; }
+        public string LicensePlate { get; set; }
+        public string CarName { get; set; }
+    }
 }

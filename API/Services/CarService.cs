@@ -36,5 +36,26 @@ namespace API.Services
         {
              _myCars.deleteCar(carId);
         }
+
+        public List<CarModel> GetCarModels(string? search) { 
+           return _myCars.getCarModels(search);
+        }
+
+        public void addCar(int carModel, int userId, string licensePlate, string carName)
+        {
+            if (_myCars.checkDuplicateLicensePlate(licensePlate))
+            {
+                throw new ArgumentException("License Plate already exist");
+            }
+
+            try
+            {
+                _myCars.addCar(carModel, userId, licensePlate, carName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error: " + ex.Message);
+            }
+        }
     }
 }

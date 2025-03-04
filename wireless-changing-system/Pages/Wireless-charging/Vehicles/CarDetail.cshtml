@@ -13,40 +13,13 @@
                     <h3 class="card-title mb-0" id="car-name">VF 9 ECO</h3>
                     <div>
                         <button class="btn btn-outline-danger me-2 del-btn">Delete Car</button>
-                        <button class="btn btn-outline-secondary ">Edit Car</button>
+                        <button class="btn btn-outline-secondary" onclick="navigateToEditCar()">Edit Car</button>
+
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col-12 col-md-6">
-                        <div>
-                            <img id="car-image" src="" alt="Car Image" class="img-fluid rounded" style="width: 100%; max-width: 300px;">
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Type:</span> <span id="car-type">SUV</span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Brand:</span> <span id="car-brand">VinFast</span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">License Plate:</span> <span id="car-license-plate">30E-777.96</span></p>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Seat:</span> <span id="car-seat">7</span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Color:</span> <span id="car-color">White</span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Average Range:</span> <span id="car-average-range">483km</span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Charging Standard:</span> <span id="car-charging-standard">CCS</span></p>
-                        </div>
-                    </div>
-
-                    <div id="real-time-status" class="col-12 col-md-6">
+                    <div id="real-time-status" class="col-12 col-md-6 mb-0">
                         <div class="d-flex align-items-center mb-3">
                             <i class="bi bi-circle-fill" style="color: #00ff00; font-size: 20px;"></i>
 
@@ -63,8 +36,37 @@
                             <p id="station-location" class="mb-0"></p>
                         </div>
 
-                        
+
                     </div>
+                    <div class="col-12 col-md-6 m-0">
+                        <!--<div>
+                            <img id="car-image" src="" alt="Car Image" class="img-fluid rounded" style="width: 100%; max-width: 300px;">
+                        </div>-->
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Type:</span> <span id="car-type"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Brand:</span> <span id="car-brand"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">License Plate:</span> <span id="car-license-plate"></span></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Seat:</span> <span id="car-seat"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Color:</span> <span id="car-color"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Average Range:</span> <span id="car-average-range"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="mb-0"><span class="fw-bold">Charging Standard:</span> <span id="car-charging-standard"></span></p>
+                        </div>
+                    </div>
+
+                    
                     <div>
                         <button class="btn btn-primary btn-lg">RENT</button>
                         <button class="btn btn-outline-primary btn-lg" onclick="navigateToChargingHistory()">Charging History</button>
@@ -106,7 +108,7 @@
 
         function updateCarDetails(car) {
             document.getElementById('car-name').textContent = car.carName;
-            document.getElementById('car-image').src = car.img || 'https://via.placeholder.com/300';
+           // document.getElementById('car-image').src = car.img || 'https://via.placeholder.com/300';
             document.getElementById('car-brand').textContent = car.brand;
             document.getElementById('car-license-plate').textContent = car.licensePlate;
             document.getElementById('car-type').textContent = car.type;
@@ -160,6 +162,15 @@
                 window.location.href = "/wireless-charging/vehicles/mycars";
             } catch (error) {
                 console.error("Error deleting car:", error);
+            }
+        }
+
+                function navigateToEditCar() {
+            const carId = getCarIdFromUrl();
+            if (carId) {
+                window.location.href = `/wireless-charging/vehicles/editcar?carId=${carId}`;
+            } else {
+                console.error("Car ID is missing.");
             }
         }
     </script>

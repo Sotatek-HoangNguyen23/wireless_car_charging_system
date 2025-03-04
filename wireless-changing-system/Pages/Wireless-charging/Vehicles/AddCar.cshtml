@@ -3,41 +3,225 @@
 @{
     <div class="container py-4">
         <h1 class="mb-4">Car Registration</h1>
-
+        
         <div class="card rounded-5 shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Brand</label>
-                    <select class="form-select">
-                        <option selected>VinFast</option>
-                        <option value="1">Other Brand</option>
-                    </select>
+                    <label class="form-label fw-bold">Name</label>
+                    <input type="text" class="form-control" placeholder="Name your car" />
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold">License Plate</label>
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>License Plate</label>
                     <input type="text" class="form-control" placeholder="Enter license plate" />
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Type</label>
-                    <select class="form-select">
-                        <option selected>Choose type</option>
-                        <option value="SUV">SUV</option>
-                        <option value="Sedan">Sedan</option>
-                        <option value="Hatchback">Hatchback</option>
-                    </select>
+                <div class="mb-4 position-relative">
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>Type</label>
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Find your car model..." />
+                        <span id="clearSearch" class="input-group-text bg-transparent border-0 position-absolute end-0 top-50 translate-middle-y" style="cursor: pointer; display: none;">
+                            <i class="bi bi-x-circle"></i>
+                        </span>
+                    </div>
+                    <div id="suggestions" class="list-group mt-2" style="display: none;"></div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Color</label>: <span>ABC</span>
-                   
+                <div id="carModelDetails" style="display: none;">
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Color:</label>
+                        <span id="selectedColor"></span>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Seat number:</label>
+                        <span id="selectedSeatNumber"></span>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Brand:</label>
+                        <span id="selectedBrand"></span>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Charging Standard:</label>
+                        <span id="selectedChargingStandard"></span>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Average Range:</label>
+                        <span id="selectedAverageRange"></span>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bold mb-0">Max Charging Power:</label>
+                        <span id="selectedMaxChargingPower"></span>
+                    </div>
+                    <div class="mb-1">
+                        <img id="selectedImage" src="" alt="Car Image" class="img-thumbnail" style="width: 500px; height: auto;" />
+                    </div>
                 </div>
-
-               
-
-                
+                <button id="btn-add" class="btn btn-primary">+ Add</button>
             </div>
         </div>
     </div>
 }
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsContainer = document.getElementById('suggestions');
+    const carModelDetails = document.getElementById('carModelDetails');
+    const clearSearch = document.getElementById('clearSearch');
+    const selectedColor = document.getElementById('selectedColor');
+    const selectedSeatNumber = document.getElementById('selectedSeatNumber');
+    const selectedBrand = document.getElementById('selectedBrand');
+    const selectedChargingStandard = document.getElementById('selectedChargingStandard');
+    const selectedAverageRange = document.getElementById('selectedAverageRange');
+    const selectedMaxChargingPower = document.getElementById('selectedMaxChargingPower');
+    const selectedImage = document.getElementById('selectedImage');
+    let selectedCarModelId = null;
+    async function fetchCarModels(searchTerm) {
+        try {
+            const response = await fetch(`https://localhost:7191/api/Car/car-models?search=${searchTerm}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch car models');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching car models:', error);
+            return [];
+        }
+    }
+
+    function displaySuggestions(models) {
+        if (models.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        const suggestionsHTML = models.map(model => `
+            <div class="list-group-item list-group-item-action"
+                 data-model-id="${model.carModelId}"
+                 data-type="${model.type}"
+                 data-color="${model.color}"
+                 data-seat-number="${model.seatNumber}"
+                 data-brand="${model.brand}"
+                 data-charging-standard="${model.chargingStandard}"
+                 data-average-range="${model.averageRange}"
+                 data-max-charging-power="${model.maxChargingPower}"
+                 data-img="${model.img}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">${model.type}</h6>
+                        <small class="text-muted">${model.color}</small>
+                    </div>
+                    <img src="${model.img}" alt="${model.type}" class="img-thumbnail" style="width: 70px; height: auto;">
+                </div>
+            </div>
+        `).join('');
+
+        suggestionsContainer.innerHTML = suggestionsHTML;
+        suggestionsContainer.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', async function () {
+        const searchTerm = this.value.trim();
+
+        if (searchTerm.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            carModelDetails.style.display = 'none';
+            clearSearch.style.display = 'none';
+            return;
+        }
+
+        clearSearch.style.display = 'block';
+
+        const carModels = await fetchCarModels(searchTerm);
+        displaySuggestions(carModels);
+    });
+
+        suggestionsContainer.addEventListener('click', function (event) {
+        const selectedItem = event.target.closest('.list-group-item');
+        if (selectedItem) {
+            const type = selectedItem.getAttribute('data-type');
+            const color = selectedItem.getAttribute('data-color');
+            const seatNumber = selectedItem.getAttribute('data-seat-number');
+            const brand = selectedItem.getAttribute('data-brand');
+            const chargingStandard = selectedItem.getAttribute('data-charging-standard');
+            const averageRange = selectedItem.getAttribute('data-average-range');
+            const maxChargingPower = selectedItem.getAttribute('data-max-charging-power');
+            const img = selectedItem.getAttribute('data-img');
+
+            selectedCarModelId = selectedItem.getAttribute('data-model-id');
+
+            searchInput.value = type;
+
+            selectedColor.textContent = color;
+            selectedSeatNumber.textContent = seatNumber;
+            selectedBrand.textContent = brand;
+            selectedChargingStandard.textContent = chargingStandard;
+            selectedAverageRange.textContent = averageRange;
+            selectedMaxChargingPower.textContent = maxChargingPower;
+            selectedImage.src = img;
+
+            carModelDetails.style.display = 'block';
+
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    clearSearch.addEventListener('click', function () {
+        searchInput.value = '';
+        suggestionsContainer.style.display = 'none';
+        carModelDetails.style.display = 'none';
+        clearSearch.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    async function addCar(carModelId, userId, licensePlate, carName) {
+        try {
+            const response = await fetch('https://localhost:7191/api/Car/add-car', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    carModelId: carModelId,
+                    userId: userId,
+                    licensePlate: licensePlate,
+                    carName: carName
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to add car');
+            }
+
+            const result = await response.json();
+            alert('Car added successfully!');
+            window.location.href = '/wireless-charging/vehicles/mycars';
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+            document.querySelector('#btn-add').addEventListener('click', function () {
+        const carNameInput = document.querySelector('input[placeholder="Name your car"]').value;
+        const licensePlate = document.querySelector('input[placeholder="Enter license plate"]').value;
+
+        if (!licensePlate || !selectedCarModelId) {
+            alert('Please fill in all required fields and select a car model.');
+            return;
+        }
+
+        const selectedCarModelType = document.querySelector('.list-group-item[data-model-id]')?.getAttribute('data-type');
+
+        const carName = carNameInput || selectedCarModelType;
+
+        const userId = 2; 
+        addCar(selectedCarModelId, userId, licensePlate, carName);
+    
+    });
+</script>
