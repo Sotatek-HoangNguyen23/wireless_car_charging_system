@@ -150,7 +150,7 @@ namespace API.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMilliseconds(1),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: credentials
             );
 

@@ -1,5 +1,4 @@
-﻿import Cookies from '../js-cookie/js.cookie.mjs';
-let isRefreshing = false;
+﻿let isRefreshing = false;
 let refreshPromise = null; 
 export async function fetchWithAuth(url, options = {}) {
     let accessToken = sessionStorage.getItem('accessToken');
@@ -36,12 +35,7 @@ export async function fetchWithAuth(url, options = {}) {
 
 async function refreshAccessToken() {
     try {
-        const refreshToken = Cookies.get('refreshToken'); 
-        if (!refreshToken) {
-            throw new Error('Không tìm thấy refresh token');
-        }
-
-        const refreshResponse = await fetch('https://localhost:7191/api/refresh-token', {
+        const refreshResponse = await fetch('https://localhost:7191/api/auth/refresh-token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include' 
@@ -56,7 +50,6 @@ async function refreshAccessToken() {
     } catch (error) {
         console.error('Lỗi khi refresh token:', error);
         sessionStorage.removeItem('accessToken');
-        Cookies.remove('refreshToken');
         return null;
     }
 }

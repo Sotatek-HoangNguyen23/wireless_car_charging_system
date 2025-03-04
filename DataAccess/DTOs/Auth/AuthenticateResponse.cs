@@ -13,6 +13,8 @@ namespace DataAccess.DTOs.Auth
         public int Id { get; set; }
         public string? Fullname { get; set; }
         public string? Email { get; set; }
+        public Boolean? Gender { get; set; }
+
         public string? Role { get; set; }
         public string TokenType { get; set; } = "Bearer";
         public string? AccessToken { get; set; }
@@ -23,6 +25,7 @@ namespace DataAccess.DTOs.Auth
             Id = user.UserId;
             Fullname = user.Fullname;
             Email = user.Email;
+            Gender= user.Gender;
             Role = user.Role?.RoleName ?? "User"; // Giá trị mặc định
             AccessToken = jwtToken;
             RefreshToken = refreshToken;
