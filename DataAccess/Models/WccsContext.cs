@@ -52,12 +52,12 @@ public partial class WccsContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var builder = new ConfigurationBuilder()
-                              .SetBasePath(Directory.GetCurrentDirectory())
-                              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-        IConfigurationRoot configuration = builder.Build();
-        optionsBuilder.UseSqlServer(configuration.GetConnectionString("MySaleDB"));
+        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
+
     }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

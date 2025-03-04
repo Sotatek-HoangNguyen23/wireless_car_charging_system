@@ -337,3 +337,32 @@ body {
     border-radius: 50%;
     object-fit: cover;
 }
+@media (max-width: 768px) {
+    #userSection .dropdown-menu {
+        min-width: 100vw;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 100% !important;
+        margin-top: 0.5rem;
+        text-align: center;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    #userSection .dropdown-toggle::after {
+        margin-left: auto;
+    }
+
+    #userSection .nav-link {
+        padding: 0.5rem 0rem;
+    }
+}
+
+@media (min-width: 768px) {
+    #userSection .dropdown-menu {
+        min-width: 150px; 
+        left: auto !important;
+        right: 0 !important;
+    }
+  
+}
+

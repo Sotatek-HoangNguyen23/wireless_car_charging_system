@@ -40,10 +40,21 @@
                         </li>
                     </ul>
 
-                    <!-- Right-aligned buttons -->
-                    <div class="d-flex">
-                        <a href="#" class="btn btn-outline-secondary me-2">Sign in</a>
+                    <div class="d-flex" id="authSection">
+                        <a href="/wireless-charging/auth" class="btn btn-outline-secondary me-2">Sign in</a>
                         <a href="#" class="btn btn-primary">Register</a>
+                    </div>
+                    <div class="d-none" id="userSection">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="" alt="Avatar" class="rounded-circle" width="30" height="30" id="userAvatar">
+                                <span class="ms-2" id="userName"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                <li><a class="dropdown-item" id="logoutBtn" href="#">Logout</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,6 +97,35 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js-cookie/js.cookie.min.js"></script>
     <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const accessToken = sessionStorage.getItem("accessToken");
+            if (accessToken) {
+                const fullName = sessionStorage.getItem("fullName");
+                const defaultAvatarUrl = '@Url.Content("~/img/avartar.jpg")';
+                const avatarUrl = sessionStorage.getItem("avartar_url") || defaultAvatarUrl;
+                document.getElementById("userName").textContent = fullName;
+                document.getElementById("userAvatar").src = avatarUrl;
+
+                document.getElementById("authSection").classList.add("d-none");
+                document.getElementById("userSection").classList.remove("d-none");
+            }
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                logout();
+             });
+            }
+        });
+        const logout=()=>{
+            sessionStorage.removeItem("accessToken");
+            sessionStorage.removeItem("fullName");
+            sessionStorage.removeItem("avartar_url");
+            window.location.href="/";
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
