@@ -8,11 +8,36 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+if (string.IsNullOrEmpty(redisConnectionString))
+{
+    throw new ArgumentException("Redis connection string is missing");
+}
 
+var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);
+configurationOptions.User = "default";
+configurationOptions.Password = builder.Configuration["Redis:Password"]; 
+configurationOptions.AbortOnConnectFail = false;
+configurationOptions.ConnectTimeout = 15000;
+configurationOptions.SyncTimeout = 15000;
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var connection = ConnectionMultiplexer.Connect(configurationOptions);
+
+    // Kiểm tra kết nối
+    if (!connection.IsConnected)
+    {
+        throw new InvalidOperationException("Failed to connect to Redis");
+    }
+
+    return connection;
+});
 builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
@@ -22,6 +47,7 @@ builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<UserService>();
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
@@ -85,5 +111,4 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();
