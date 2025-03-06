@@ -13,6 +13,8 @@
 </head>
 <body>
     <div class="container">
+        <h3 class="col-md-6"></h3>
+
         <!-- Header với ảnh và thông tin trạm sạc -->
         <div class="station-header">
             <img src="https://img.canarymedia.com/content/uploads/witricity3.png?auto=compress%2Cformat&crop=focalpoint&fit=crop&fp-x=0.5&fp-y=0.5&h=501&q=80&w=864&s=8fb2e832892760cff6912e6683a67514" alt="Station Image">
@@ -87,31 +89,22 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        <!-- Dòng 1: Code Name và Point Name -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="codeName" class="form-label">Code Name</label>
-                                <input type="text" class="form-control" id="codeName" placeholder="Enter code name">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="pointName" class="form-label">Point Name</label>
-                                <input type="text" class="form-control" id="pointName" placeholder="Enter point name">
-                            </div>
-                        </div>
-
-                        <!-- Dòng 2: Total Point và Max Power -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="totalPoint" class="form-label">Total Point</label>
                                 <input type="number" class="form-control" id="totalPoint" placeholder="Enter total points">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="codeName" class="form-label">Code Name</label>
+                                <input type="text" class="form-control" id="codeName" placeholder="Enter code name">
+                            </div>                           
+                            <div class="col-md-4">
                                 <label for="maxPower" class="form-label">Max Power</label>
                                 <input type="number" class="form-control" id="maxPower" placeholder="Enter max power">
                             </div>
+                            <p class="form-note">Charging point name will be like HCM-1, HCM-2,... or P-1, P-2,...</p>
                         </div>
 
-                        <!-- Dòng 3: Description -->
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="description" class="form-label">Description</label>
@@ -308,7 +301,7 @@
                     type: "DELETE",
                     success: function () {
                         $("#deleteConfirmModal").modal("hide"); // Đóng modal
-                        location.reload(); // Làm mới danh sách
+                        window.location.href = "/wireless-charging/chargingstation/stationlist";
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi xóa:", xhr.responseText);

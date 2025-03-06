@@ -140,7 +140,7 @@ namespace DataAccess.Repositories
 
             // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
             if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
-            if (stationDto.OwnerId.HasValue) station.OwnerId = stationDto.OwnerId;
+            if (stationDto.OwnerId != 0) station.OwnerId = stationDto.OwnerId;
             if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
             if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
             if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;

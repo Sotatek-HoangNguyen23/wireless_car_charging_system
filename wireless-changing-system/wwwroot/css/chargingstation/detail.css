@@ -47,6 +47,7 @@
     .station-header {
         flex-direction: column; /* Chuyển sang layout dọc */
         align-items: center; /* Căn giữa các phần tử */
+        margin-top: 20px;
     }
 
         .station-header img {
