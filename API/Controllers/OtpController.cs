@@ -12,9 +12,14 @@ namespace API.Controllers
     public class OtpController : ControllerBase
     {
         private readonly OtpServices _otpServices;
-        public OtpController(OtpServices otpServices)
+        private readonly EmailService _emailService;
+        private readonly string _otpTemplate;
+
+        public OtpController(OtpServices otpServices,EmailService emailService)
         {
             _otpServices = otpServices;
+            _emailService = emailService;
+            _otpTemplate = System.IO.File.ReadAllText("Template/OTPEmailTemplate.html"); 
         }
         [HttpPost("generate")]
         public async Task<IActionResult> GenerateOtp([FromBody] OtpRequest request)
@@ -26,8 +31,9 @@ namespace API.Controllers
             try
             {
                 var otp = await _otpServices.GenerateOtpAsync(request);
-                // In a real application, send OTP via email/SMS instead of returning it.
-                return Ok(new { OTP = otp });
+                var emailBody = _otpTemplate.Replace("{{OTP}}", otp);
+                await _emailService.SendEmailAsync(request.Email, "OTP Verification", emailBody);
+                return Ok(new { Message = "OTP created success" });
             }
             catch
             {

@@ -42,13 +42,15 @@ builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
 
-builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<TestService>();
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<OtpServices>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITest, Test>();
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
