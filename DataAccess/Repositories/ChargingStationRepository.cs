@@ -124,47 +124,52 @@ namespace DataAccess.Repositories
             return station;
         }
 
-        //public void SaveStation(NewChargingStationDto s)
-        //{
-        //    var newStation = new ChargingStation
-        //    {
-        //        OwnerId = s.OwnerId,
-        //        StationLocationId = s.StationLocationId,
-        //        StationName = s.StationName,
-        //        Status = s.Status,
-        //        CreateAt = DateTime.UtcNow,
-        //        MaxConsumPower = s.MaxConsumPower
-        //    };
-
-        //    _context.ChargingStations.Add(newStation);
-        //    _context.SaveChanges();
-        //}
-
-        public void UpdateStation(UpdateChargingStationDto s)
+        public async Task<ChargingStation> AddChargingStation(ChargingStation station)
         {
-            var station = _context.ChargingStations.Find(s.StationId);
-            if (station == null) throw new KeyNotFoundException("Station not found");
+            _context.ChargingStations.Add(station);
+            await _context.SaveChangesAsync();
+            return station;
+        }
 
-            station.OwnerId = s.OwnerId ?? station.OwnerId;
-            station.StationLocationId = s.StationLocationId ?? station.StationLocationId;
-            station.StationName = s.StationName ?? station.StationName;
-            station.Status = s.Status ?? station.Status;
-            station.MaxConsumPower = s.MaxConsumPower ?? station.MaxConsumPower;
-            station.UpdateAt = DateTime.UtcNow;
+        public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
+        {
+            var station = await _context.ChargingStations.FirstOrDefaultAsync(s => s.StationId == stationId);
 
-            _context.ChargingStations.Update(station);
-            _context.SaveChanges();
+            if (station == null)
+                return null;
+
+            // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
+            if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
+            if (stationDto.OwnerId.HasValue) station.OwnerId = stationDto.OwnerId;
+            if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
+            if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
+            if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
+            if (stationDto.Longtitude != 0) station.StationLocation.Longitude = stationDto.Longtitude;
+
+            station.UpdateAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return station;
         }
 
 
-        public void DeleteStation(int stationId)
+        public async Task<bool> DeleteChargingStation(int stationId)
         {
-            var station = _context.ChargingStations.Find(stationId);
-            if (station == null) throw new KeyNotFoundException("Station not found");
+            var station = await _context.ChargingStations
+                .Include(s => s.ChargingPoints)                         // Load ChargingPoints để xóa
+                .FirstOrDefaultAsync(s => s.StationId == stationId);
 
+            if (station == null)
+                return false;
+
+            // Xóa ChargingPoints trước khi xóa ChargingStation
+            _context.ChargingPoints.RemoveRange(station.ChargingPoints);
             _context.ChargingStations.Remove(station);
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
+            return true;
         }
+
 
     }
 }

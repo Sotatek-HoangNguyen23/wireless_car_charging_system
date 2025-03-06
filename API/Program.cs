@@ -60,6 +60,7 @@ builder.Services.AddScoped<ChargingStationService>();
 builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
 builder.Services.AddScoped<IMyCars, MyCarsRepo>(); 
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
 
 builder.Services.AddAuthorization(options =>
 {

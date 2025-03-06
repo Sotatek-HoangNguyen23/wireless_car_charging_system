@@ -37,24 +37,34 @@ namespace API.Controllers
         }
 
         [HttpPost("Add")]
-        public IActionResult AddStation(NewChargingStationDto cs)
+        public async Task<IActionResult> AddStation([FromBody] NewChargingStationDto stationDto)
         {
-            _stationService.SaveChargingStation(cs);
-            return NoContent();
+            var result = await _stationService.AddChargingStation(stationDto);
+            if (result)
+                return Ok(new { message = "Add Station Successfully!" });
+            return BadRequest(new { message = "Error." });
         }
 
-        [HttpDelete("Delete/{stationId}")]
-        public IActionResult DeleteStation(int stationId)
+        [HttpDelete("{stationId}")]
+        public async Task<IActionResult> DeleteChargingStation(int stationId)
         {
-            _stationService.DeleteChargingStation(stationId);
-            return NoContent();
+            var result = await _stationService.DeleteChargingStation(stationId);
+            if (!result)
+                return NotFound(new { message = "Station does not exist!" });
+
+            return Ok(new { message = "Station deleted Successfully!" });
         }
 
-        [HttpPut("Update")]
-        public IActionResult UpdateStation(UpdateChargingStationDto s)
+
+        [HttpPut("{stationId}")]
+        public async Task<IActionResult> UpdateChargingStation(int stationId, [FromBody] UpdateChargingStationDto stationDto)
         {
-            _stationService.UpdateChargingStation(s);
-            return NoContent();
+            var updatedStation = await _stationService.UpdateChargingStation(stationId, stationDto);
+            if (updatedStation == null)
+                return NotFound(new { message = "Station does not exist!" });
+
+            return Ok(updatedStation);
         }
+
     }
 }

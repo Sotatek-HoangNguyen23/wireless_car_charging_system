@@ -23,8 +23,13 @@
 
         <!-- Charging Points -->
         <div class="charging-points">
-            <h3>Charging Points</h3>
             <div class="row">
+                <h3 class="col-md-3">Charging Points</h3>
+                <button type="button" class="btn btn-primary col-md-3" data-bs-toggle="modal" data-bs-target="#addPointModal">
+                    Add Charging Point
+                </button>
+            </div>
+            <div class="row point-list">
                 
             </div>
         </div>
@@ -32,6 +37,95 @@
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center"></ul>
         </nav>
+    </div>
+
+    <!-- Modal Xác Nhận Xóa Station -->
+    <div class="modal fade" id="deleteStationConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmLabel">Delete confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this station?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteStationBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác Nhận Xóa Point-->
+    <div class="modal fade" id="deletePointConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmLabel">Delete confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this charging point?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeletePointBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add -->
+    <div class="modal fade" id="addPointModal" tabindex="-1" aria-labelledby="addPointModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPointModalLabel">Add Charging Point</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <!-- Dòng 1: Code Name và Point Name -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="codeName" class="form-label">Code Name</label>
+                                <input type="text" class="form-control" id="codeName" placeholder="Enter code name">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="pointName" class="form-label">Point Name</label>
+                                <input type="text" class="form-control" id="pointName" placeholder="Enter point name">
+                            </div>
+                        </div>
+
+                        <!-- Dòng 2: Total Point và Max Power -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="totalPoint" class="form-label">Total Point</label>
+                                <input type="number" class="form-control" id="totalPoint" placeholder="Enter total points">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxPower" class="form-label">Max Power</label>
+                                <input type="number" class="form-control" id="maxPower" placeholder="Enter max power">
+                            </div>
+                        </div>
+
+                        <!-- Dòng 3: Description -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-add">Add</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -84,6 +178,8 @@
                 <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longtitude}">
                 Show on Map
                 </button>
+                <a class="btn btn-info btn-sm">Update</a>
+                <a href="#" class="btn btn-danger btn-sm btn-delete-station" data-id="${station.stationId}"">Delete</a>
             `);
 
             // Gán sự kiện click cho nút "Show on Map"
@@ -118,12 +214,14 @@
                             </p>
                             <p><strong>Max power:</strong> ${point.maxPower}</p>
                             <p><strong>Description:</strong> ${point.description}</p>
+                            <a class="btn btn-info btn-sm" href="updatepoint?pointId=${point.chargingPointId}">Update</a>
+                            <a class="btn btn-danger btn-sm btn-delete-point" href="#" class="btn btn-danger btn-sm btn-delete" data-id="${point.chargingPointId}">Delete</a>
                         </div>
                     </div>
                 `;
             });
 
-            $(".charging-points .row").html(pointHTML);
+            $(".charging-points .point-list").html(pointHTML);
         }
 
         // Hàm đổi màu trạng thái
@@ -180,6 +278,121 @@
                 }
             });
         }
+
+        $(document).ready(function () {
+            let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
+            let pointIdToDelete = null;
+
+            // Khi click vào nút Delete, mở modal và lưu ID
+            $(document).on("click", ".btn-delete-station", function (e) {
+                e.preventDefault();
+                stationIdToDelete = $(this).data("id");
+                $("#deleteStationConfirmModal").modal("show");
+            });
+
+            $(document).on("click", ".btn-delete-point", function (e) {
+                e.preventDefault();
+                pointIdToDelete = $(this).data("id");
+                $("#deletePointConfirmModal").modal("show");
+            });
+
+            // Khi nhấn xác nhận xóa
+            $("#confirmDeleteStationBtn").click(function () {
+                if (!stationIdToDelete) {
+                    alert("Station not found!");
+                    return;
+                }
+
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingStation/${stationIdToDelete}`,
+                    type: "DELETE",
+                    success: function () {
+                        $("#deleteConfirmModal").modal("hide"); // Đóng modal
+                        location.reload(); // Làm mới danh sách
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi khi xóa:", xhr.responseText);
+                        alert("Xóa trạm sạc thất bại!");
+                    }
+                });
+            });
+
+            $("#confirmDeletePointBtn").click(function () {
+                if (!pointIdToDelete) {
+                    alert("Point not found!");
+                    return;
+                }
+
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToDelete}`,
+                    type: "DELETE",
+                    success: function () {
+                        $("#deleteConfirmModal").modal("hide"); // Đóng modal
+                        location.reload(); // Làm mới danh sách
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi khi xóa:", xhr.responseText);
+                        alert("Xóa trạm sạc thất bại!");
+                    }
+                });
+            });
+        });
+
+        $('#addPointModal').on('show.bs.modal', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            stationId = urlParams.get('stationId');
+
+            $.ajax({
+                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`,
+                type: "GET",
+                success: function (data) {
+                    if (data.points.data.length > 0) {
+                        const latestPoint = data.points.data[0].chargingPointName; // Lấy tên đầu tiên (có thể đổi sang lấy cuối cùng)
+                        const parts = latestPoint.split("-");
+                        let codeName = parts[0];
+                        let pointName = parts[1];
+
+                        $("#codeName").val(codeName);
+                        $("#pointName").val(pointName);
+                    }
+                },
+                error: function () {
+                    console.error("Không thể lấy danh sách điểm sạc.");
+                }
+            });
+        });
+
+        $("#btn-add").click(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            stationId = urlParams.get('stationId');
+            const pointDto = {
+                totalPoint: parseInt($("#totalPoint").val()),
+                pointCode: $("#codeName").val(),
+                pointName: $("#pointName").val(),
+                pointDescription: $("#description").val(),
+                maxPower: parseFloat($("#maxPower").val())
+            };
+
+            $.ajax({
+                url: `https://localhost:7191/api/ChargingPoint/AddPoints?stationId=${stationId}`,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(pointDto),
+                success: function (response) {
+                    alert("Thêm điểm sạc thành công!");
+                    $("#addPointModal").modal("hide");
+                    location.reload(); // Refresh lại trang để cập nhật danh sách
+                },
+                error: function (xhr) {
+                    console.error("Lỗi khi thêm điểm sạc:", xhr.responseText);
+                    alert("Thêm điểm sạc thất bại!");
+                }
+            });
+        });
+
+
+
+
     </script>
 
 </body>
