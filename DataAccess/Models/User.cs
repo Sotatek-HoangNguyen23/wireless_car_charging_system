@@ -23,6 +23,8 @@ public partial class User
 
     public bool? Gender { get; set; }
 
+    public string? Address { get; set; }
+
     public string? PasswordHash { get; set; }
 
     public string? Status { get; set; }
@@ -33,9 +35,13 @@ public partial class User
 
     public virtual ICollection<Balance> Balances { get; set; } = new List<Balance>();
 
+    public virtual ICollection<Cccd> Cccds { get; set; } = new List<Cccd>();
+
     public virtual ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();
 
     public virtual ICollection<ChargingStation> ChargingStations { get; set; } = new List<ChargingStation>();
+
+    public virtual ICollection<DriverLicense> DriverLicenses { get; set; } = new List<DriverLicense>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
