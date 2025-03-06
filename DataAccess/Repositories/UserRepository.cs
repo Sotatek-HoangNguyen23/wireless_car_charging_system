@@ -37,6 +37,7 @@ namespace DataAccess.Repositories
                 .SingleOrDefaultAsync(u => u.UserId == id);
         }
 
+
         public async Task SaveUser(RegisterRequest user)
         {
             User newUser = new User();

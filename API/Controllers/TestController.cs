@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -20,6 +22,7 @@ namespace API.Controllers
         public ActionResult getAllRoles()
         {
             var roles = _testService.GetAllRoles();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return new JsonResult(roles);
         }
     }

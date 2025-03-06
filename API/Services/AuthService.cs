@@ -65,7 +65,7 @@ namespace API.Services
                 throw new ArgumentException("User not found");
             }
 
-            var newAccessToken =  GenerateAccessToken(user);
+            var newAccessToken = GenerateAccessToken(user);
             string newRefreshToken = await GenerateRefreshToken();
 
             await _authRepository.SaveRefreshToken(HashToken(newRefreshToken), user);
