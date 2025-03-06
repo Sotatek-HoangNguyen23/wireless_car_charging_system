@@ -220,5 +220,18 @@ namespace DataAccess.Repositories.CarRepo
                 }
             }
         }
+
+        public void editCar(int carModel, int carId, string licensePlate, string carName)
+        {
+            var car = _context.Cars.FirstOrDefault(c => c.CarId == carId);
+            if (car != null)
+            {
+                car.CarModelId = carModel;
+                car.LicensePlate = licensePlate;
+                car.CarName = carName;
+                car.UpdateAt = DateTime.Now;
+                _context.SaveChanges();
+            }
+        }
     }
 }

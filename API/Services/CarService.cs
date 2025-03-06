@@ -57,5 +57,9 @@ namespace API.Services
                 throw new Exception("Error: " + ex.Message);
             }
         }
+
+        public void editCar(int carModel, int carId, string licensePlate, string carName) {
+            _myCars.editCar(carModel,carId,licensePlate,carName);
+        }
     }
 }

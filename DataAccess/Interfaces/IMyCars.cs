@@ -26,5 +26,7 @@ namespace DataAccess.Interfaces
         bool checkDuplicateLicensePlate(string licensePlate) ;
 
         void addCar(int carModel, int userId, string licensePlate, string carName);
+
+        void editCar(int carModel, int carId, string licensePlate, string carName);
     }
 }

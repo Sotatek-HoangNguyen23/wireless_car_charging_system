@@ -135,5 +135,35 @@ namespace API.Controllers
                 return StatusCode(500, new { message = "An error occurred while adding the car.", error = ex.Message });
             }
         }
+
+        [HttpPut("edit-car")]
+        public IActionResult EditCar([FromBody] EditCarRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request body is null.");
+            }
+
+            if (request.CarModelId <= 0 || request.CarId <= 0 || string.IsNullOrEmpty(request.LicensePlate) || string.IsNullOrEmpty(request.CarName))
+            {
+                return BadRequest("Invalid input parameters.");
+            }
+
+            try
+            {
+                _carService.editCar(request.CarModelId, request.CarId, request.LicensePlate, request.CarName);
+                return Ok(new { message = "Car updated successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the car.", error = ex.Message });
+            }
+        }
+
+
     }
 }

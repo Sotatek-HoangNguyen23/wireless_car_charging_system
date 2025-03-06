@@ -28,4 +28,13 @@ namespace DataAccess.DTOs
         public string LicensePlate { get; set; }
         public string CarName { get; set; }
     }
+
+    public class EditCarRequest
+    {
+        public int CarId { get; set; }
+        public int CarModelId { get; set; }
+        public string LicensePlate { get; set; }
+        public string CarName { get; set; }
+    }
+
 }

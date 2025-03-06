@@ -73,6 +73,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const carId = urlParams.get('carId');
 
+    
+     const suggestionsContainer = document.getElementById('suggestions');
+     const carModelDetails = document.getElementById('carModelDetails');
+     const clearSearch = document.getElementById('clearSearch');
+
 
     const carNameInput = document.querySelector('input[placeholder="Name your car"]');
     const licensePlateInput = document.querySelector('input[placeholder="Enter license plate"]');
@@ -136,7 +141,107 @@
             alert('Failed to load car details.');
         }
     });
+    async function fetchCarModels(searchTerm) {
+        try {
+            const response = await fetch(`https://localhost:7191/api/Car/car-models?search=${searchTerm}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch car models');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching car models:', error);
+            return [];
+        }
+    }
+    function displaySuggestions(models) {
+        if (models.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
 
+        const suggestionsHTML = models.map(model => `
+            <div class="list-group-item list-group-item-action"
+                 data-model-id="${model.carModelId}"
+                 data-type="${model.type}"
+                 data-color="${model.color}"
+                 data-seat-number="${model.seatNumber}"
+                 data-brand="${model.brand}"
+                 data-charging-standard="${model.chargingStandard}"
+                 data-average-range="${model.averageRange}"
+                 data-max-charging-power="${model.maxChargingPower}"
+                 data-img="${model.img}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">${model.type}</h6>
+                        <small class="text-muted">${model.color}</small>
+                    </div>
+                    <img src="${model.img}" alt="${model.type}" class="img-thumbnail" style="width: 70px; height: auto;">
+                </div>
+            </div>
+        `).join('');
 
+        suggestionsContainer.innerHTML = suggestionsHTML;
+        suggestionsContainer.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', async function () {
+        const searchTerm = this.value.trim();
+
+        if (searchTerm.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            carModelDetails.style.display = 'none';
+            clearSearch.style.display = 'none';
+            return;
+        }
+
+        clearSearch.style.display = 'block';
+
+        const carModels = await fetchCarModels(searchTerm);
+        displaySuggestions(carModels);
+    });
+
+        suggestionsContainer.addEventListener('click', function (event) {
+        const selectedItem = event.target.closest('.list-group-item');
+        if (selectedItem) {
+            const type = selectedItem.getAttribute('data-type');
+            const color = selectedItem.getAttribute('data-color');
+            const seatNumber = selectedItem.getAttribute('data-seat-number');
+            const brand = selectedItem.getAttribute('data-brand');
+            const chargingStandard = selectedItem.getAttribute('data-charging-standard');
+            const averageRange = selectedItem.getAttribute('data-average-range');
+            const maxChargingPower = selectedItem.getAttribute('data-max-charging-power');
+            const img = selectedItem.getAttribute('data-img');
+
+            selectedCarModelId = selectedItem.getAttribute('data-model-id');
+
+            searchInput.value = type;
+
+            selectedColor.textContent = color;
+            selectedSeatNumber.textContent = seatNumber;
+            selectedBrand.textContent = brand;
+            selectedChargingStandard.textContent = chargingStandard;
+            selectedAverageRange.textContent = averageRange;
+            selectedMaxChargingPower.textContent = maxChargingPower;
+            selectedImage.src = img;
+
+            carModelDetails.style.display = 'block';
+
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    clearSearch.addEventListener('click', function () {
+        searchInput.value = '';
+        suggestionsContainer.style.display = 'none';
+        carModelDetails.style.display = 'none';
+        clearSearch.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
 
 </script>
