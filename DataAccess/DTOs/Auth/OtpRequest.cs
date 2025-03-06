@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace DataAccess.DTOs.Auth
 {
-    public class AuthenticateRequest
+    public class OtpRequest
     {
+        [EmailAddress]
+        public required string Email { get; set; }
 
-        public string? Email { get; set; }
-        public string? Password { get; set; }
     }
 }

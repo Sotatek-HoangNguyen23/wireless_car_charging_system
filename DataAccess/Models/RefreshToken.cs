@@ -17,7 +17,6 @@ public partial class RefreshToken
         Revoked = revoked;
         CreatedAt = createdAt;
     }
-
     public int TokenId { get; set; }
 
     public int UserId { get; set; }
@@ -31,6 +30,4 @@ public partial class RefreshToken
     public DateTime? CreatedAt { get; set; }
 
     public virtual User User { get; set; } = null!;
-
-  
 }

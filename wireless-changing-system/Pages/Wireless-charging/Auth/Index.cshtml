@@ -77,6 +77,9 @@
 
         const result = await response.json();
         sessionStorage.setItem("accessToken", result.accessToken);
+        sessionStorage.setItem("fullName", result.fullname);
+        sessionStorage.setItem("avartar_url", "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
+        window.location.href = '/';
         console.log('Login successful:', result);
 
       } catch (error) {
