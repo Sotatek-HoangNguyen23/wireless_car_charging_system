@@ -71,15 +71,9 @@
                     <input type="number" class="form-control" id="totalPoints" placeholder="Enter total points">
                 </div>
                 <div class="col-md-6 row">
-                    <div class="col-md-8">
-                        <label for="pointName" class="form-label fw-bolder">Point Code</label>
-                        <input type="text" class="form-control" id="pointName" placeholder="Codename as HCM, HN, P,...">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="pointName" class="form-label fw-bolder">Point Name</label>
-                        <input type="text" class="form-control" id="pointName" placeholder="1 or A">
-                    </div>
-                    <p class="form-note">Charging point name will be HCM-1, HCM-2,... or P-A, P-B,...</p>
+                    <label for="pointName" class="form-label fw-bolder">Point Code</label>
+                    <input type="text" class="form-control" id="pointName" placeholder="Codename as HCM, HN, P,...">
+                    <p class="form-note">Charging point name will be like HCM-1, HCM-2,... or P-1, P-2,...</p>
                 </div>
             </div>
 
@@ -87,7 +81,7 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="description" class="form-label fw-bolder">Description</label>
-                    <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                    <textarea class="form-control" id="pointDescription" rows="3" placeholder="Enter description"></textarea>
                 </div>
                 <div class="col-md-6">
                     <label for="maxPower" class="form-label fw-bolder">Max Power</label>
@@ -140,13 +134,14 @@
                     stationName: $("#stationName").val(),
                     ownerId: parseInt($("#owner").val()),  // Ép kiểu về số
                     address: $("#stationAddress").val(),
-                    latitude: parseFloat($("#latitude").val()),  // Ép kiểu về số
-                    longitude: parseFloat($("#longitude").val()),  // Ép kiểu về số
-                    description: $("#description").eq(0).val(),
-                    totalPoints: parseInt($("#totalPoints").val()),  // Ép kiểu về số
+                    // latitude: parseFloat($("#latitude").val()),  Ép kiểu về số
+                    // longitude: parseFloat($("#longitude").val()),  Ép kiểu về số
+                    latitude: 100,  
+                    longitude: 100, 
+                    description: $("#description").val(),
+                    totalPoint: parseInt($("#totalPoints").val()),  // Ép kiểu về số
                     pointCode: $("#pointName").eq(0).val(),
-                    pointName: $("#pointName").eq(1).val(),
-                    pointDescription: $("#description").eq(1).val(),
+                    pointDescription: $("#pointDescription").val(),
                     maxPower: parseFloat($("#maxPower").val()) || 0 // Ép kiểu về số, mặc định 0 nếu null
                 };
 
@@ -159,7 +154,7 @@
                     data: JSON.stringify(stationDto),
                     success: function (response) {
                         alert("Thêm trạm sạc thành công!");
-                        window.location.href = "/ChargingStation/List";
+                        window.location.href = "/wireless-charging/chargingstation/stationlist";
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi thêm trạm sạc:", xhr.responseText);
