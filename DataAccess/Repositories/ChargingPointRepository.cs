@@ -3,6 +3,7 @@ using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Collections.Specialized.BitVector32;
 
 namespace DataAccess.Repositories
 {
@@ -79,30 +80,39 @@ namespace DataAccess.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public void UpdateChargingPoint(UpdateChargingPointDto cp)
+        public async Task<ChargingPoint?> UpdateChargingPoint(int pointId, UpdateChargingPointDto pointDto)
         {
-            var point = _context.ChargingPoints.Find(cp.ChargingPointId);
-            if (point == null) throw new KeyNotFoundException("Charging Point not found");
+            var point = await _context.ChargingPoints.FirstOrDefaultAsync(s => s.ChargingPointId == pointId);
 
-            point.StationId = cp.StationId ?? point.StationId;
-            point.ChargingPointName = cp.ChargingPointName ?? point.ChargingPointName;
-            point.Description = cp.Description ?? point.Description;
-            point.Status = cp.Status ?? point.Status;
-            point.MaxPower = cp.MaxPower ?? point.MaxPower;
-            point.UpdateAt = DateTime.UtcNow;
-            point.MaxConsumPower = cp.MaxConsumPower ?? point.MaxConsumPower;
+            if (point == null)
+                return null;
 
-            _context.ChargingPoints.Update(point);
-            _context.SaveChanges();
+            // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
+            if (!string.IsNullOrEmpty(pointDto.ChargingPointName)) point.ChargingPointName = pointDto.ChargingPointName;
+            if (!string.IsNullOrEmpty(pointDto.Description)) point.Description = pointDto.Description;
+            if (!string.IsNullOrEmpty(pointDto.Status)) point.Status = pointDto.Status;
+            if (pointDto.MaxConsumPower.HasValue) point.MaxConsumPower = pointDto.MaxConsumPower;
+            if (pointDto.MaxPower.HasValue) point.MaxPower = pointDto.MaxPower;
+
+            point.UpdateAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return point;
         }
 
-        public void DeleteChargingPoint(int pointId)
+        public async Task<bool> DeleteChargingPoint(int pointId)
         {
-            var point = _context.ChargingPoints.Find(pointId);
-            if (point == null) throw new KeyNotFoundException("Charging Point not found");
+            var point = await _context.ChargingPoints                        // Load ChargingPoints để xóa
+                .FirstOrDefaultAsync(s => s.ChargingPointId == pointId);
+
+            if (point == null)
+                return false;
 
             _context.ChargingPoints.Remove(point);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
     }

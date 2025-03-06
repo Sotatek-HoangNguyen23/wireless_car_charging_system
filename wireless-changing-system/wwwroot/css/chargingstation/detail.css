@@ -1,8 +1,4 @@
-﻿body {
-    padding: 20px;
-}
-
-.status-dot {
+﻿.status-dot {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -78,6 +74,7 @@
     .charging-points .row {
         display: flex;
         flex-wrap: wrap; /* Cho phép các point xuống dòng */
+        margin-bottom: 30px;
     }
 
     .charging-points .col-md-4 {
