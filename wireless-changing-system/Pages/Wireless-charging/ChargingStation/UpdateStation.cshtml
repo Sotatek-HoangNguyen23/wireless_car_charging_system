@@ -125,7 +125,8 @@
                         $("#latitude").val(station.latitude || '');
                         $("#longitude").val(station.longtitude || '');
                         $("#description").val(station.description || '');
-                    },
+                    }
+                },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi tải dữ liệu trạm sạc:", error);
                     alert("Lỗi khi tải dữ liệu trạm sạc.");
