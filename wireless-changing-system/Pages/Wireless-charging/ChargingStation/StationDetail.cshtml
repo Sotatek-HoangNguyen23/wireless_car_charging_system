@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Station Detail</title>
     <link rel="stylesheet" href="~/css/chargingstation/detail.css"> 
+
 </head>
 <body>
     <div class="container">
@@ -121,6 +122,43 @@
         </div>
     </div>
 
+    <!-- Modal Update -->
+    <div class="modal fade" id="updatePointModal" tabindex="-1" aria-labelledby="updatePointModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updatePointModalLabel">Update Charging Point</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="pointName" class="form-label">Point Name</label>
+                                <input type="text" class="form-control" id="pointName" placeholder="Enter point name">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxPower" class="form-label">Max Power</label>
+                                <input type="number" class="form-control" id="maxPower" placeholder="Enter max power">
+                            </div>                            
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-update">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let currentPage = 1;
@@ -171,7 +209,7 @@
                 <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longtitude}">
                 Show on Map
                 </button>
-                <a class="btn btn-info btn-sm">Update</a>
+                <a class="btn btn-info btn-sm" href="updatestation?stationId=${station.stationId}">Update</a>
                 <a href="#" class="btn btn-danger btn-sm btn-delete-station" data-id="${station.stationId}"">Delete</a>
             `);
 
@@ -207,8 +245,8 @@
                             </p>
                             <p><strong>Max power:</strong> ${point.maxPower}</p>
                             <p><strong>Description:</strong> ${point.description}</p>
-                            <a class="btn btn-info btn-sm" href="updatepoint?pointId=${point.chargingPointId}">Update</a>
-                            <a class="btn btn-danger btn-sm btn-delete-point" href="#" class="btn btn-danger btn-sm btn-delete" data-id="${point.chargingPointId}">Delete</a>
+                            <a class="btn btn-info btn-sm btn-update-point" href="#" data-id="${point.chargingPointId}">Update</a>
+                            <a class="btn btn-danger btn-sm btn-delete-point" href="#" data-id="${point.chargingPointId}">Delete</a>
                         </div>
                     </div>
                 `;
@@ -272,6 +310,7 @@
             });
         }
 
+        // Delete Station, Point
         $(document).ready(function () {
             let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
             let pointIdToDelete = null;
@@ -331,30 +370,81 @@
             });
         });
 
-        $('#addPointModal').on('show.bs.modal', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            stationId = urlParams.get('stationId');
+        // Update Point
+        $(document).ready(function () {
+            let pointIdToUpdate = null;
 
-            $.ajax({
-                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`,
-                type: "GET",
-                success: function (data) {
-                    if (data.points.data.length > 0) {
-                        const latestPoint = data.points.data[0].chargingPointName; // Lấy tên đầu tiên (có thể đổi sang lấy cuối cùng)
-                        const parts = latestPoint.split("-");
-                        let codeName = parts[0];
-                        let pointName = parts[1];
-
-                        $("#codeName").val(codeName);
-                        $("#pointName").val(pointName);
-                    }
-                },
-                error: function () {
-                    console.error("Không thể lấy danh sách điểm sạc.");
-                }
+            // Khi nhấn vào nút cập nhật
+            $(document).on("click", ".btn-update-point", function (e) {
+                e.preventDefault();
+                pointIdToUpdate = $(this).data("id");
+                $("#updatePointModal").modal("show");
             });
+
+            $("#updatePointModal").on("show.bs.modal", function () {
+
+                if (!pointIdToUpdate) {
+                    console.error("Không có ID của điểm sạc để cập nhật.");
+                    return;
+                }
+
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`,
+                    type: "GET",
+                    success: function (data) {
+                        console.log("Dữ liệu API trả về:", data);
+
+                        if (data) {
+                            $("#pointName").val(data.chargingPointName || "");
+                            $("#maxPower").val(data.maxPower || "");
+                            $("#description").val(data.description || "");
+
+                            console.log("Sau khi gán:", {
+                                pointName: $("#pointName").val(),
+                                maxPower: $("#maxPower").val(),
+                                description: $("#description").val()
+                            });
+                        } else {
+                            console.warn("Dữ liệu trả về không hợp lệ.");
+                        }
+                    },
+                    error: function () {
+                        console.error("Không thể lấy dữ liệu điểm sạc.");
+                    }
+                });
+            });
+
+            $("#btn-update").click(function () {
+                const maxPowerValue = $("#maxPower").val();
+
+                const updatePointDto = {
+                    pointName: $("#pointName").val(),
+                    pointDescription: $("#description").val(),
+                    maxPower: maxPowerValue ? parseFloat(maxPowerValue) : 0
+                };
+
+                console.log("Dữ liệu gửi đi:", JSON.stringify(updatePointDto));
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify(updatePointDto),
+                    success: function (response) {
+                        console.log("Cập nhật thành công:", response);
+                        alert("Point updated!");
+                        $("#updatePointModal").modal("hide");
+                        location.reload(); // Refresh lại trang để cập nhật danh sách
+                    },
+                    error: function (xhr) {
+                        console.error("Error:", xhr.responseText);
+                        alert("Failed!");
+                    }
+                });
+            });
+
         });
 
+        // Add Point
         $("#btn-add").click(function () {
             const urlParams = new URLSearchParams(window.location.search);
             stationId = urlParams.get('stationId');
@@ -383,7 +473,31 @@
             });
         });
 
+        // Update Point
+        // $("#btn-update").click(function () {
 
+        //     const pointDto = {
+        //         pointName: $("#pointName").val(),
+        //         pointDescription: $("#description").val(),
+        //         maxPower: parseFloat($("#maxPower").val())
+        //     };
+
+        //     $.ajax({
+        //         url: `https:localhost:7191/api/ChargingPoint/?pointId=${stationId}`,
+        //         type: "PUT",
+        //         contentType: "application/json",
+        //         data: JSON.stringify(pointDto),
+        //         success: function (response) {
+        //             alert("Thêm điểm sạc thành công!");
+        //             $("#updatePointModal").modal("hide");
+        //             location.reload(); Refresh lại trang để cập nhật danh sách
+        //         },
+        //         error: function (xhr) {
+        //             console.error("Lỗi khi thêm điểm sạc:", xhr.responseText);
+        //             alert("Thêm điểm sạc thất bại!");
+        //         }
+        //     });
+        // });
 
 
     </script>

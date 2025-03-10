@@ -115,6 +115,7 @@ namespace DataAccess.Repositories
                     Latitude = cs.StationLocation.Latitude,
                     TotalPoint = cs.ChargingPoints.Count(),
                     AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
+                    LocationDescription = cs.StationLocation.Description,
                     CreateAt = cs.CreateAt,
                     UpdateAt = cs.UpdateAt,
                     MaxConsumPower = cs.MaxConsumPower

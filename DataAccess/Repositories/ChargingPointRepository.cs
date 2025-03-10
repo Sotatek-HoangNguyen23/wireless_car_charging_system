@@ -48,7 +48,7 @@ namespace DataAccess.Repositories
             return new PagedResult<ChargingPointDto> { Data = data, TotalPages = totalPages }; ;
         }
 
-        public ChargingPointDto GetPointById(int pointId)
+        public ChargingPointDto? GetPointById(int pointId)
         {
             var point = _context.ChargingPoints
                 .Include(cp => cp.ChargingSessions)

@@ -85,6 +85,11 @@ namespace API.Services
             return await _stationRepository.DeleteChargingStation(stationId);
         }
 
+        public ChargingPointDto? GetPointById(int pointId)
+        {
+            return _pointRepository.GetPointById(pointId);
+        }
+
         public async Task<List<ChargingPoint>> AddPoint(int stationId, NewChargingStationDto stationDto)
         {
             var points = new List<ChargingPoint>();
