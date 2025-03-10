@@ -1,10 +1,13 @@
-﻿namespace DataAccess.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace DataAccess.Models;
 
 public partial class ChargingPoint
 {
     public int ChargingPointId { get; set; }
 
-    public int StationId { get; set; }
+    public int? StationId { get; set; }
 
     public string? ChargingPointName { get; set; }
 
@@ -24,5 +27,5 @@ public partial class ChargingPoint
 
     public virtual ICollection<RealTimeDatum> RealTimeData { get; set; } = new List<RealTimeDatum>();
 
-    public virtual ChargingStation Station { get; set; } = null!;
+    public virtual ChargingStation? Station { get; set; }
 }

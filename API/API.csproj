@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="payOS" Version="1.0.9" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>

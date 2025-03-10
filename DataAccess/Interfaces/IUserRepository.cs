@@ -12,6 +12,7 @@ namespace DataAccess.Interfaces
     {
         Task<User?> GetUserByEmail(string email);
         Task<User?> GetUserById(int id);
+       
         Task SaveUser(RegisterRequest user);
     }
 }
