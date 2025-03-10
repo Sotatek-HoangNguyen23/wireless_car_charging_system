@@ -5,6 +5,9 @@ namespace DataAccess.Models;
 
 public partial class Cccd
 {
+    public Cccd()
+    {
+    }
     public int CccdId { get; set; }
 
     public int UserId { get; set; }
@@ -12,6 +15,10 @@ public partial class Cccd
     public string? ImgFront { get; set; }
 
     public string? ImgBack { get; set; }
+
+    public string? ImgFrontPubblicId { get; set; }
+
+    public string? ImgBackPubblicId { get; set; }
 
     public string? Code { get; set; }
 

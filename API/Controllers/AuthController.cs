@@ -16,8 +16,11 @@ namespace API.Controllers
             _authService = authService;
             _userService = userService;
         }
+
+
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
         {
             try
             {

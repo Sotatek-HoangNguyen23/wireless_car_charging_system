@@ -11,8 +11,36 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using dotenv.net;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+//=================================
+// Cloudinary configuration
+//DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+//Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+//cloudinary.Api.Secure = true;
+var cloudinarySettings = builder.Configuration.GetSection("Cloudinary");
+var cloudName = cloudinarySettings["CloudName"];
+var apiKey = cloudinarySettings["ApiKey"];
+var apiSecret = cloudinarySettings["ApiSecret"];
+if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
+{
+    throw new Exception("Missing Cloudinary configuration in appsettings.json");
+}
+Account account = new Account(cloudName, apiKey, apiSecret);
+Cloudinary cloudinary = new Cloudinary(account);
+cloudinary.Api.Secure = true;
+builder.Services.AddSingleton(cloudinary);
+// Cho phép upload file lớn (tối đa 50MB)
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024;
+});
+//=======================================
+//Redis conection
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
 if (string.IsNullOrEmpty(redisConnectionString))
 {
@@ -30,7 +58,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var connection = ConnectionMultiplexer.Connect(configurationOptions);
 
-    // Kiểm tra kết nối
     if (!connection.IsConnected)
     {
         throw new InvalidOperationException("Failed to connect to Redis");
@@ -38,6 +65,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
     return connection;
 });
+//=======================================
+// Add services to the container.
 builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
@@ -48,9 +77,15 @@ builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();
+builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICccdRepository, CccdRepository>();
 builder.Services.AddScoped<ITest, Test>();
+
+
+//=======================================
+// JWt configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
