@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 /.evn
 /API/.evn
+/API/.env
