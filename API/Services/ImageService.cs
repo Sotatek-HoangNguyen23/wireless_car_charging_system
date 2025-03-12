@@ -1,5 +1,11 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using System.Drawing;
+using ZXing.Common;
+using ZXing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
+using ZXing.ImageSharp;
 
 namespace API.Services
 {
@@ -15,6 +21,7 @@ namespace API.Services
         public ImageService(Cloudinary cloudinary)
         {
             _cloudinary = cloudinary;
+   
         }
 
         public async Task<ImageUploadResult> UploadImagetAsync(IFormFile file)
@@ -71,7 +78,42 @@ namespace API.Services
                 throw new Exception($"Không thể xóa ảnh: {ex.Message}", ex);
             }
         }
+        public async Task<string> ReadQrCodeAsync(IFormFile file)
+        {
+            ValidateImage(file);
 
+            try
+            {
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                using var image = await Image.LoadAsync<Rgba32>(stream);
+
+                var result = await Task.Run(() =>
+                {
+                    // Sử dụng fully qualified name để tránh ambiguity
+                    var reader = new ZXing.ImageSharp.BarcodeReader<Rgba32>
+                    {
+                        Options = new DecodingOptions
+                        {
+                            PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
+                            TryHarder = true
+                        }
+                    };
+
+                    // Tạo luminance source và decode
+                    var luminanceSource = new ImageSharpLuminanceSource<Rgba32>(image);
+                    return reader.Decode(luminanceSource);
+                }).ConfigureAwait(false);
+
+                return result?.Text ?? "Không tìm thấy QR code";
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException($"Lỗi đọc QR code: {ex.Message}");
+            }
+        }
         public void ValidateImage(IFormFile file)
         {
             if (file == null || file.Length == 0)

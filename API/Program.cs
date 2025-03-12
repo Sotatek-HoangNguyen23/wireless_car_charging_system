@@ -16,21 +16,10 @@ using CloudinaryDotNet.Actions;
 using dotenv.net;
 using Microsoft.AspNetCore.Http.Features;
 
+
 var builder = WebApplication.CreateBuilder(args);
 //=================================
 // Cloudinary configuration
-
-
-//var cloudinarySettings = builder.Configuration.GetSection("Cloudinary");
-//var cloudName = cloudinarySettings["CloudName"];
-//var apiKey = cloudinarySettings["ApiKey"];
-//var apiSecret = cloudinarySettings["ApiSecret"];
-//if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
-//{
-//    throw new Exception("Missing Cloudinary configuration in appsettings.json");
-//}
-//Account account = new Account(cloudName, apiKey, apiSecret);
-//Cloudinary cloudinary = new Cloudinary(account);
 DotEnv.Load();
 Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
 cloudinary.Api.Secure = true;
@@ -136,7 +125,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 var app = builder.Build();
-
 app.UseCors("AllowAllOrigins");
 
 // Configure the HTTP request pipeline.
