@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
+using DataAccess.Repositories.StationRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];

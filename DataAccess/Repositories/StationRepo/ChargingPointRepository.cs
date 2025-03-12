@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Collections.Specialized.BitVector32;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories.StationRepo
 {
     public class ChargingPointRepository : IChargingPointRepository
     {
@@ -74,7 +74,7 @@ namespace DataAccess.Repositories
         public async Task AddChargingPoints(List<ChargingPoint> points)
         {
             if (points == null || points.Count == 0)
-                throw new ArgumentException("Danh sách điểm sạc trống!");
+                throw new ArgumentException("Point list is empty!");
 
             await _context.ChargingPoints.AddRangeAsync(points);
             await _context.SaveChangesAsync();
@@ -103,7 +103,7 @@ namespace DataAccess.Repositories
 
         public async Task<bool> DeleteChargingPoint(int pointId)
         {
-            var point = await _context.ChargingPoints                        // Load ChargingPoints để xóa
+            var point = await _context.ChargingPoints                        
                 .FirstOrDefaultAsync(s => s.ChargingPointId == pointId);
 
             if (point == null)
