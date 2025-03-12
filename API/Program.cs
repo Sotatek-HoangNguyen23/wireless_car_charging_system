@@ -19,19 +19,20 @@ using Microsoft.AspNetCore.Http.Features;
 var builder = WebApplication.CreateBuilder(args);
 //=================================
 // Cloudinary configuration
-//DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
-//Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
-//cloudinary.Api.Secure = true;
-var cloudinarySettings = builder.Configuration.GetSection("Cloudinary");
-var cloudName = cloudinarySettings["CloudName"];
-var apiKey = cloudinarySettings["ApiKey"];
-var apiSecret = cloudinarySettings["ApiSecret"];
-if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
-{
-    throw new Exception("Missing Cloudinary configuration in appsettings.json");
-}
-Account account = new Account(cloudName, apiKey, apiSecret);
-Cloudinary cloudinary = new Cloudinary(account);
+
+
+//var cloudinarySettings = builder.Configuration.GetSection("Cloudinary");
+//var cloudName = cloudinarySettings["CloudName"];
+//var apiKey = cloudinarySettings["ApiKey"];
+//var apiSecret = cloudinarySettings["ApiSecret"];
+//if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
+//{
+//    throw new Exception("Missing Cloudinary configuration in appsettings.json");
+//}
+//Account account = new Account(cloudName, apiKey, apiSecret);
+//Cloudinary cloudinary = new Cloudinary(account);
+DotEnv.Load();
+Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
 cloudinary.Api.Secure = true;
 builder.Services.AddSingleton(cloudinary);
 // Cho phép upload file lớn (tối đa 50MB)
@@ -42,6 +43,7 @@ builder.Services.Configure<FormOptions>(options =>
 //=======================================
 //Redis conection
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+var redisPassword = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
 if (string.IsNullOrEmpty(redisConnectionString))
 {
     throw new ArgumentException("Redis connection string is missing");
@@ -49,7 +51,7 @@ if (string.IsNullOrEmpty(redisConnectionString))
 
 var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);
 configurationOptions.User = "default";
-configurationOptions.Password = builder.Configuration["Redis:Password"]; 
+configurationOptions.Password = redisPassword; 
 configurationOptions.AbortOnConnectFail = false;
 configurationOptions.ConnectTimeout = 15000;
 configurationOptions.SyncTimeout = 15000;
@@ -87,7 +89,8 @@ builder.Services.AddScoped<ITest, Test>();
 //=======================================
 // JWt configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
+var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
+var key = Encoding.UTF8.GetBytes(secret!);
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -121,7 +121,7 @@ namespace API.Services
             var audience = _configuration["Jwt:Audience"];
             //The issuer of the token (e.g., the URL of your authorization server).
             var issuer = _configuration["Jwt:Issuer"];
-            var privateKey = _configuration["Jwt:Key"];
+            var privateKey = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(privateKey))
             {
                 throw new ArgumentException("JWT private key cannot be null or empty");
