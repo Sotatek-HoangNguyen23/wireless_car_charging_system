@@ -2,6 +2,7 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,10 @@ namespace DataAccess.Repositories
         {
             _context = context;
         }
-
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
+        }
         public async Task<User?> GetUserByEmail(string email)
         {
             if (String.IsNullOrWhiteSpace(email))
@@ -38,35 +42,12 @@ namespace DataAccess.Repositories
         }
 
 
-        public async Task SaveUser(RegisterRequest user)
+        public async Task SaveUser(User newUser)
         {
-            User newUser = new User();
-            if (user == null)
+            if (newUser == null)
             {
-                throw new ArgumentException("User cannot be null", nameof(user));
+                throw new ArgumentException("User cannot be null", nameof(newUser));
             }
-            if (user.Email == null)
-            {
-                throw new ArgumentException("Email cannot be null", nameof(user.Email));
-            }
-            if (user.Fullname == null)
-            {
-                throw new ArgumentException("Fullname cannot be null", nameof(user.Fullname));
-            }
-            if (user.PhoneNumber == null)
-            {
-                throw new ArgumentException("PhoneNumber cannot be null", nameof(user.PhoneNumber));
-            }
-            newUser.Email = user.Email;
-            newUser.Fullname = user.Fullname;
-            newUser.PhoneNumber = user.PhoneNumber;
-            newUser.Dob = user.Dob;
-            newUser.RoleId = 1;
-            newUser.Gender = user.Gender;
-            newUser.PasswordHash = user.PasswordHash;
-            newUser.Status = "Active";
-            newUser.CreateAt = DateTime.Now;
-            newUser.UpdateAt = DateTime.Now;
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();
         }
