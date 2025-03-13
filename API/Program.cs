@@ -16,6 +16,7 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using dotenv.net;
 using Microsoft.AspNetCore.Http.Features;
+using DataAccess.Repositories.StationRepo;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -115,6 +116,7 @@ builder.Services.AddScoped<ChargingStationService>();
 builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
 builder.Services.AddScoped<IMyCars, MyCarsRepo>(); 
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
 
 builder.Services.AddAuthorization(options =>
 {

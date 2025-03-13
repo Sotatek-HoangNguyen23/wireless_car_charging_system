@@ -2,8 +2,9 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories.StationRepo
 {
     public class PagedResult<T>
     {
@@ -33,10 +34,10 @@ namespace DataAccess.Repositories
             {
                 string lowerKeyword = keyword.ToLower();
                 query = query.Where(cs =>
-                    (!string.IsNullOrEmpty(cs.StationName) && cs.StationName.ToLower().Contains(lowerKeyword)) ||
-                    (cs.StationLocation != null && cs.StationLocation.Address.ToLower().Contains(lowerKeyword))
+                    !string.IsNullOrEmpty(cs.StationName) && cs.StationName.ToLower().Contains(lowerKeyword) ||
+                    cs.StationLocation != null && cs.StationLocation.Address.ToLower().Contains(lowerKeyword)
                 );
-            }          
+            }
 
             // Chuyển dữ liệu sang DTO
             var stationList = query.AsNoTracking()
@@ -49,7 +50,7 @@ namespace DataAccess.Repositories
                                 Address = cs.StationLocation.Address,
                                 Longtitude = cs.StationLocation.Longitude,
                                 Latitude = cs.StationLocation.Latitude,
-                                TotalPoint = cs.ChargingPoints.Count(), 
+                                TotalPoint = cs.ChargingPoints.Count(),
                                 AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
                                 CreateAt = cs.CreateAt,
                                 UpdateAt = cs.UpdateAt,
@@ -115,6 +116,7 @@ namespace DataAccess.Repositories
                     Latitude = cs.StationLocation.Latitude,
                     TotalPoint = cs.ChargingPoints.Count(),
                     AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
+                    LocationDescription = cs.StationLocation.Description,
                     CreateAt = cs.CreateAt,
                     UpdateAt = cs.UpdateAt,
                     MaxConsumPower = cs.MaxConsumPower
@@ -124,47 +126,79 @@ namespace DataAccess.Repositories
             return station;
         }
 
-        //public void SaveStation(NewChargingStationDto s)
-        //{
-        //    var newStation = new ChargingStation
-        //    {
-        //        OwnerId = s.OwnerId,
-        //        StationLocationId = s.StationLocationId,
-        //        StationName = s.StationName,
-        //        Status = s.Status,
-        //        CreateAt = DateTime.UtcNow,
-        //        MaxConsumPower = s.MaxConsumPower
-        //    };
-
-        //    _context.ChargingStations.Add(newStation);
-        //    _context.SaveChanges();
-        //}
-
-        public void UpdateStation(UpdateChargingStationDto s)
+        public async Task<ChargingStation> AddChargingStation(ChargingStation station)
         {
-            var station = _context.ChargingStations.Find(s.StationId);
-            if (station == null) throw new KeyNotFoundException("Station not found");
+            _context.ChargingStations.Add(station);
+            await _context.SaveChangesAsync();
 
-            station.OwnerId = s.OwnerId ?? station.OwnerId;
-            station.StationLocationId = s.StationLocationId ?? station.StationLocationId;
-            station.StationName = s.StationName ?? station.StationName;
-            station.Status = s.Status ?? station.Status;
-            station.MaxConsumPower = s.MaxConsumPower ?? station.MaxConsumPower;
-            station.UpdateAt = DateTime.UtcNow;
+            return await _context.ChargingStations
+                .Include(cs => cs.Owner)
+                .Include(cs => cs.StationLocation)
+                .Include(cs => cs.ChargingPoints)
+                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId);
+        }
 
-            _context.ChargingStations.Update(station);
-            _context.SaveChanges();
+        public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
+        {
+            var station = await _context.ChargingStations.FirstOrDefaultAsync(s => s.StationId == stationId);
+
+            if (station == null)
+                return null;
+
+            // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
+            if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
+            if (stationDto.OwnerId != 0)
+            {
+                if (station.Owner != null)
+                {
+                    station.Owner = new User();
+                }
+
+                station.OwnerId = stationDto.OwnerId;
+            }
+            if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
+            if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
+
+            if (stationDto.Latitude != 0 || stationDto.Longtitude != 0 || !stationDto.Address.IsNullOrEmpty())
+            {
+                if (station.StationLocation == null)
+                {
+                    station.StationLocation = new StationLocation(); // Khởi tạo nếu null
+                }
+
+                if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
+                if (stationDto.Longtitude != 0) station.StationLocation.Longitude = stationDto.Longtitude;
+                if (!string.IsNullOrEmpty(stationDto.Address)) station.StationLocation.Address = stationDto.Address;
+            }
+
+            station.UpdateAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return await _context.ChargingStations
+                .Include(cs => cs.Owner)
+                .Include(cs => cs.StationLocation)
+                .Include(cs => cs.ChargingPoints)
+                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId); ;
         }
 
 
-        public void DeleteStation(int stationId)
+        public async Task<bool> DeleteChargingStation(int stationId)
         {
-            var station = _context.ChargingStations.Find(stationId);
-            if (station == null) throw new KeyNotFoundException("Station not found");
+            var station = await _context.ChargingStations
+                .Include(s => s.ChargingPoints)                         // Load ChargingPoints để xóa
+                .FirstOrDefaultAsync(s => s.StationId == stationId);
 
+            if (station == null)
+                return false;
+
+            // Xóa ChargingPoints trước khi xóa ChargingStation
+            _context.ChargingPoints.RemoveRange(station.ChargingPoints);
             _context.ChargingStations.Remove(station);
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
+            return true;
         }
+
 
     }
 }

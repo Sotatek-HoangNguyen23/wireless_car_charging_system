@@ -1,0 +1,175 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.ChargingStation.UpdateStationModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Station</title>
+    <link rel="stylesheet" href="~/css/chargingstation/addstation.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Update Charging Stations</h1>
+        <div class="form-container">
+            <!-- Station Name và Owner -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="stationName" class="form-label fw-bolder">Station Name</label>
+                    <input type="text" class="form-control" id="stationName">
+                </div>
+                <div class="col-md-6">
+                    <label for="owner" class="form-label fw-bolder">Owner</label>
+                    <select class="form-select" id="owner">
+                        <option selected>Select owner</option>
+                        <option value="1">Owner 1</option>
+                        <option value="2">Owner 2</option>
+                        <option value="3">Owner 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <!--Charging Location -->
+            <div class="row">
+                <h3 class="my-2">Charging location</h3>
+            </div>
+
+            <!-- Station Address -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="stationAddress" class="form-label fw-bolder">Station Address</label>
+                    <input type="text" class="form-control" id="stationAddress" placeholder="Enter station address">
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            <input type="hidden" id="latitude">
+            <input type="hidden" id="longitude">
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="description" class="form-label fw-bolder">Description</label>
+                    <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                </div>
+            </div>
+
+            <!-- Nút Submit -->
+            <div class="text-center">
+                <button id="btn-update" type="submit" class="btn btn-primary">Update</button>
+                <button class="btn btn-danger">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5Kd1wScRd-mvy6Xrt231J8sc7ekpt0dE&callback=initMap" async defer></script>
+    <script>        
+        function initMap() {
+            const defaultLocation = { lat: 10.7769, lng: 106.7009 };
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: defaultLocation,
+                zoom: 14
+            });
+
+            let marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true
+            });
+
+            // Cập nhật tọa độ khi kéo marker
+            marker.addListener("dragend", function (event) {
+                document.getElementById("latitude").value = event.latLng.lat();
+                document.getElementById("longitude").value = event.latLng.lng();
+            });
+
+            // Click vào bản đồ để đặt marker mới
+            map.addListener("click", function (event) {
+                marker.setPosition(event.latLng);
+                document.getElementById("latitude").value = event.latLng.lat();
+                document.getElementById("longitude").value = event.latLng.lng();
+            });
+        }
+
+        $(document).ready(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            stationId = urlParams.get('stationId');
+
+            if (!stationId) {
+                alert("Không tìm thấy ID trạm sạc.");
+                window.location.href = "/ChargingStation/List";
+                return;
+            }
+
+            // Gọi API để lấy dữ liệu hiện có
+            $.ajax({
+                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    if (data) {
+                        $("#stationName").val(data.station.stationName || '');
+                        $("#owner").val(data.station.ownerId || '');
+                        $("#stationAddress").val(data.station.address || '');
+                        $("#latitude").val(data.station.latitude || '');
+                        $("#longitude").val(data.station.longtitude || '');
+                        $("#description").val(data.station.locationDescription || '');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi tải dữ liệu trạm sạc:", error);
+                    alert("Lỗi khi tải dữ liệu trạm sạc.");
+                }
+            });
+
+            // Khi nhấn Update
+            $("#btn-update").click(function () {
+                const updatedStation = {
+                    stationName: $("#stationName").val(),
+                    ownerId: parseInt($("#owner").val()),
+                    address: $("#stationAddress").val(),
+                    // latitude: parseFloat($("#latitude").val()),
+                    // longtitude: parseFloat($("#longitude").val()),
+                    maxConsumPower: parseFloat($("#maxPower").val()) || 0
+                };
+
+                $.ajax({
+                    url: `https://localhost:7191/api/ChargingStation/${stationId}`,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify(updatedStation),
+                    success: function () {
+                        alert("Cập nhật thành công!");
+                        window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi khi cập nhật:", xhr.responseText);
+                        alert("Cập nhật thất bại!");
+                    }
+                });
+            });
+        });
+
+        // Hàm cập nhật bản đồ
+        // function updateMap(lat, lng) {
+        //     const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
+        //     map.setCenter(position);
+        //     marker.setPosition(position);
+        //     document.getElementById("latitude").value = lat;
+        //     document.getElementById("longitude").value = lng;
+        // }
+
+
+    </script>
+
+
+</body>
+</html>

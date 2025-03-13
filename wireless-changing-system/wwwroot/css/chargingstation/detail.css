@@ -1,8 +1,4 @@
-﻿body {
-    padding: 20px;
-}
-
-.status-dot {
+﻿.status-dot {
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -51,6 +47,7 @@
     .station-header {
         flex-direction: column; /* Chuyển sang layout dọc */
         align-items: center; /* Căn giữa các phần tử */
+        margin-top: 20px;
     }
 
         .station-header img {
@@ -78,6 +75,7 @@
     .charging-points .row {
         display: flex;
         flex-wrap: wrap; /* Cho phép các point xuống dòng */
+        margin-bottom: 30px;
     }
 
     .charging-points .col-md-4 {

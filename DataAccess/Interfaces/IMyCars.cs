@@ -1,4 +1,5 @@
 ﻿using DataAccess.DTOs;
+using DataAccess.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,13 @@ namespace DataAccess.Interfaces
         List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId);
 
         void deleteCar(int carId);
+
+        List<CarModel> getCarModels(string? search);
+
+        bool checkDuplicateLicensePlate(string licensePlate) ;
+
+        void addCar(int carModel, int userId, string licensePlate, string carName);
+
+        void editCar(int carModel, int carId, string licensePlate, string carName);
     }
 }
