@@ -11,7 +11,7 @@ namespace DataAccess.DTOs.Auth
     public class AuthenticateResponse
     {
         //public int Id { get; set; }
-        //public string? Fullname { get; set; }
+        public string? Fullname { get; set; }
         //public string? Email { get; set; }
         //public Boolean? Gender { get; set; }
 
@@ -23,7 +23,7 @@ namespace DataAccess.DTOs.Auth
         public AuthenticateResponse(User user, string jwtToken, string refreshToken)
         {
             //Id = user.UserId;
-            //Fullname = user.Fullname;
+            Fullname = user.Fullname;
             //Email = user.Email;
             //Gender= user.Gender;
             //Role = user.Role?.RoleName ?? "User"; // Giá trị mặc định
