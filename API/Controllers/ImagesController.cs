@@ -25,7 +25,7 @@ namespace API.Controllers
 
             try
             {
-                var result = await _imageService.ReadQrCodeAsync(file);
+                var result = await _imageService.ReadSmallQrCodeWithCropAndZoom(file);
                 return Ok(result);
             }
             catch (InvalidImageException ex)

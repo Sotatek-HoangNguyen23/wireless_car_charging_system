@@ -51,6 +51,7 @@ namespace API.Services
                 user.Dob = request.Dob;
                 user.RoleId = 1;
                 user.Gender = request.Gender;
+                user.Address = request.Address;
                 user.Status = "Active";
                 user.CreateAt = DateTime.UtcNow;
                 user.UpdateAt = DateTime.UtcNow;

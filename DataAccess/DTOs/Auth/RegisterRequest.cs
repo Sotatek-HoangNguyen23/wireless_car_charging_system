@@ -19,6 +19,7 @@ namespace DataAccess.DTOs.Auth
         public required string PhoneNumber { get; set; }
         public required DateTime Dob { get; set; }
         public required bool Gender { get; set; }
+        public required string Address { get; set; }
 
         [Required(ErrorMessage = "Mã CCCD là bắt buộc")]
         [StringLength(12, MinimumLength = 9)]

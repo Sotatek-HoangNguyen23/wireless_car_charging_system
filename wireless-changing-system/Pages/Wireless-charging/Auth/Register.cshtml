@@ -9,28 +9,31 @@
     <!-- Form đăng ký -->
     <div class="card p-4 shadow mobi-margin-top" style="max-width: 800px; width: 100%;">
         <h2 class="text-center mb-4">Create a new account</h2>
-        <form method="post" action="/register" enctype="multipart/form-data">
+        <!-- Lưu ý: action vẫn giữ /register để hỗ trợ Model Binding khi submit, nhưng trong JS sẽ gọi endpoint mới -->
+        <form id="registerForm" method="post" action="/register" enctype="multipart/form-data">
             <div class="row">
                 <!-- Left Column (Computer) -->
                 <div class="col-md-6 pe-md-3" style="margin:0px">
                     <!-- Full Name -->
                     <div class="mb-3">
-                        <label for="fullname" class="form-label fw-semibold">Full Name</label>
+                        <label for="fullname" class="form-label fw-semibold">Họ và tên</label>
                         <input type="text"
                                class="form-control"
                                id="fullname"
                                name="Fullname"
                                placeholder="Full Name"
+                               readonly
                                required>
                     </div>
 
                     <!-- Date of Birth -->
                     <div class="mb-3">
-                        <label for="dob" class="form-label fw-semibold">Date of Birth</label>
+                        <label for="dob" class="form-label fw-semibold">Ngày sinh</label>
                         <input type="date"
                                class="form-control"
                                id="dob"
                                name="Dob"
+                               readonly
                                required>
                     </div>
 
@@ -44,16 +47,18 @@
                                        name="Gender"
                                        id="male"
                                        value="true"
-                                       required>
-                                <label class="form-check-label" for="male">Male</label>
+                                       required
+                                       readonly>
+                                <label class="form-check-label" for="male">Nam</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input"
                                        type="radio"
                                        name="Gender"
                                        id="female"
-                                       value="false">
-                                <label class="form-check-label" for="female">Female</label>
+                                       value="false"
+                                       readonly>
+                                <label class="form-check-label" for="female">Nữ</label>
                             </div>
                         </div>
                     </div>
@@ -66,6 +71,17 @@
                                id="email"
                                name="Email"
                                placeholder="Email"
+                               required>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label for="address" class="form-label fw-semibold">Address</label>
+                        <input type="text"
+                               class="form-control"
+                               id="address"
+                               name="Address"
+                               placeholder="Address"
                                required>
                     </div>
                 </div>
@@ -93,6 +109,7 @@
                                placeholder="CCCD Code"
                                minlength="9"
                                maxlength="12"
+                               readonly
                                required>
                     </div>
 
@@ -138,35 +155,119 @@
             <!-- Sign Up Button -->
             <button type="submit"
                     class="btn btn-primary w-100 mb-3 fw-semibold">
-                Sign Up
+                Đăng ký
             </button>
 
             <!-- Already have an account? -->
             <div class="text-center">
                 <a href="/login" class="text-decoration-none">
-                    Already have an account? Login here
+                    Đã có tài khoản? Đăng nhập tại đây
                 </a>
             </div>
         </form>
     </div>
 </div>
+
 <script>
+    // Hàm preview ảnh
     function previewImage(input, previewId) {
         const preview = document.getElementById(previewId);
         const file = input.files[0];
-        
         if (file) {
             const reader = new FileReader();
-            
             reader.onload = function(e) {
                 preview.style.display = 'block';
                 preview.src = e.target.result;
             };
-            
             reader.readAsDataURL(file);
         } else {
             preview.style.display = 'none';
             preview.src = '';
         }
     }
+
+    // Khi chọn ảnh CCCD Front: preview và gọi API quét QR code
+    document.getElementById("cccdFront").addEventListener("change", function() {
+        const fileInput = this;
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        // Hiển thị preview
+        previewImage(fileInput, 'cccdFrontPreview');
+
+        // Tạo FormData và thêm file
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Gọi API POST /read-qr để quét QR code
+        fetch("https://localhost:7191/api/Images/read-qr", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.ok ? response.text() : Promise.reject("Lỗi server"))
+        .then(result => {
+            if(result.trim() === "Không tìm thấy QR code") {
+                alert("Không đọc được QR code, vui lòng gửi lại ảnh CCCD Front.");
+                return;
+            }
+
+            const parts = result.split("|");
+            if(parts.length >= 6) {
+                document.getElementById("cccd").value = parts[0].trim();
+                document.getElementById("fullname").value = parts[2].trim();
+
+                // Chuyển định dạng ngày ddMMyyyy sang yyyy-MM-dd
+                let dob = parts[3].trim();
+                if(dob.length === 8) {
+                    const day = dob.substring(0,2);
+                    const month = dob.substring(2,4);
+                    const year = dob.substring(4);
+                    document.getElementById("dob").value = `${year}-${month}-${day}`;
+                } else {
+                    document.getElementById("dob").value = "";
+                }
+
+                const gender = parts[4].trim().toLowerCase();
+                if(gender === "nam") {
+                    document.getElementById("male").checked = true;
+                } else if(gender === "nữ") {
+                    document.getElementById("female").checked = true;
+                }
+                document.getElementById("address").value = parts[5].trim();
+            } else {
+                alert("Dữ liệu QR code không hợp lệ, vui lòng gửi lại ảnh CCCD Front.");
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Lỗi khi đọc QR code, vui lòng gửi lại ảnh CCCD Front.");
+        });
+    });
+
+    // Xử lý sự kiện submit của form đăng ký: gọi API Register bằng fetch
+    document.getElementById("registerForm").addEventListener("submit", function(e) {
+        e.preventDefault(); // Ngăn submit form truyền thống
+        const form = this;
+        const formData = new FormData(form);
+
+        fetch("https://localhost:7191/api/auth/register", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => Promise.reject(errorData));
+            }
+            return response.text();
+        })
+        .then(result => {
+            alert(result); // Hiển thị thông báo từ API
+            // Sau khi đăng ký thành công, chuyển hướng người dùng
+            window.location.href = "/login";
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Đăng ký thất bại: " + (error.Error || "Lỗi không xác định"));
+        });
+    });
 </script>
