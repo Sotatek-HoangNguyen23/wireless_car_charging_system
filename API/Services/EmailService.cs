@@ -17,13 +17,15 @@ namespace API.Services
             var smtpSettings = _configuration.GetSection("SmtpSettings");
             var server = smtpSettings["Server"];
             var port = smtpSettings["Port"];
+            var senderEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL");
+            var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
             if (string.IsNullOrEmpty(server) || string.IsNullOrEmpty(port))
             {
                 throw new InvalidOperationException("SMTP settings are not configured properly.");
             }
 
             var EmailMessage = new MimeMessage();
-            EmailMessage.From.Add(new MailboxAddress(smtpSettings["SenderName"], smtpSettings["SenderEmail"]));
+            EmailMessage.From.Add(new MailboxAddress(smtpSettings["SenderName"], senderEmail));
             EmailMessage.To.Add(new MailboxAddress("",toEmail));
             EmailMessage.Subject = subject;
             EmailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
@@ -36,7 +38,7 @@ namespace API.Services
             // Xác thực
             await client.AuthenticateAsync(
                 smtpSettings["Username"],
-                smtpSettings["Password"]
+                password
             );
             // Gửi email
             await client.SendAsync(EmailMessage);
