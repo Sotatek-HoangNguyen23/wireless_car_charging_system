@@ -2,6 +2,7 @@
 using DataAccess.DTOs.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers
 {
@@ -57,6 +58,37 @@ namespace API.Controllers
                 return BadRequest(e.Message);
             }
         }
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogoutAsync()
+        {
+            try
+            {
+                if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+                {
+                    return BadRequest(new { Message = "No active session" });
+                }
+
+                await _authService.Logout(refreshToken);
+                Response.Cookies.Delete("refreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Path = "/"
+                });
+
+                return Ok(new { Message = "Successfully logged out" });
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Internal server error" });
+            }
+        }
+
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken1()
         {

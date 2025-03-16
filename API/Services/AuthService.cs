@@ -72,6 +72,11 @@ namespace API.Services
 
             return new AuthenticateResponse(user, newAccessToken, newRefreshToken);
         }
+        public async Task Logout(string refreshToken)
+        {
+            await RevokeRefreshToken(refreshToken);
+        }
+
         private async Task<string> GenerateRefreshToken()
         {
             var refreshToken = await GetUniqueToken();

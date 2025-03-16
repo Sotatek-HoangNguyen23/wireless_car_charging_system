@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -34,8 +34,16 @@
                         <li class="nav-item">
                             <a class="nav-link active" href="/">Home Page</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Admin">
                             <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Changing Station</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Admin">
+                            <a class="nav-link" href="/management">Management Dashboard</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
+                            <a class="nav-link" href="/my-devices">My Devices</a>
                         </li>
                     </ul>
 
@@ -101,14 +109,23 @@
             const accessToken = sessionStorage.getItem("accessToken");
             if (accessToken) {
                 const fullName = sessionStorage.getItem("fullName");
+                const role = sessionStorage.getItem("role");
+                const menuItems = document.querySelectorAll('.role-based-menu');
+                menuItems.forEach(item => {
+                    const requiredRoles = item.getAttribute('data-required-role').split(',');
+                    if (requiredRoles.includes(role)) {
+                        item.classList.remove('d-none');
+                    }
+                });
+
                 const defaultAvatarUrl = '@Url.Content("~/img/avartar.jpg")';
-                const avatarUrl = sessionStorage.getItem("avartar_url") || defaultAvatarUrl;
+                const avatarUrl = sessionStorage.getItem("avatar_url") || defaultAvatarUrl;
                 document.getElementById("userName").textContent = fullName;
                 document.getElementById("userAvatar").src = avatarUrl;
-
                 document.getElementById("authSection").classList.add("d-none");
                 document.getElementById("userSection").classList.remove("d-none");
             }
+    
             const logoutBtn = document.getElementById("logoutBtn");
             if (logoutBtn) {
                 logoutBtn.addEventListener("click", function (e) {
@@ -117,14 +134,15 @@
              });
             }
         });
-        const logout=()=>{
-            sessionStorage.removeItem("accessToken");
-            sessionStorage.removeItem("fullName");
-            sessionStorage.removeItem("avartar_url");
-            window.location.href="/";
-        }
     </script>
+    <script type="module">
+        import { logout } from '/js/apiClient.js';
 
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault();
+            logout();
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
