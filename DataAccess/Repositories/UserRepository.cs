@@ -26,7 +26,7 @@ namespace DataAccess.Repositories
         {
             if (String.IsNullOrWhiteSpace(email))
             {
-                throw new ArgumentException("Email cannot be blank or contain only spaces", nameof(email));
+                throw new ArgumentException("Email không thể trống hoặc khoảng trắng", nameof(email));
             }
 
             return await _context.Users.Include(u => u.Role)
@@ -46,7 +46,7 @@ namespace DataAccess.Repositories
         {
             if (newUser == null)
             {
-                throw new ArgumentException("User cannot be null", nameof(newUser));
+                throw new ArgumentException("User không được null", nameof(newUser));
             }
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();

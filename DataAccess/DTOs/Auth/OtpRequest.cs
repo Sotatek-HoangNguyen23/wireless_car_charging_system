@@ -9,7 +9,6 @@ namespace DataAccess.DTOs.Auth
 {
     public class OtpRequest
     {
-        [EmailAddress]
         public required string Email { get; set; }
 
     }

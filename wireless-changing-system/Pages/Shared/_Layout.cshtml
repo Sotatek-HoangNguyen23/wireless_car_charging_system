@@ -1,65 +1,66 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - wireless_changing_system</title>
+    <title>@ViewData["Title"] - Hệ Thống Sạc Không Dây</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/bootstrap-icons/font/bootstrap-icons.css">
- 
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark ">
             <div class="container">
-                <!-- Brand/Logo -->
+                <!-- Logo -->
                 <a class="navbar-brand" href="/">
                     <img src="/img/logo.png"
-                         alt="Wireless Charging System Logo"
+                         alt="Logo Hệ Thống Sạc Không Dây"
                          width="40"
                          height="40"
                          class="img-fluid">
                 </a>
 
-                <!-- Toggle Button cho mobile -->
+                <!-- Nút toggle cho mobile -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Navigation Items -->
+                <!-- Các mục điều hướng -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <!-- Left-aligned navigation -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" href="/">Home Page</a>
+                            <a class="nav-link active" href="/">Trang Chủ</a>
                         </li>
                         <li class="nav-item d-none role-based-menu" data-required-role="Admin">
-                            <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Changing Station</a>
+                            <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Trạm Sạc</a>
                         </li>
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Admin">
-                            <a class="nav-link" href="/management">Management Dashboard</a>
+                            <a class="nav-link" href="/management">Bảng Quản Lý</a>
                         </li>
 
                         <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
-                            <a class="nav-link" href="/my-devices">My Devices</a>
+                            <a class="nav-link" href="/my-devices">Thiết Bị Của Tôi</a>
                         </li>
                     </ul>
 
+                    <!-- Phần xác thực -->
                     <div class="d-flex" id="authSection">
-                        <a href="/wireless-charging/auth" class="btn btn-outline-secondary me-2">Sign in</a>
-                        <a href="/wireless-charging/auth/register" class="btn btn-primary">Register</a>
+                        <a href="/wireless-charging/auth" class="btn btn-outline-secondary me-2">Đăng Nhập</a>
+                        <a href="/wireless-charging/auth/register" class="btn btn-primary">Đăng Ký</a>
                     </div>
+
+                    <!-- Phần người dùng -->
                     <div class="d-none" id="userSection">
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="" alt="Avatar" class="rounded-circle" width="30" height="30" id="userAvatar">
+                                <img src="" alt="Ảnh đại diện" class="rounded-circle" width="30" height="30" id="userAvatar">
                                 <span class="ms-2" id="userName"></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                                <li><a class="dropdown-item" id="logoutBtn" href="#">Logout</a></li>
+                                <li><a class="dropdown-item" href="/profile">Hồ Sơ</a></li>
+                                <li><a class="dropdown-item" id="logoutBtn" href="#">Đăng Xuất</a></li>
                             </ul>
                         </div>
                     </div>
@@ -67,6 +68,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -87,16 +89,15 @@
                 </a>
                 <a href="#" target="_blank" aria-label="YouTube">
                     <i class="bi bi-youtube"></i>
-                </a> 
+                </a>
                 <a href="#" target="_blank" aria-label="Linkedin">
                     <i class="bi bi-linkedin"></i>
                 </a>
             </div>
             <p class="copyright">
-                &copy; 2025 - wireless_changing_system - <a asp-area="" asp-page="/Privacy">Privacy</a>
+                &copy; 2025 - Hệ Thống Sạc Không Dây - <a asp-area="" asp-page="/Privacy">Chính Sách Riêng Tư</a>
             </p>
         </div>
-       
     </footer>
     
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

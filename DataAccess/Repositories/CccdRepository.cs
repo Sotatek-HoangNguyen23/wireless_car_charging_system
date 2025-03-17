@@ -20,7 +20,7 @@ namespace DataAccess.Repositories
         {
             if (String.IsNullOrWhiteSpace(code))
             {
-                throw new ArgumentException("Code cannot be blank or contain only spaces", nameof(code));
+                throw new ArgumentException("Code không thể trống hoặc khoảng trắng", nameof(code));
             }
             return _context.Cccds.Include(c => c.User)
                 .AsNoTracking()
@@ -31,7 +31,7 @@ namespace DataAccess.Repositories
         {
             if (cccd == null)
             {
-                throw new ArgumentException("Cccd cannot be null", nameof(cccd));
+                throw new ArgumentException("Cccd không được null", nameof(cccd));
             }    
             _context.Cccds.Add(cccd);
             return _context.SaveChangesAsync();

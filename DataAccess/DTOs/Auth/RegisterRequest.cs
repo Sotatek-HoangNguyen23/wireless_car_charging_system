@@ -11,9 +11,6 @@ namespace DataAccess.DTOs.Auth
     public class RegisterRequest
     {
         public required string Fullname { get; set; }
-
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public required string Email { get; set; }
 
         public required string PhoneNumber { get; set; }
@@ -21,16 +18,12 @@ namespace DataAccess.DTOs.Auth
         public required bool Gender { get; set; }
         public required string Address { get; set; }
 
-        [Required(ErrorMessage = "Mã CCCD là bắt buộc")]
         [StringLength(12, MinimumLength = 9)]
         public required string CccdCode { get; set; }
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
         public required string PasswordHash { get; set; }
 
-        [Required(ErrorMessage = "Ảnh mặt trước CCCD là bắt buộc")]
         public required IFormFile CCCDFrontImage { get; set; }
 
-        [Required(ErrorMessage = "Ảnh mặt sau CCCD là bắt buộc")]
         public required IFormFile CCCDBackImage { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using DataAccess.DTOs.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace API.Controllers
 {
@@ -26,8 +27,14 @@ namespace API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+                    Status = 400
+                });
             }
+
             try
             {
                 var otp = await _otpServices.GenerateOtpAsync(request);
@@ -37,7 +44,14 @@ namespace API.Controllers
             }
             catch
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while generating OTP.");
+                return StatusCode(500, new ProblemDetails
+                {
+                    Type = "Server Error",
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Status = 500,
+                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
+                });
             }
 
         }
@@ -47,7 +61,12 @@ namespace API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+                    Status = 400
+                });
             }
 
             try
@@ -61,7 +80,14 @@ namespace API.Controllers
             }
             catch
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while verifying OTP.");
+                return StatusCode(500, new ProblemDetails
+                {
+                    Type = "Server Error",
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Status = 500,
+                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
+                });
             }
         }
     }

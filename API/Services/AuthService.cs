@@ -24,7 +24,7 @@ namespace API.Services
         {
             if (request.Password == null || request.Email == null)
             {
-                throw new ArgumentException("Email and Password cannot be null");
+                throw new Exception("Email and Password cannot be null");
             }
             var user = await _userRepository.GetUserByEmail(request.Email);
 

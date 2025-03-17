@@ -2,42 +2,93 @@
 @model wireless_changing_system.Pages.Wireless_charging.Auth.Send_OTPModel
 @{
 }
+
 <div class="container">
-    <div class="send-otp-card shadow-sm " >
+    <div class="send-otp-card shadow-sm">
         <div class="card-body">
-            <h4 class="fw-bold mb-3">Reset Your Password</h4>
+            <h4 class="fw-bold mb-3">Đặt Lại Mật Khẩu</h4>
             <hr />
 
-            <!-- Khu vực "Send code via" -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <!-- Cột trái: Radio + Email -->
                 <div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="SendOption" id="sendEmail" value="email" checked>
                         <label class="form-check-label" for="sendEmail">
-                            Send code via email
+                            Gửi mã qua email
                         </label>
                     </div>
-                    <p class="text-muted mb-0">a@example.com</p>
+                    <p class="text-muted mb-0">@Model.Email</p>
                 </div>
 
-                <!-- Cột phải: Avatar + Tên người dùng -->
                 <div class="d-flex flex-column align-items-center">
-                    <img src="~/img/female.png" alt="User Avatar"
+                    <img src="https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0"
+                         alt="Ảnh đại diện"
                          class="avatar mb-2"
                          style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
-                    <span class="fw-semibold">UserName</span>
+                    <span class="fw-semibold">@Model.FullName</span>
                 </div>
-
             </div>
 
             <hr />
 
             <!-- Nút bấm -->
             <div class="d-flex justify-content-between mt-3">
-                <button type="button" class="btn btn-secondary">Not You?</button>
-                <button type="button" class="btn btn-primary">Continue</button>
+                <a type="button" href="./forgot-password" class="btn btn-secondary">Không phải bạn?</a>
+                <button type="button" class="btn btn-primary" id="btnContinue">Tiếp Tục</button>
             </div>
         </div>
     </div>
 </div>
+
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="fas fa-exclamation-circle toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0">Đã xảy ra lỗi khi gửi mã OTP</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('btnContinue').addEventListener('click', async () => {
+        const btn = document.getElementById('btnContinue');
+        const toast = document.getElementById('error-toast');
+
+        try {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang gửi...`;
+
+            const response = await fetch('https://localhost:7191/api/otp/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: '@Model.Email' })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Gửi mã OTP thất bại');
+            }
+
+            window.location.href = `./Confirm-OTP?email=${encodeURIComponent('@Model.Email')}`;
+
+        } catch (error) {
+            showToast(toast, error.message);
+            console.error('Lỗi:', error);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Tiếp Tục';
+        }
+    });
+
+    function showToast(toastElement, message = null) {
+        if (message) {
+            toastElement.querySelector('.toast-content p').textContent = message;
+        }
+        toastElement.classList.add('show');
+        setTimeout(() => {
+            toastElement.classList.remove('show');
+        }, 5000);
+    }
+</script>

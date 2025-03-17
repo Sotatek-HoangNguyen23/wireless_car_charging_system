@@ -2,6 +2,7 @@
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet.Core;
 using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 
@@ -93,6 +94,28 @@ namespace API.Services
             }
 
         }
+        public async Task<UserDto> GetUserByEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new ArgumentException("Email cannot be null or empty");
+            }
+            var user = await _userRepository.GetUserByEmail(email);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+            var UserDto = new UserDto();
+            UserDto.UserId = user.UserId;
+            UserDto.Email = user.Email;
+            UserDto.Fullname = user.Fullname ?? "Unknown";
+            UserDto.Role = new RoleDto();
+            UserDto.Role.RoleId = user.RoleId;
+            UserDto.Role.Name = user.Role?.RoleName ?? "Unknown";
+
+            return UserDto;
+        }
+
 
     }
 }
