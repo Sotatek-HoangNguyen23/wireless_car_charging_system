@@ -2,8 +2,9 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories.StationRepo
 {
     public class PagedResult<T>
     {
@@ -33,10 +34,10 @@ namespace DataAccess.Repositories
             {
                 string lowerKeyword = keyword.ToLower();
                 query = query.Where(cs =>
-                    (!string.IsNullOrEmpty(cs.StationName) && cs.StationName.ToLower().Contains(lowerKeyword)) ||
-                    (cs.StationLocation != null && cs.StationLocation.Address.ToLower().Contains(lowerKeyword))
+                    !string.IsNullOrEmpty(cs.StationName) && cs.StationName.ToLower().Contains(lowerKeyword) ||
+                    cs.StationLocation != null && cs.StationLocation.Address.ToLower().Contains(lowerKeyword)
                 );
-            }          
+            }
 
             // Chuyển dữ liệu sang DTO
             var stationList = query.AsNoTracking()
@@ -49,7 +50,7 @@ namespace DataAccess.Repositories
                                 Address = cs.StationLocation.Address,
                                 Longtitude = cs.StationLocation.Longitude,
                                 Latitude = cs.StationLocation.Latitude,
-                                TotalPoint = cs.ChargingPoints.Count(), 
+                                TotalPoint = cs.ChargingPoints.Count(),
                                 AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
                                 CreateAt = cs.CreateAt,
                                 UpdateAt = cs.UpdateAt,
@@ -115,6 +116,7 @@ namespace DataAccess.Repositories
                     Latitude = cs.StationLocation.Latitude,
                     TotalPoint = cs.ChargingPoints.Count(),
                     AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
+                    LocationDescription = cs.StationLocation.Description,
                     CreateAt = cs.CreateAt,
                     UpdateAt = cs.UpdateAt,
                     MaxConsumPower = cs.MaxConsumPower
@@ -128,7 +130,12 @@ namespace DataAccess.Repositories
         {
             _context.ChargingStations.Add(station);
             await _context.SaveChangesAsync();
-            return station;
+
+            return await _context.ChargingStations
+                .Include(cs => cs.Owner)
+                .Include(cs => cs.StationLocation)
+                .Include(cs => cs.ChargingPoints)
+                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId);
         }
 
         public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
@@ -140,16 +147,38 @@ namespace DataAccess.Repositories
 
             // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
             if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
-            if (stationDto.OwnerId != 0) station.OwnerId = stationDto.OwnerId;
+            if (stationDto.OwnerId != 0)
+            {
+                if (station.Owner != null)
+                {
+                    station.Owner = new User();
+                }
+
+                station.OwnerId = stationDto.OwnerId;
+            }
             if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
             if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
-            if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
-            if (stationDto.Longtitude != 0) station.StationLocation.Longitude = stationDto.Longtitude;
+
+            if (stationDto.Latitude != 0 || stationDto.Longtitude != 0 || !stationDto.Address.IsNullOrEmpty())
+            {
+                if (station.StationLocation == null)
+                {
+                    station.StationLocation = new StationLocation(); // Khởi tạo nếu null
+                }
+
+                if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
+                if (stationDto.Longtitude != 0) station.StationLocation.Longitude = stationDto.Longtitude;
+                if (!string.IsNullOrEmpty(stationDto.Address)) station.StationLocation.Address = stationDto.Address;
+            }
 
             station.UpdateAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
-            return station;
+            return await _context.ChargingStations
+                .Include(cs => cs.Owner)
+                .Include(cs => cs.StationLocation)
+                .Include(cs => cs.ChargingPoints)
+                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId); ;
         }
 
 

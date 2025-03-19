@@ -16,6 +16,18 @@ namespace API.Controllers
             _stationService = stationService;
         }
 
+        [HttpGet("{pointId}")]
+        public ActionResult GetChargingPointDetail(int pointId) 
+        {
+            var point = _stationService.GetPointById(pointId);
+            if (point == null)
+            {
+                return NotFound(new { message = "Charging Point not found" });
+            }
+
+            return Ok(point);
+        }
+
         [HttpPost("AddPoints")]
         public async Task<IActionResult> AddPoints(int stationId, [FromBody] NewChargingStationDto pointDto)
         {

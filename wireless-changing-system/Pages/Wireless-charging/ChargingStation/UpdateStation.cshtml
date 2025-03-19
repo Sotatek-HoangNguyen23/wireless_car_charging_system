@@ -61,7 +61,7 @@
 
             <!-- Nút Submit -->
             <div class="text-center">
-                <button id="btn-submit" type="submit" class="btn btn-primary">Submit</button>
+                <button id="btn-update" type="submit" class="btn btn-primary">Update</button>
                 <button class="btn btn-danger">Cancel</button>
             </div>
         </div>
@@ -108,23 +108,20 @@
                 return;
             }
 
-            const currentPage = 1;
-            const pageSize = 1;
-
             // Gọi API để lấy dữ liệu hiện có
             $.ajax({
-                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${currentPage}&pageSize=${pageSize}`,
+                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`,
                 type: "GET",
                 dataType: "json",
-                success: function (station) {
-                    console.log(station);
-                    if (station) {
-                        $("#stationName").val(station.stationName || '');
-                        $("#owner").val(station.ownerId || '');
-                        $("#stationAddress").val(station.address || '');
-                        $("#latitude").val(station.latitude || '');
-                        $("#longitude").val(station.longtitude || '');
-                        $("#description").val(station.description || '');
+                success: function (data) {
+                    console.log(data);
+                    if (data) {
+                        $("#stationName").val(data.station.stationName || '');
+                        $("#owner").val(data.station.ownerId || '');
+                        $("#stationAddress").val(data.station.address || '');
+                        $("#latitude").val(data.station.latitude || '');
+                        $("#longitude").val(data.station.longtitude || '');
+                        $("#description").val(data.station.locationDescription || '');
                     }
                 },
                 error: function (xhr, status, error) {
@@ -139,10 +136,9 @@
                     stationName: $("#stationName").val(),
                     ownerId: parseInt($("#owner").val()),
                     address: $("#stationAddress").val(),
-                    latitude: parseFloat($("#latitude").val()),
-                    longtitude: parseFloat($("#longitude").val()),
-                    status: "Active", // Giả sử cập nhật trạng thái mặc định
-                    maxConsumPower: parseFloat($("#maxPower").val()) || null
+                    // latitude: parseFloat($("#latitude").val()),
+                    // longtitude: parseFloat($("#longitude").val()),
+                    maxConsumPower: parseFloat($("#maxPower").val()) || 0
                 };
 
                 $.ajax({
@@ -152,7 +148,7 @@
                     data: JSON.stringify(updatedStation),
                     success: function () {
                         alert("Cập nhật thành công!");
-                        window.location.href = "/ChargingStation/List";
+                        window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi cập nhật:", xhr.responseText);

@@ -1,4 +1,4 @@
-﻿using DataAccess.Repositories;
+﻿using DataAccess.Repositories.StationRepo;
 
 namespace DataAccess.DTOs.ChargingStation
 {
@@ -14,6 +14,7 @@ namespace DataAccess.DTOs.ChargingStation
         public double? Distance { get; set; }
         public int TotalPoint { get; set; }
         public int AvailablePoint { get; set; }
+        public string? LocationDescription { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public double? MaxConsumPower { get; set; }

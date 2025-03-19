@@ -1,7 +1,7 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
-using DataAccess.Repositories;
+using DataAccess.Repositories.StationRepo;
 
 namespace API.Services
 {
@@ -83,6 +83,11 @@ namespace API.Services
         public async Task<bool> DeleteChargingStation(int stationId)
         {
             return await _stationRepository.DeleteChargingStation(stationId);
+        }
+
+        public ChargingPointDto? GetPointById(int pointId)
+        {
+            return _pointRepository.GetPointById(pointId);
         }
 
         public async Task<List<ChargingPoint>> AddPoint(int stationId, NewChargingStationDto stationDto)

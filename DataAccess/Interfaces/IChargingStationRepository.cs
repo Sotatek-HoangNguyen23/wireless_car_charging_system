@@ -1,6 +1,6 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Models;
-using DataAccess.Repositories;
+using DataAccess.Repositories.StationRepo;
 
 namespace DataAccess.Interfaces
 {
