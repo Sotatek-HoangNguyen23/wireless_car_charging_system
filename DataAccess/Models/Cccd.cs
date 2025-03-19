@@ -13,6 +13,10 @@ public partial class Cccd
 
     public string? ImgBack { get; set; }
 
+    public string? ImgFrontPubblicId { get; set; }
+
+    public string? ImgBackPubblicId { get; set; }
+
     public string? Code { get; set; }
 
     public DateTime? CreateAt { get; set; }

@@ -143,14 +143,16 @@ namespace DataAccess.Repositories.CarRepo
             return query.OrderByDescending(cs => cs.StartTime).ToList();
         }
 
-        public void deleteCar(int carId)
+        public bool deleteCar(int carId)
         {
             var car = _context.Cars.FirstOrDefault(c => c.CarId == carId);
             if (car != null)
             {
-                car.IsDeleted = true; 
-                _context.SaveChanges(); 
+                car.IsDeleted = true;
+                _context.SaveChanges();
+                return true;
             }
+            return false; 
         }
 
         public List<CarModel> getCarModels(string? search)

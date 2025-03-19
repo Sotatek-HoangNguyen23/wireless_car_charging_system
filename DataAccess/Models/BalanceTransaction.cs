@@ -7,17 +7,17 @@ public partial class BalanceTransaction
 {
     public int TransactionId { get; set; }
 
-    public int? BalanceId { get; set; }
+    public int BalanceId { get; set; }
 
     public double? Amount { get; set; }
-
-    public string? TransactionType { get; set; }
-
-    public DateTime? TransactionDate { get; set; }
 
     public string? OrderCode { get; set; }
 
     public string? Status { get; set; }
 
-    public virtual Balance? Balance { get; set; }
+    public string? TransactionType { get; set; }
+
+    public DateTime? TransactionDate { get; set; }
+
+    public virtual Balance Balance { get; set; } = null!;
 }

@@ -19,7 +19,7 @@ namespace DataAccess.Interfaces
 
         List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId);
 
-        void deleteCar(int carId);
+        bool deleteCar(int carId);
 
         List<CarModel> getCarModels(string? search);
 
