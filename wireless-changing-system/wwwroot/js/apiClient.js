@@ -1,55 +1,90 @@
 ﻿let isRefreshing = false;
-let refreshPromise = null; 
-export async function fetchWithAuth(url, options = {}) {
-    let accessToken = sessionStorage.getItem('accessToken');
+let refreshPromise = null;
 
-    if (accessToken) {
-        options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${accessToken}`
-        };
+// Hàm chung xử lý refresh token
+async function performTokenRefresh() {
+    try {
+        const refreshResponse = await fetch('https://localhost:7191/api/auth/refresh-token', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (!refreshResponse.ok) throw new Error('Refresh token failed');
+
+        const data = await refreshResponse.json();
+
+        sessionStorage.setItem('accessToken', data.accessToken);
+        if (data.fullName) sessionStorage.setItem('fullName', data.fullName);
+        if (data.role) sessionStorage.setItem('role', data.role);
+        if (data.avatarUrl) sessionStorage.setItem('avatar_url', data.avatarUrl);
+
+        return data.accessToken;
+    } catch (error) {
+        console.error('Refresh token error:', error);
+        logout();
+        throw error; // Re-throw để xử lý ở nơi gọi
+    }
+}
+
+export async function requestAccessToken() {
+    if (isRefreshing) {
+        return refreshPromise; 
     }
 
-    let response = await fetch(url, options);
+    isRefreshing = true;
+    refreshPromise = performTokenRefresh()
+        .finally(() => {
+            isRefreshing = false;
+        });
 
-    if (response.status === 401 || !accessToken) {
-        if (!isRefreshing) {
-            isRefreshing = true;
-            refreshPromise = refreshAccessToken(); 
-        }
+    return refreshPromise;
+}
 
-        const newToken = await refreshPromise;
-        isRefreshing = false;
+export async function fetchWithAuth(url, options = {}) {
+    // Clone options để tránh mutation
+    const authOptions = {
+        ...options,
+        headers: { ...options.headers }
+    };
 
-        if (newToken) {
-            options.headers['Authorization'] = `Bearer ${newToken}`;
-            return fetch(url, options); // Thử lại request với token mới
-        } else {
-            window.location.href = '/wireless-charging/auth';
-            throw new Error('Refresh token hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
+    const currentToken = sessionStorage.getItem('accessToken');
+    if (currentToken) {
+        authOptions.headers.Authorization = `Bearer ${currentToken}`;
+    }
+
+    let response = await fetch(url, authOptions);
+
+    if (response.status === 401) {
+        try {
+            const newToken = await requestAccessToken(); 
+
+            const retryOptions = {
+                ...authOptions,
+                headers: {
+                    ...authOptions.headers,
+                    Authorization: `Bearer ${newToken}`
+                }
+            };
+
+            return fetch(url, retryOptions);
+        } catch (error) {
+            return Promise.reject(error);
         }
     }
 
     return response;
 }
 
-async function refreshAccessToken() {
+export async function logout() {
     try {
-        const refreshResponse = await fetch('https://localhost:7191/api/auth/refresh-token', {
+        await fetch('https://localhost:7191/api/auth/logout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include' 
+            credentials: 'include'
         });
-
-        if (!refreshResponse.ok) {
-            throw new Error('Refresh token không hợp lệ');
-        }
-        const data = await refreshResponse.json();
-        sessionStorage.setItem('accessToken', data.accessToken);
-        return data.accessToken;
     } catch (error) {
-        console.error('Lỗi khi refresh token:', error);
-        sessionStorage.removeItem('accessToken');
-        return null;
+        console.error('Logout error:', error);
+    } finally {
+        sessionStorage.clear();
+        window.location.href = '/wireless-charging/auth';
     }
 }

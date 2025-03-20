@@ -12,10 +12,29 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using dotenv.net;
+using Microsoft.AspNetCore.Http.Features;
 using DataAccess.Repositories.StationRepo;
 
+
 var builder = WebApplication.CreateBuilder(args);
+//=================================
+// Cloudinary configuration
+DotEnv.Load();
+Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+cloudinary.Api.Secure = true;
+builder.Services.AddSingleton(cloudinary);
+// Cho phép upload file lớn (tối đa 50MB)
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024;
+});
+//=======================================
+//Redis conection
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+var redisPassword = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
 if (string.IsNullOrEmpty(redisConnectionString))
 {
     throw new ArgumentException("Redis connection string is missing");
@@ -23,7 +42,7 @@ if (string.IsNullOrEmpty(redisConnectionString))
 
 var configurationOptions = ConfigurationOptions.Parse(redisConnectionString);
 configurationOptions.User = "default";
-configurationOptions.Password = builder.Configuration["Redis:Password"]; 
+configurationOptions.Password = redisPassword; 
 configurationOptions.AbortOnConnectFail = false;
 configurationOptions.ConnectTimeout = 15000;
 configurationOptions.SyncTimeout = 15000;
@@ -32,7 +51,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var connection = ConnectionMultiplexer.Connect(configurationOptions);
 
-    // Kiểm tra kết nối
     if (!connection.IsConnected)
     {
         throw new InvalidOperationException("Failed to connect to Redis");
@@ -40,6 +58,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
     return connection;
 });
+//=======================================
+// Add services to the container.
 builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
@@ -50,11 +70,18 @@ builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();
+builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICccdRepository, CccdRepository>();
 builder.Services.AddScoped<ITest, Test>();
+
+
+//=======================================
+// JWt configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
+var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
+var key = Encoding.UTF8.GetBytes(secret!);
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -106,7 +133,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 var app = builder.Build();
-
 app.UseCors("AllowAllOrigins");
 
 // Configure the HTTP request pipeline.

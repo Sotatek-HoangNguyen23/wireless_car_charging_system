@@ -1,5 +1,6 @@
 ﻿using DataAccess.DTOs.Auth;
 using DataAccess.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace DataAccess.Interfaces
 {
     public interface IUserRepository
     {
+        Task<IDbContextTransaction> BeginTransactionAsync();
         Task<User?> GetUserByEmail(string email);
         Task<User?> GetUserById(int id);
-       
-        Task SaveUser(RegisterRequest user);
+        Task SaveUser(User user);
     }
 }

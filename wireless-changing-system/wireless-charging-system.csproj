@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>wireless_changing_system</RootNamespace>
+    <UserSecretsId>4a53bfd2-bdd6-440c-ac8b-b3741849d461</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

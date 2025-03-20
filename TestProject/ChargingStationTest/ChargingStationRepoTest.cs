@@ -10,12 +10,12 @@ namespace TestProject.ChargingStationTest
         private const decimal latitude = 10;
         private const decimal longitude = 10;
         private IChargingStationRepository _repository;
-        private WccsContext context = new();
+        private WccsContext _context = new();
 
         [SetUp]
         public void Setup()
         {
-            _repository = new ChargingStationRepository(context);
+            _repository = new ChargingStationRepository(_context);
         }
 
         // Test GetAllStation no filter
@@ -120,7 +120,7 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.Status, Is.EqualTo("Available"));
             Assert.That(result.Owner.Fullname, Is.EqualTo("Tran Thi B"));
 
-            var dbStation = await context.ChargingStations.FindAsync(2023);
+            var dbStation = await _context.ChargingStations.FindAsync(2023);
             Assert.That(dbStation, Is.Not.Null);
         }
 
@@ -172,7 +172,7 @@ namespace TestProject.ChargingStationTest
             var result = await _repository.DeleteChargingStation(2016);
 
             Assert.That(result, Is.True);
-            var deletedStation = await context.ChargingStations.FindAsync(2016);
+            var deletedStation = await _context.ChargingStations.FindAsync(2016);
             Assert.That(deletedStation, Is.Null);
         }
 

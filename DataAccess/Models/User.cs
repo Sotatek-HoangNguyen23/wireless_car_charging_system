@@ -5,6 +5,9 @@ namespace DataAccess.Models;
 
 public partial class User
 {
+    public User()
+    {
+    }
     public int UserId { get; set; }
 
     public int RoleId { get; set; }

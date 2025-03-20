@@ -1,4 +1,5 @@
-﻿using DataAccess.Interfaces;
+﻿using DataAccess.DTOs.ChargingStation;
+using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
 
@@ -7,12 +8,12 @@ namespace TestProject.ChargingStationTest
     public class CharginngPointRepoTest
     {
         private IChargingPointRepository _repository;
-        private WccsContext context = new();
+        private WccsContext _context = new();
 
         [SetUp]
         public void Setup()
         {
-            _repository = new ChargingPointRepository(context);
+            _repository = new ChargingPointRepository(_context);
         }
 
         // Test GetAllPointsByStation
@@ -54,36 +55,87 @@ namespace TestProject.ChargingStationTest
             {
                 new ChargingPoint
                 {
-                    ChargingPointId = 2,
-                    ChargingPointName = "Point B",
+                    ChargingPointName = "Point Test",
                     Description = "Slow Charger",
                     Status = "Busy",
                     MaxPower = 50,
                     MaxConsumPower = 40,
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow,
-                    StationId = 101
+                    StationId = 2
                 }
             };
 
             await _repository.AddChargingPoints(newPoints);
-            var result = _repository.GetPointById(2);
+            var result = _repository.GetPointById(2042);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.ChargingPointName, Is.EqualTo("Point B"));
+            Assert.That(result.ChargingPointName, Is.EqualTo("Point Test"));
         }
 
+        // Test GetPointById when Id exist
         [Test]
         public void AddChargingPoints_ShouldThrowException_WhenEmptyList()
         {
-            // Arrange
             var emptyList = new List<ChargingPoint>();
 
-            // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
                 await _repository.AddChargingPoints(emptyList));
 
             Assert.That(ex.Message, Is.EqualTo("Point list is empty!"));
+        }
+
+        // Test UpdateChargingPoint when Id exist
+        [Test]
+        public async Task UpdateChargingPoint_ShouldUpdatePoint_WhenIdExists()
+        {
+            var updateDto = new UpdateChargingPointDto
+            {
+                ChargingPointName = "Updated Point",
+                Status = "Unavailable",
+                MaxPower = 120
+            };
+
+            var result = await _repository.UpdateChargingPoint(2042, updateDto);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.ChargingPointName, Is.EqualTo("Updated Point"));
+            Assert.That(result.Status, Is.EqualTo("Unavailable"));
+            Assert.That(result.MaxPower, Is.EqualTo(120));
+        }
+
+        // Test UpdateChargingPoint when Id not exist
+        [Test]
+        public async Task UpdateChargingPoint_ShouldReturnNull_WhenIdNotExists()
+        {
+            var updateDto = new UpdateChargingPointDto
+            {
+                ChargingPointName = "Non-existing Point"
+            };
+
+            var result = await _repository.UpdateChargingPoint(999, updateDto);
+
+            Assert.That(result, Is.Null);
+        }
+
+        // Test DeleteChargingPoint when Id exist
+        [Test]
+        public async Task DeleteChargingPoint_ShouldDelete_WhenIdExists()
+        {
+            var result = await _repository.DeleteChargingPoint(2040);
+            var deletedPoint = _repository.GetPointById(2040);
+
+            Assert.That(result, Is.True);
+            Assert.That(deletedPoint, Is.Null);
+        }
+
+        // Test DeleteChargingPoint when Id not exist
+        [Test]
+        public async Task DeleteChargingPoint_ShouldReturnFalse_WhenIdNotExists()
+        {
+            var result = await _repository.DeleteChargingPoint(999);
+
+            Assert.That(result, Is.False);
         }
 
     }
