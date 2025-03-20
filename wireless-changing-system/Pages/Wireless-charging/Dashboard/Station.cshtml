@@ -133,7 +133,6 @@
                 url: `https://localhost:7191/api/ChargingStation/1/stats?year=${year}${month ? `&month=${month}` : ''}`,
                 method: 'GET',
                 success: function (data) {
-                    console.log(data);
                     $("#totalEnergyConsumed").text(data.totalEnergyConsumed.toFixed(2) + " kWh");
                     $("#totalRevenue").text(data.totalRevenue.toFixed(2) + " VNĐ");
                     $("#totalChargingSessions").text(data.totalChargingSessions);

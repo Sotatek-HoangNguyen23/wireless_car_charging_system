@@ -183,5 +183,24 @@ namespace TestProject.ChargingStationTest
             var result = await _repository.DeleteChargingStation(999);
             Assert.That(result, Is.False);
         }
+
+        [Test]
+        public void GetSessionByStation_ShouldReturnSessions_WhenStationExists()
+        {
+            var result = _repository.GetSessionByStation(1);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result[0].EnergyConsumed, Is.EqualTo(5.5));
+            Assert.That(result[1].EnergyConsumed, Is.EqualTo(6.0));
+        }
+
+        [Test]
+        public void GetSessionByStation_ShouldReturnEmpty_WhenStationHasNoSessions()
+        {
+            var result = _repository.GetSessionByStation(999);
+
+            Assert.That(result, Is.Empty);
+        }
     }
 }

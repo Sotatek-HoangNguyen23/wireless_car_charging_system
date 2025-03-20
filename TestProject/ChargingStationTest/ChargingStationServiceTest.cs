@@ -206,5 +206,32 @@ namespace TestProject.ChargingStationTest
             Assert.That(_context.ChargingPoints.Count(), Is.EqualTo(18));
         }
 
+        [Test]
+        public void GetStats_ShouldReturnCorrectStats_WhenDataExists()
+        {
+            var result = _service.GetStats(1, 2025, 3);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.TotalEnergyConsumed, Is.EqualTo(11.5));
+            Assert.That(result.TotalRevenue, Is.EqualTo(22.0));
+            Assert.That(result.TotalChargingSessions, Is.EqualTo(2));
+            Assert.That(result.AverageChargingTime, Is.EqualTo(37.5));
+
+            Assert.That(result.ChartData.Count, Is.EqualTo(2));
+            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 1"));
+            Assert.That(result.ChartData[1].Label, Is.EqualTo("Ngày 2"));
+        }
+
+        [Test]
+        public void GetStats_ShouldReturnEmptyStats_WhenNoSessionsMatchFilter()
+        {
+            var result = _service.GetStats(1, 2023, 3);
+
+            Assert.That(result.TotalEnergyConsumed, Is.EqualTo(0));
+            Assert.That(result.TotalRevenue, Is.EqualTo(0));
+            Assert.That(result.TotalChargingSessions, Is.EqualTo(0));
+            Assert.That(result.AverageChargingTime, Is.EqualTo(0));
+            Assert.That(result.ChartData, Is.Empty);
+        }
     }
 }
