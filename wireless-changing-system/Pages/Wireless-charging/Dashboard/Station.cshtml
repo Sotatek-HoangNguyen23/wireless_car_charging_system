@@ -59,6 +59,7 @@
             <div class="col-md-6 d-flex align-items-end">
                 <label for="monthFilter" class="form-label me-2">Chọn tháng:</label>
                 <select id="monthFilter" class="form-select w-50 me-2">
+                    <option value="0"></option>
                     <option value="1">Tháng 1</option>
                     <option value="2">Tháng 2</option>
                     <option value="3">Tháng 3</option>
@@ -210,6 +211,7 @@
         // Sự kiện khi bấm "Lọc theo năm"
         $("#yearFilter").next("button").on("click", function () {
             let year = $("#yearFilter").val();
+            $("#monthFilter").val("0");
             fetchStats(year, null); // Gửi chỉ năm, không gửi tháng
         });
 
