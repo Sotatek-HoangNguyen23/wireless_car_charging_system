@@ -28,5 +28,12 @@ namespace DataAccess.Interfaces
         void addCar(int carModel, int userId, string licensePlate, string carName);
 
         void editCar(int carModel, int carId, string licensePlate, string carName);
+
+        Task SendRentRequestForRent(UserCar userCar);
+
+        Task<List<RentConfirmDto>> GetRentRequest(int driverId);
+
+        Task<UserCar?> GetUserCarAsync(int userId, int carId, string role);
+        Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role);
     }
 }

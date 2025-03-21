@@ -1,6 +1,7 @@
 ﻿using DataAccess.DTOs;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -234,6 +235,61 @@ namespace DataAccess.Repositories.CarRepo
                 car.UpdateAt = DateTime.Now;
                 _context.SaveChanges();
             }
+        }
+
+        public async Task SendRentRequestForRent(UserCar userCar)
+        {
+            await _context.UserCars.AddAsync(userCar);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<RentConfirmDto>> GetRentRequest(int driverId)
+        {
+
+            var rentRequests = await (from uc in _context.UserCars
+                                      join c in _context.Cars on uc.CarId equals c.CarId
+                                      join cm in _context.CarModels on c.CarModelId equals cm.CarModelId
+                                      join owner in _context.UserCars on c.CarId equals owner.CarId
+                                      join ownerUser in _context.Users on owner.UserId equals ownerUser.UserId
+                                      where uc.UserId == driverId && uc.Role == "Renter" // Lọc người thuê
+                                            && owner.Role == "Owner" // Lọc đúng chủ xe
+                                      select new RentConfirmDto
+                                      {
+                                          DriverId = uc.UserId,
+                                          OwnerId = owner.UserId,
+                                          OwnerName = ownerUser.Fullname,
+                                          OwnerPhone = ownerUser.PhoneNumber,
+                                          CarId = c.CarId,
+                                          LicensePlate = c.LicensePlate,
+                                          IsAllowedToCharge = uc.IsAllowedToCharge,
+                                          Type = cm.Type,
+                                          Color = cm.Color,
+                                          Brand = cm.Brand,
+                                          StartDate = uc.StartDate,
+                                          EndDate = uc.EndDate
+                                      }).Distinct().ToListAsync();
+
+            return rentRequests;
+
+
+
+        }
+
+        public async Task<UserCar?> GetUserCarAsync(int userId, int carId, string role)
+        {
+            return await _context.UserCars
+            .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.CarId == carId && uc.Role == role);
+        }
+
+        public async Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role)
+        {
+            var userCar = await GetUserCarAsync(userId, carId, role);
+            if (userCar == null) return false;
+
+            userCar.IsAllowedToCharge = true;
+            _context.UserCars.Update(userCar);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
