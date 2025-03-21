@@ -5,6 +5,7 @@ using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using System.Text.RegularExpressions;
 
 namespace API.Services
 {
@@ -29,7 +30,7 @@ namespace API.Services
             }
             ImageUploadResult? frontUploadResult = null;
             ImageUploadResult? backUploadResult = null;
-            if (!IsPasswordStrong(request.PasswordHash))
+            if (!IsPasswordCorrect(request.PasswordHash))
             {
                 throw new ArgumentException("Password is not strong enough");
             }
@@ -48,6 +49,15 @@ namespace API.Services
                 if (existingUser != null)
                 {
                     throw new ArgumentException("Email đã tồn tại");
+                }
+                var existingCccd = await _cccdRepository.GetCccdByCode(request.CccdCode);
+                if (existingCccd != null)
+                {
+                    throw new ArgumentException("CCCD đã tồn tại");
+                }
+                var existingPhone = await _userRepository.GetUserByPhone(request.PhoneNumber);
+                if (existingPhone != null) {
+                    throw new ArgumentException("Phone đã tồn tại");
                 }
                 var password = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
                 var user = new User();
@@ -121,7 +131,58 @@ namespace API.Services
 
             return UserDto;
         }
-        public bool IsPasswordStrong(string password)
+        public async Task<UserDto> GetUserByCccd(string cccd)
+        {
+            if (string.IsNullOrEmpty(cccd))
+            {
+                throw new ArgumentException("Cccd không thể trống");
+            }
+            var user = await _userRepository.GetUserByCccd(cccd);
+            if (user == null)
+            {
+                throw new ArgumentException("Khong tìm thấy người dùng");
+            }
+            var UserDto = new UserDto();
+            UserDto.UserId = user.UserId;
+            UserDto.Email = user.Email;
+            UserDto.Fullname = user.Fullname ?? "Unknown";
+            UserDto.Role = new RoleDto();
+            UserDto.Role.RoleId = user.RoleId;
+            UserDto.Role.Name = user.Role?.RoleName ?? "Unknown";
+
+            return UserDto;
+        }
+        public async Task<UserDto> GetUserByPhone(string phone)
+        {
+            if (string.IsNullOrEmpty(phone))
+            {
+                throw new ArgumentException("Phone không thể trống");
+            }
+            var user = await _userRepository.GetUserByPhone(phone);
+            if (user == null)
+            {
+                throw new ArgumentException("Khong tìm thấy người dùng");
+            }
+            var UserDto = new UserDto();
+            UserDto.UserId = user.UserId;
+            UserDto.Email = user.Email;
+            UserDto.Fullname = user.Fullname ?? "Unknown";
+            UserDto.Role = new RoleDto();
+            UserDto.Role.RoleId = user.RoleId;
+            UserDto.Role.Name = user.Role?.RoleName ?? "Unknown";
+            return UserDto;
+        }
+        public bool IsEmailCorrect(string email)
+        {
+            string regex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, regex);
+        }
+        public bool IsPhoneCorrect(string phone)
+        {
+            string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9\d|2[0-9])\d{7}$";
+            return Regex.IsMatch(phone, regex);
+        }
+        public bool IsPasswordCorrect(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
                 return false;
@@ -158,7 +219,7 @@ namespace API.Services
                 {
                     throw new ArgumentException("Invalid Token");
                 }
-                if (!IsPasswordStrong(request.NewPassword))
+                if (!IsPasswordCorrect(request.NewPassword))
                 {
                     throw new ArgumentException("Password is not strong enough");
                 }

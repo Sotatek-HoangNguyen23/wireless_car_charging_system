@@ -13,7 +13,9 @@ namespace DataAccess.Interfaces
     {
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<User?> GetUserByEmail(string email);
+        Task<User?> GetUserByPhone(string phone);
         Task<User?> GetUserById(int id);
+        Task<User?> GetUserByCccd(string cccd);
         Task SaveUser(User user);
         Task UpdateUser(User user);
     }

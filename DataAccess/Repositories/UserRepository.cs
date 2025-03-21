@@ -32,6 +32,17 @@ namespace DataAccess.Repositories
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Email == email);
+        } 
+        public async Task<User?> GetUserByPhone(string phone)
+        {
+            if (String.IsNullOrWhiteSpace(phone))
+            {
+                throw new ArgumentException("Phone không thể trống hoặc khoảng trắng", nameof(phone));
+            }
+
+            return await _context.Users.Include(u => u.Role)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.PhoneNumber == phone);
         }
 
         public async Task<User?> GetUserById(int id)
@@ -40,6 +51,19 @@ namespace DataAccess.Repositories
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.UserId == id);
         }
+        public async Task<User?> GetUserByCccd(string cccd)
+        {
+            if (String.IsNullOrWhiteSpace(cccd))
+            {
+                throw new ArgumentException("CCCD không thể trống hoặc khoảng trắng", nameof(cccd));
+            }
+            return await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Cccds)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Cccds.Any(c => c.Code == cccd));
+        }
+
 
 
         public async Task SaveUser(User newUser)
