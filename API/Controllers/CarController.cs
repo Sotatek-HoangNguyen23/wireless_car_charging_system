@@ -164,6 +164,39 @@ namespace API.Controllers
             }
         }
 
+        [HttpPost("send-rent-request")]
+        public async Task<IActionResult> SendRentRequest([FromBody] RentRequestDto request)
+        {
+            try
+            {
+                await _carService.SendRentRequestForRent(request.UserId, request.CarId, request.StartDate, request.EndDate);
+                return Ok(new { Message = "Rent request sent successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = ex.Message });
+            }
+        }
 
+        [HttpGet("rent-requests/{driverId}")]
+        public async Task<IActionResult> GetRentRequests(int driverId)
+        {
+            var rentRequests = await _carService.GetRentRequest(driverId);
+            if (rentRequests == null || !rentRequests.Any())
+            {
+                return NotFound("No rent requests found for this driver.");
+            }
+            return Ok(rentRequests);
+        }
+
+        [HttpPut("confirm-rental")]
+        public async Task<IActionResult> ConfirmRental([FromBody] ConfirmRentDto request)
+        {
+            bool updated = await _carService.ConfirmRentalAsync(request.UserId, request.CarId, request.Role);
+            if (!updated)
+                return NotFound(new { message = "Không tìm thấy thông tin thuê xe." });
+
+            return Ok(new { message = "Xác nhận thuê xe thành công!" });
+        }
     }
 }

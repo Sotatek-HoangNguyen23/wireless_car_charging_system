@@ -5,18 +5,6 @@ namespace DataAccess.Models;
 
 public partial class RefreshToken
 {
-    public RefreshToken()
-    {
-    }
-    public RefreshToken(int tokenId, int userId, string? token, DateTime? expiresAt, bool? revoked, DateTime? createdAt)
-    {
-        TokenId = tokenId;
-        UserId = userId;
-        Token = token;
-        ExpiresAt = expiresAt;
-        Revoked = revoked;
-        CreatedAt = createdAt;
-    }
     public int TokenId { get; set; }
 
     public int UserId { get; set; }

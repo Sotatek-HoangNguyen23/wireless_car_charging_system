@@ -1,4 +1,5 @@
-﻿using DataAccess.DTOs.Auth;
+﻿using DataAccess.DTOs;
+using DataAccess.DTOs.Auth;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,31 @@ namespace DataAccess.Repositories
         {
             return await _context.Database.BeginTransactionAsync();
         }
+
+        public async Task<ProfileDTO?> GetProfileByUserId(int userId)
+        {
+            var user = await _context.Users
+            .Where(u => u.UserId == userId)
+            .Select(u => new ProfileDTO
+            {
+                UserId = u.UserId,
+                Fullname = u.Fullname,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+                Dob = u.Dob,
+                Gender = u.Gender,
+                Address = u.Address,
+                Status = u.Status,
+                CccdId = u.Cccds.Select(c => c.CccdId).FirstOrDefault(),  
+                ImgFront = u.Cccds.Select(c => c.ImgFront).FirstOrDefault(),
+                ImgBack = u.Cccds.Select(c => c.ImgBack).FirstOrDefault(),
+                Code = u.Cccds.Select(c => c.Code).FirstOrDefault()
+            })
+            .FirstOrDefaultAsync();
+
+            return user;
+        }
+
         public async Task<User?> GetUserByEmail(string email)
         {
             if (String.IsNullOrWhiteSpace(email))
@@ -32,6 +58,13 @@ namespace DataAccess.Repositories
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<List<User>> GetUserByEmailOrPhone(string search)
+        {
+            return await _context.Users
+        .Where(u => u.Email.Contains(search) || u.PhoneNumber.Contains(search))
+        .ToListAsync();
         }
 
         public async Task<User?> GetUserById(int id)
@@ -49,6 +82,12 @@ namespace DataAccess.Repositories
                 throw new ArgumentException("User cannot be null", nameof(newUser));
             }
             await _context.Users.AddAsync(newUser);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateUser(User user)
+        {
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
     }
