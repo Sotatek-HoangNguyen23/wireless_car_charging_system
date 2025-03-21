@@ -14,12 +14,15 @@ namespace DataAccess.Interfaces
     {
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<User?> GetUserByEmail(string email);
+        Task<User?> GetUserByPhone(string phone);
         Task<User?> GetUserById(int id);
+        Task<User?> GetUserByCccd(string cccd);
         Task SaveUser(User user);
 
         Task <ProfileDTO?> GetProfileByUserId( int userId); 
         Task UpdateUser(User user);
 
         Task<List<User>> GetUserByEmailOrPhone(string search);
+        Task UpdateUser(User user);
     }
 }

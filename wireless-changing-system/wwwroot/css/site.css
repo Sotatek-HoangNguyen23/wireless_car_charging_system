@@ -378,3 +378,106 @@ img[id$="Preview"] {
     max-height: 200px;
     object-fit: contain;
 }
+.success-toast {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+    .success-toast .toast-progress {
+        background: #155724;
+    }
+
+    .success-toast .toast-icon {
+        color: #155724;
+    }
+.custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        min-width: 300px;
+        background: #fff;
+        border-left: 4px solid #dc3545;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transform: translateX(110%);
+        transition: all 0.3s ease-in-out;
+        z-index: 9999;
+    }
+
+    .custom-toast.show {
+        transform: translateX(0);
+    }
+
+    .toast-icon {
+        font-size: 1.5rem;
+        color: #dc3545;
+    }
+
+    .toast-content {
+        flex-grow: 1;
+    }
+
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: #dc3545;
+        width: 100%;
+        animation: progress 5s linear forwards;
+    }
+
+    @keyframes progress {
+        from { width: 100%; }
+        to { width: 0; }
+    }
+#password-rules-wrapper {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.password-rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .password-rules-list li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 14px;
+        transition: color 0.3s ease;
+        color: #dc3545 !important;
+    }
+
+        .password-rules-list li.valid {
+            color: #28a745 !important;
+        }
+
+.rule-icon {
+    margin-right: 8px;
+    color: inherit !important;
+}
+
+.toggle-password {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+    .toggle-password:hover {
+        color: #0d6efd;
+    }
+.invalid-field {
+    border: 1px solid #dc3545 !important;
+    padding-right: 2.5rem; /* Tạo khoảng trống cho icon */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23dc3545' class='bi bi-exclamation-circle' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1.25rem 1.25rem;
+}

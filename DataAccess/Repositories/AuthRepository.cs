@@ -21,7 +21,7 @@ namespace DataAccess.Repositories
         {
             if (string.IsNullOrWhiteSpace(token))
             {
-                throw new ArgumentException("Token cannot be blank or contain only spaces", nameof(token));
+                throw new ArgumentException("Token không thể trống hoặc khoảng trắng", nameof(token));
             }
            
                 return await _context.RefreshTokens

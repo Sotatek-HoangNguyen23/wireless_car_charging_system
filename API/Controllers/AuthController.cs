@@ -42,7 +42,7 @@ namespace API.Controllers
                 var response = await _authService.Authenticate(request);
                 if (response == null)
                 {
-                    return Unauthorized("Invalid email or password");
+                    return Unauthorized("Email hoặc password không hợp lệ");
                 }
                 Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
                 {
@@ -54,7 +54,7 @@ namespace API.Controllers
 
                 return Ok(response);
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
@@ -79,12 +79,7 @@ namespace API.Controllers
                 });
 
                 return Ok(new { Message = "Successfully logged out" });
-            }
-            catch (SecurityTokenException ex)
-            {
-                return Unauthorized(new { ex.Message });
-            }
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Internal server error" });
             }

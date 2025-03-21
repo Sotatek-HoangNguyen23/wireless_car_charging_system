@@ -52,19 +52,23 @@ namespace DataAccess.Repositories
         {
             if (String.IsNullOrWhiteSpace(email))
             {
-                throw new ArgumentException("Email cannot be blank or contain only spaces", nameof(email));
+                throw new ArgumentException("Email không thể trống hoặc khoảng trắng", nameof(email));
             }
 
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Email == email);
-        }
-
-        public async Task<List<User>> GetUserByEmailOrPhone(string search)
+        } 
+        public async Task<User?> GetUserByPhone(string phone)
         {
-            return await _context.Users
-        .Where(u => u.Email.Contains(search) || u.PhoneNumber.Contains(search))
-        .ToListAsync();
+            if (String.IsNullOrWhiteSpace(phone))
+            {
+                throw new ArgumentException("Phone không thể trống hoặc khoảng trắng", nameof(phone));
+            }
+
+            return await _context.Users.Include(u => u.Role)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.PhoneNumber == phone);
         }
 
         public async Task<User?> GetUserById(int id)
@@ -73,13 +77,26 @@ namespace DataAccess.Repositories
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.UserId == id);
         }
+        public async Task<User?> GetUserByCccd(string cccd)
+        {
+            if (String.IsNullOrWhiteSpace(cccd))
+            {
+                throw new ArgumentException("CCCD không thể trống hoặc khoảng trắng", nameof(cccd));
+            }
+            return await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Cccds)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Cccds.Any(c => c.Code == cccd));
+        }
+
 
 
         public async Task SaveUser(User newUser)
         {
             if (newUser == null)
             {
-                throw new ArgumentException("User cannot be null", nameof(newUser));
+                throw new ArgumentException("User không được null", nameof(newUser));
             }
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();
@@ -87,6 +104,10 @@ namespace DataAccess.Repositories
 
         public async Task UpdateUser(User user)
         {
+            if (user == null)
+            {
+                throw new ArgumentException("User không được null", nameof(user));
+            }
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

@@ -2,37 +2,254 @@
 @model wireless_changing_system.Pages.Wireless_charging.Auth.Confirm_OTPModel
 @{
 }
+
 <div class="container">
     <div class="card otp-card shadow-sm">
         <div class="card-body">
-            <h4 class="card-title fw-bold mb-3">Enter security code</h4>
+            <h4 class="card-title fw-bold mb-3">Nhập mã xác thực</h4>
             <p class="mb-3">
-                Please check your emails for a message with your code.
-                Your code is 6 numbers long.
+                Vui lòng kiểm tra email để lấy mã xác thực.
+                Mã của bạn gồm 6 chữ số.
             </p>
 
-            <!-- Các ô nhập mã bảo mật -->
-            <div class="d-flex gap-2 justify-content-center mb-3">
-                <input type="text" class="form-control otp-input" maxlength="1" />
-                <input type="text" class="form-control otp-input" maxlength="1" />
-                <input type="text" class="form-control otp-input" maxlength="1" />
-                <input type="text" class="form-control otp-input" maxlength="1" />
-                <input type="text" class="form-control otp-input" maxlength="1" />
-                <input type="text" class="form-control otp-input" maxlength="1" />
+            <!-- Các ô nhập mã OTP -->
+            <div class="d-flex gap-2 justify-content-center mb-3" id="otpContainer">
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="0" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="1" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="2" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="3" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="4" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" class="form-control otp-input" maxlength="1" data-index="5" inputmode="numeric" pattern="[0-9]*" />
             </div>
 
-            <p>We sent your code to: <strong>a@example.com</strong></p>
-
+            <p>Mã đã được gửi đến: <strong>@Model.Email</strong></p>
             <hr />
 
-            <!-- Khu vực liên kết & nút -->
+            <!-- Khu vực điều hướng -->
             <div class="d-flex justify-content-between align-items-center mt-3">
-                <a href="#">Resent code</a>
+                <a href="#" id="resendLink"><span id="resendText">Gửi lại mã</span> <span id="countdownTimer"></span></a>
                 <div>
-                    <button type="button" class="btn btn-secondary me-2">Cancel</button>
-                    <button type="button" class="btn btn-primary">Continue</button>
+                    <a href="./forgot-password" type="button" class="btn btn-secondary me-2">Hủy</a>
+                    <button type="button" class="btn btn-primary" id="verifyBtn">Tiếp tục</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0">Đã xảy ra lỗi</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll('.otp-input');
+        const resendLink = document.getElementById('resendLink');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resendText = document.getElementById('resendText');
+        const countdownTimer = document.getElementById('countdownTimer');
+        let countdown = 0;
+        let timer = null;
+        let submitCountdown = 0;
+
+        // Hàm bắt đầu đếm ngược và cập nhật hiển thị countdown
+        function startCountdown(duration) {
+            clearInterval(timer);
+            countdown = duration;
+            updateCountdownDisplay();
+            timer = setInterval(() => {
+                countdown--;
+                updateCountdownDisplay();
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            if (countdown > 0) {
+               disabledResendLink();
+                countdownTimer.textContent = ` (${countdown} giây)`;
+            } else {
+               enabledResendLink();
+                countdownTimer.textContent = '';
+            }
+        }
+        function disabledResendLink(){
+            resendLink.disabled = true;
+            resendLink.style.cursor = 'not-allowed';
+            resendLink.style.textDecoration = 'none';
+            resendLink.style.color = 'gray';
+        }
+        function enabledResendLink(){
+            resendLink.disabled = false;
+            resendLink.style.cursor = 'pointer';
+            resendLink.style.textDecoration = 'underline';
+            resendLink.style.color = 'blue';
+        }
+
+        // Xử lý tự động chuyển focus giữa các input OTP
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                // Chỉ cho phép nhập số
+                if (e.target.value.match(/[^0-9]/)) {
+                    e.target.value = '';
+                    return;
+                }
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0 && e.target.value === '') {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Xử lý paste OTP
+        document.addEventListener('paste', (e) => {
+            const pasteData = e.clipboardData.getData('text').trim();
+            if (pasteData.length === 6 && /^\d+$/.test(pasteData)) {
+                inputs.forEach((input, index) => {
+                    input.value = pasteData[index] || '';
+                });
+                inputs[5].focus();
+                verifyBtn.click();
+            }
+        });
+
+        // Gửi lại mã
+        resendLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (countdown > 0){
+                showToast(`Vui lòng chờ ${countdown} giây trước khi gửi lại mã.`);
+                return;
+            }
+            resendText.textContent = "Đang gửi...";
+            disabledResendLink();
+
+            try {
+                const response = await fetch('https://localhost:7191/api/otp/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: '@Model.Email' })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Gửi lại mã thất bại');
+                } else {
+                    submitCountdown = 0;
+                    verifyBtn.disabled = false;
+                }
+
+                clearInput();
+                startCountdown(60);
+
+            } catch (error) {
+                showToast(error.message);
+            }
+            finally {
+                resendText.textContent = "Gửi lại mã";
+            }
+        });
+
+           // Xác thực OTP
+    verifyBtn.addEventListener('click', async () => {
+         const originalText = verifyBtn.innerHTML; 
+         const originalDisabledState = verifyBtn.disabled; 
+        if (submitCountdown >= 3) {
+            showToast("Bạn đã nhập sai quá 3 lần. Vui lòng thử lại sau.");
+            return;
+        }
+        const otpCode = Array.from(inputs).map(input => input.value).join('');
+
+        try {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Đang xác thực...
+        `;
+            // Bước 1: Xác thực OTP
+            const verifyResponse = await fetch('https://localhost:7191/api/otp/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: '@Model.Email',
+                    otpCode: otpCode
+                })
+            });
+
+            if (!verifyResponse.ok) {
+                const errorData = await verifyResponse.json();
+                throw new Error(errorData.detail || 'Mã OTP không hợp lệ');
+            }
+
+            // Bước 2: Lấy token reset
+            const token = await tokenReset('@Model.Email');
+
+            // Bước 3: Chuyển hướng với token
+            window.location.href = `./new-password?email=${encodeURIComponent('@Model.Email')}&token=${encodeURIComponent(token)}`;
+
+        } catch (error) {
+            submitCountdown++;
+            if (submitCountdown >= 3) {
+                verifyBtn.disabled = true;
+                showToast("Bạn đã nhập sai quá 3 lần. Vui lòng yêu cầu gửi lại mã mới.");
+            } else {
+                showToast(error.message);
+            }
+            clearInput();
+        }finally{
+            verifyBtn.disabled = originalDisabledState;
+            verifyBtn.innerHTML = originalText;
+        }
+    });
+
+    async function tokenReset(Email) {
+        try {
+            const tokenResponse = await fetch('https://localhost:7191/api/otp/reset-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Email) // Gửi email dạng string
+            });
+
+            if (!tokenResponse.ok) {
+                const errorData = await tokenResponse.json();
+                throw new Error(errorData.detail || 'Không thể tạo token');
+            }
+
+            const result = await tokenResponse.json();
+            return result.token; 
+
+        } catch (error) {
+            showToast(error.message);
+            throw error; 
+        }
+    }
+        function clearInput(){
+            inputs.forEach(input => input.value = '');
+            inputs[0].focus();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('error-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+    });
+</script>
