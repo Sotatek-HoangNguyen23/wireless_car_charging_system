@@ -1,0 +1,232 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Dashboard.StationModel
+@{
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê trạm sạc</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        .stat-box {
+            padding: 30px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+            .stat-box i {
+                font-size: 35px;
+                margin-bottom: 10px;
+                color: #495057;
+            }
+
+            .stat-box strong {
+                font-size: 28px;
+                display: block;
+                margin-top: 5px;
+            }
+
+        .row.equal-height {
+            display: flex;
+        }
+
+            .row.equal-height > [class*='col-'] {
+                display: flex;
+                flex-direction: column;
+            }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Nút filter -->
+        <div class="row mb-3">
+            <div class="col-md-6 d-flex align-items-end">
+                <label for="yearFilter" class="form-label me-2">Chọn năm:</label>
+                <select id="yearFilter" class="form-select w-50 me-2">
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                </select>
+                <button class="btn btn-primary">Lọc theo năm</button>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <label for="monthFilter" class="form-label me-2">Chọn tháng:</label>
+                <select id="monthFilter" class="form-select w-50 me-2">
+                    <option value="0"></option>
+                    <option value="1">Tháng 1</option>
+                    <option value="2">Tháng 2</option>
+                    <option value="3">Tháng 3</option>
+                    <option value="4">Tháng 4</option>
+                    <option value="5">Tháng 5</option>
+                    <option value="6">Tháng 6</option>
+                    <option value="7">Tháng 7</option>
+                    <option value="8">Tháng 8</option>
+                    <option value="9">Tháng 9</option>
+                    <option value="10">Tháng 10</option>
+                    <option value="11">Tháng 11</option>
+                    <option value="12">Tháng 12</option>
+                </select>
+                <button class="btn btn-primary mt-2">Lọc theo tháng</button>
+            </div>
+        </div>
+
+        <!-- Phần trên: Tổng quan -->
+        <div class="row text-center equal-height">
+            <div class="col-md-3">
+                <div class="stat-box">
+                    <i class="fas fa-bolt"></i>
+                    <div>Tổng năng lượng tiêu thụ</div>
+                    <strong id="totalEnergyConsumed"></strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box">
+                    <i class="fas fa-dollar-sign"></i>
+                    <div>Tổng doanh thu</div>
+                    <strong id="totalRevenue"></strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box">
+                    <i class="fas fa-charging-station"></i>
+                    <div>Tổng số lượt sạc</div>
+                    <strong id="totalChargingSessions"></strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box">
+                    <i class="fas fa-clock"></i>
+                    <div>Thời gian trung bình mỗi lần sạc</div>
+                    <strong id="averageChargingTime"></strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần dưới: Biểu đồ -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h3>Doanh số</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h3>Lượt sạc</h3>
+                <canvas id="chargingSessionsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        Chart.register(ChartDataLabels);
+
+        let revenueChartInstance = null;
+        let sessionChartInstance = null;
+
+        function fetchStats(year, month = null) {
+            $.ajax({
+                url: `https://localhost:7191/api/ChargingStation/1/stats?year=${year}${month ? `&month=${month}` : ''}`,
+                method: 'GET',
+                success: function (data) {
+                    $("#totalEnergyConsumed").text(data.totalEnergyConsumed.toFixed(2) + " kWh");
+                    $("#totalRevenue").text(data.totalRevenue.toFixed(2) + " VNĐ");
+                    $("#totalChargingSessions").text(data.totalChargingSessions);
+                    $("#averageChargingTime").text(data.averageChargingTime.toFixed(2) + " phút");
+
+                    data.chartData.sort((a, b) => extractNumber(a.label) - extractNumber(b.label));
+
+                    updateChart("revenueChart", data.chartData, "Doanh thu (VNĐ)", revenueChartInstance);
+                    updateChart("chargingSessionsChart", data.chartData, "Số lượt sạc", sessionChartInstance);
+                },
+                error: function (err) {
+                    console.error("Lỗi khi lấy dữ liệu:", err);
+                }
+            });
+        }
+
+        function updateChart(canvasId, chartData, label, chartInstance) {
+            let ctx = document.getElementById(canvasId).getContext("2d");
+
+            // Hủy biểu đồ cũ nếu tồn tại
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Tạo biểu đồ mới
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(item => item.label),
+                    datasets: [{
+                        label: label,
+                        data: chartData.map(item => label === "Doanh thu (VNĐ)" ? item.revenue : item.sessionCount),
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        pointBorderColor: '#fff',
+                        borderWidth: 1,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        datalabels: {
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            formatter: (value) => value // Hiển thị số trên cột
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Cập nhật instance
+            if (label === "Doanh thu (VNĐ)") {
+                revenueChartInstance = chartInstance;
+            } else {
+                sessionChartInstance = chartInstance;
+            }
+        }
+
+        // Hàm trích xuất số từ label
+        function extractNumber(label) {
+            let match = label.match(/\d+/); // Lấy số trong chuỗi
+            return match ? parseInt(match[0], 10) : 0; // Chuyển thành số nguyên
+        }
+
+        // Sự kiện khi bấm "Lọc theo năm"
+        $("#yearFilter").next("button").on("click", function () {
+            let year = $("#yearFilter").val();
+            $("#monthFilter").val("0");
+            fetchStats(year, null); // Gửi chỉ năm, không gửi tháng
+        });
+
+        // Sự kiện khi bấm "Lọc theo tháng"
+        $("#monthFilter").next("button").on("click", function () {
+            let year = $("#yearFilter").val();
+            let month = $("#monthFilter").val();
+            fetchStats(year, month); // Gửi cả năm và tháng
+        });
+
+        // Gọi API lần đầu khi load trang
+        $(document).ready(function () {
+            fetchStats(new Date().getFullYear(), null);
+        });
+
+    </script>
+</body>
+</html>

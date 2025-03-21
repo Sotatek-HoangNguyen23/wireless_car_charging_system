@@ -50,4 +50,23 @@ namespace DataAccess.DTOs.ChargingStation
         public string? Status { get; set; }
         public double? MaxConsumPower { get; set; }
     }
+
+    public class ChargingStationStatsDto
+    {
+        public double TotalEnergyConsumed { get; set; } // Tổng năng lượng tiêu thụ (kWh)
+        public double TotalRevenue { get; set; } // Tổng doanh thu (VNĐ)
+        public int TotalChargingSessions { get; set; } // Tổng số lượt sạc
+        public double AverageChargingTime { get; set; } // Thời gian trung bình mỗi lượt sạc (phút)
+
+        public List<ChartDataDto> ChartData { get; set; } = new List<ChartDataDto>(); // Dữ liệu biểu đồ
+    }
+
+    public class ChartDataDto
+    {
+        public string Label { get; set; } // Nhãn (ngày hoặc tháng)
+        public double Revenue { get; set; } // Doanh thu (VNĐ)
+        public int SessionCount { get; set; } // Số lượt sạc
+    }
+
+
 }

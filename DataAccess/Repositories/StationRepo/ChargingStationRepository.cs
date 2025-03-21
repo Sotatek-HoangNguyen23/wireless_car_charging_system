@@ -199,6 +199,11 @@ namespace DataAccess.Repositories.StationRepo
             return true;
         }
 
-
+        public List<ChargingSession> GetSessionByStation(int stationId)
+        {
+            return _context.ChargingSessions
+                .Where(s => s.ChargingPoint.StationId == stationId)
+                .ToList();
+        }
     }
 }

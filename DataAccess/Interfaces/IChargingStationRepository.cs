@@ -11,5 +11,6 @@ namespace DataAccess.Interfaces
         Task<ChargingStation> AddChargingStation(ChargingStation station);
         Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto);
         Task<bool> DeleteChargingStation(int stationId);
+        List<ChargingSession> GetSessionByStation(int stationId);
     }
 }

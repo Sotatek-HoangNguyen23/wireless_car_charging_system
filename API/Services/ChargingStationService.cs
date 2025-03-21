@@ -146,5 +146,46 @@ namespace API.Services
         {
             return await _pointRepository.DeleteChargingPoint(pointId);
         }
+
+        public ChargingStationStatsDto GetStats(int stationId, int? year, int? month)
+        {
+            var sessions = _stationRepository.GetSessionByStation(stationId);
+
+            if (year.HasValue)
+                sessions = sessions.Where(s => s.StartTime.Value.Year == year.Value).ToList();
+
+            if (month.HasValue)
+                sessions = sessions.Where(s => s.StartTime.Value.Month == month.Value).ToList();
+
+            double totalEnergy = sessions.Sum(s => s.EnergyConsumed) ?? 0;
+            double totalRevenue = sessions.Sum(s => s.Cost) ?? 0;
+            int totalSessions = sessions.Count;
+            double avgTime = sessions.Average(s => (s.EndTime - s.StartTime)?.TotalMinutes) ?? 0;
+
+            var chartData = month.HasValue
+                ? sessions.GroupBy(s => s.StartTime.Value.Day)
+                          .Select(g => new ChartDataDto
+                          {
+                              Label = $"Ngày {g.Key}",
+                              Revenue = Math.Round(g.Sum(s => s.Cost) ?? 0, 2),
+                              SessionCount = g.Count()
+                          }).ToList()
+                : sessions.GroupBy(s => s.StartTime.Value.Month)
+                          .Select(g => new ChartDataDto
+                          {
+                              Label = $"Tháng {g.Key}",
+                              Revenue = Math.Round(g.Sum(s => s.Cost) ?? 0, 2),
+                              SessionCount = g.Count()
+                          }).ToList();
+
+            return new ChargingStationStatsDto
+            {
+                TotalEnergyConsumed = Math.Round(totalEnergy, 2),
+                TotalRevenue = Math.Round(totalRevenue, 2),
+                TotalChargingSessions = totalSessions,
+                AverageChargingTime = Math.Round(avgTime, 2),
+                ChartData = chartData
+            };
+        }
     }
 }

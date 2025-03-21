@@ -66,5 +66,11 @@ namespace API.Controllers
             return Ok(updatedStation);
         }
 
+        [HttpGet("{stationId}/stats")]
+        public IActionResult GetStationStats(int stationId, int? year, int? month)
+        {
+            var stats = _stationService.GetStats(stationId, year, month);
+            return Ok(stats);
+        }
     }
 }
