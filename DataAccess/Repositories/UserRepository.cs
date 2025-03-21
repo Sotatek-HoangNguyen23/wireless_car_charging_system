@@ -111,6 +111,13 @@ namespace DataAccess.Repositories
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<User>> GetUserByEmailOrPhone(string search)
+        {
+            return await _context.Users
+        .Where(u => u.Email.Contains(search) || u.PhoneNumber.Contains(search))
+        .ToListAsync();
+        }
     }
 }
 

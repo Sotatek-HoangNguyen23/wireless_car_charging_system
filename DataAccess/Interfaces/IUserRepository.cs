@@ -23,6 +23,6 @@ namespace DataAccess.Interfaces
         Task UpdateUser(User user);
 
         Task<List<User>> GetUserByEmailOrPhone(string search);
-        Task UpdateUser(User user);
+       
     }
 }
