@@ -27,7 +27,8 @@ namespace API.Controllers
                     {
                         Title = "Validation Error",
                         Detail = "Email là bắt buộc",
-                        Status = 400
+                        Status = 400,
+                        Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                     });
                 }
 
@@ -39,7 +40,9 @@ namespace API.Controllers
                     {
                         Title = "Not Found",
                         Detail = $"Không tìm thấy người dùng với email {emailRequest.Email}",
-                        Status = 404
+                        Status = 404,
+                        Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
+
                     });
                 }
 

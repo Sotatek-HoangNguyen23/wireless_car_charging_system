@@ -51,6 +51,16 @@ namespace DataAccess.Repositories
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateUser(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentException("User không được null", nameof(user));
+            }
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

@@ -378,6 +378,19 @@ img[id$="Preview"] {
     max-height: 200px;
     object-fit: contain;
 }
+.success-toast {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+    .success-toast .toast-progress {
+        background: #155724;
+    }
+
+    .success-toast .toast-icon {
+        color: #155724;
+    }
 .custom-toast {
         position: fixed;
         top: 20px;
@@ -422,4 +435,44 @@ img[id$="Preview"] {
     @keyframes progress {
         from { width: 100%; }
         to { width: 0; }
+    }
+#password-rules-wrapper {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.password-rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .password-rules-list li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 14px;
+        transition: color 0.3s ease;
+        color: #dc3545 !important;
+    }
+
+        .password-rules-list li.valid {
+            color: #28a745 !important;
+        }
+
+.rule-icon {
+    margin-right: 8px;
+    color: inherit !important;
+}
+
+.toggle-password {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+    .toggle-password:hover {
+        color: #0d6efd;
     }

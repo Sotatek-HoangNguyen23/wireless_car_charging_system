@@ -13,11 +13,13 @@ namespace API.Services
         private readonly IUserRepository _userRepository;
         private readonly ICccdRepository _cccdRepository;
         private readonly ImageService _imageService;
-        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService)
+        private readonly OtpServices _otpServices;
+        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices)
         {
             _userRepository = userRepository;
             _cccdRepository = cccdRepository;
             _imageService = imageService;
+            _otpServices = otpServices;
         }
         public async Task RegisterAsync(RegisterRequest request)
         {
@@ -27,6 +29,10 @@ namespace API.Services
             }
             ImageUploadResult? frontUploadResult = null;
             ImageUploadResult? backUploadResult = null;
+            if (!IsPasswordStrong(request.PasswordHash))
+            {
+                throw new ArgumentException("Password is not strong enough");
+            }
             try
             {
                 _imageService.ValidateImage(request.CCCDFrontImage);
@@ -41,7 +47,7 @@ namespace API.Services
                 var existingUser = await _userRepository.GetUserByEmail(request.Email);
                 if (existingUser != null)
                 {
-                    throw new ArgumentException("Email already exists");
+                    throw new ArgumentException("Email đã tồn tại");
                 }
                 var password = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
                 var user = new User();
@@ -78,7 +84,7 @@ namespace API.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    throw new Exception("Register failed", ex);
+                    throw new Exception("đăng ký thất bại", ex);
                 }
             }
             catch (Exception ex)
@@ -90,7 +96,7 @@ namespace API.Services
                     deleteTasks.Add(_imageService.DeleteImageAsync(backUploadResult.PublicId));
 
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("Register failed", ex);
+                throw new Exception("đăng ký thất bại", ex);
             }
 
         }
@@ -98,12 +104,12 @@ namespace API.Services
         {
             if (string.IsNullOrEmpty(email))
             {
-                throw new ArgumentException("Email cannot be null or empty");
+                throw new ArgumentException("Email không thể trống");
             }
             var user = await _userRepository.GetUserByEmail(email);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("Khong tìm thấy người dùng");
             }
             var UserDto = new UserDto();
             UserDto.UserId = user.UserId;
@@ -115,7 +121,58 @@ namespace API.Services
 
             return UserDto;
         }
+        public bool IsPasswordStrong(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return false;
 
+            var hasMinimumLength = password.Length >= 6;
+            var hasUpperCase = password.Any(char.IsUpper);
+            var hasNumber = password.Any(char.IsDigit);
+            var hasSpecialChar = password.Any(c => !char.IsLetterOrDigit(c));
 
+            var allowedSpecialChars = "!@#$%^&*(),.?\":{}|<>";
+            var hasValidSpecialChar = password.Any(c => allowedSpecialChars.Contains(c));
+
+            return hasMinimumLength &&
+                   hasUpperCase &&
+                   hasNumber &&
+                   hasSpecialChar &&
+                   hasValidSpecialChar;
+        }
+        public async Task<bool> ResetPassword(ResetPasswordRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    throw new ArgumentException("Request cannot be null");
+                }
+                var user = await _userRepository.GetUserByEmail(request.Email);
+                if (user == null)
+                {
+                    throw new ArgumentException("User not found");
+                }
+                var isValid = await _otpServices.verifyResetPasswordToken(request.Token, request.Email);
+                if (!isValid)
+                {
+                    throw new ArgumentException("Invalid Token");
+                }
+                if (!IsPasswordStrong(request.NewPassword))
+                {
+                    throw new ArgumentException("Password is not strong enough");
+                }
+                var password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.PasswordHash = password;
+                user.UpdateAt = DateTime.UtcNow;
+                await _userRepository.UpdateUser(user);
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Reset password failed", ex);
+            }          
+        }
     }
 }

@@ -2,19 +2,20 @@
 @model wireless_changing_system.Pages.Wireless_charging.Auth.RegisterModel
 @{
 }
+<style>
+     input[type="password"]::-ms-reveal,
+     input[type="password"]::-ms-clear {
+         display: none;
+     }
+</style>
 <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
-    <!-- Logo -->
     <img src="~/img/logo.png" alt="Logo" class="mb-4 hide-mobile" style="max-width: 120px" />
 
-    <!-- Form đăng ký -->
     <div class="card p-4 shadow mobi-margin-top" style="max-width: 800px; width: 100%;">
         <h2 class="text-center mb-4">Create a new account</h2>
-        <!-- Lưu ý: action vẫn giữ /register để hỗ trợ Model Binding khi submit, nhưng trong JS sẽ gọi endpoint mới -->
-        <form id="registerForm" method="post" action="/register" enctype="multipart/form-data">
+        <form id="registerForm" method="post" enctype="multipart/form-data">
             <div class="row">
-                <!-- Left Column (Computer) -->
                 <div class="col-md-6 pe-md-3" style="margin:0px">
-                    <!-- Full Name -->
                     <div class="mb-3">
                         <label for="fullname" class="form-label fw-semibold">Họ và tên</label>
                         <input type="text"
@@ -26,7 +27,6 @@
                                required>
                     </div>
 
-                    <!-- Date of Birth -->
                     <div class="mb-3">
                         <label for="dob" class="form-label fw-semibold">Ngày sinh</label>
                         <input type="date"
@@ -36,8 +36,18 @@
                                readonly
                                required>
                     </div>
-
-                    <!-- Gender -->
+                    <div class="mb-3">
+                        <label for="cccd" class="form-label fw-semibold">CCCD Code</label>
+                        <input type="text"
+                               class="form-control"
+                               id="cccd"
+                               name="CccdCode"
+                               placeholder="CCCD Code"
+                               minlength="9"
+                               maxlength="12"
+                               readonly
+                               required>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Gender:</label>
                         <div class="d-flex gap-4">
@@ -63,16 +73,7 @@
                         </div>
                     </div>
 
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold">Email</label>
-                        <input type="email"
-                               class="form-control"
-                               id="email"
-                               name="Email"
-                               placeholder="Email"
-                               required>
-                    </div>
+
 
                     <!-- Address -->
                     <div class="mb-3">
@@ -84,46 +85,6 @@
                                placeholder="Address"
                                required>
                     </div>
-                </div>
-
-                <!-- Right Column (Computer) -->
-                <div class="col-md-6 ps-md-3">
-                    <!-- Phone Number -->
-                    <div class="mb-3">
-                        <label for="phone" class="form-label fw-semibold">Phone Number</label>
-                        <input type="tel"
-                               class="form-control"
-                               id="phone"
-                               name="PhoneNumber"
-                               placeholder="Phone Number"
-                               required>
-                    </div>
-
-                    <!-- CCCD Code -->
-                    <div class="mb-3">
-                        <label for="cccd" class="form-label fw-semibold">CCCD Code</label>
-                        <input type="text"
-                               class="form-control"
-                               id="cccd"
-                               name="CccdCode"
-                               placeholder="CCCD Code"
-                               minlength="9"
-                               maxlength="12"
-                               readonly
-                               required>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mb-3">
-                        <label for="password" class="form-label fw-semibold">Password</label>
-                        <input type="password"
-                               class="form-control"
-                               id="password"
-                               name="PasswordHash"
-                               placeholder="Password"
-                               required>
-                    </div>
-
                     <!-- CCCD Front Image -->
                     <div class="mb-3">
                         <label for="cccdFront" class="form-label fw-semibold">CCCD Front Image</label>
@@ -137,7 +98,6 @@
                         <img id="cccdFrontPreview" class="mt-2" style="max-width: 100%; max-height: 150px; display: none;" />
                     </div>
 
-                    <!-- CCCD Back Image -->
                     <div class="mb-3">
                         <label for="cccdBack" class="form-label fw-semibold">CCCD Back Image</label>
                         <input type="file"
@@ -150,15 +110,57 @@
                         <img id="cccdBackPreview" class="mt-2" style="max-width: 100%; max-height: 150px; display: none;" />
                     </div>
                 </div>
+
+                <div class="col-md-6 ps-md-3">
+                    <div class="mb-3">
+                        <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                        <input type="tel"
+                               class="form-control"
+                               id="phone"
+                               name="PhoneNumber"
+                               placeholder="Phone Number"
+                               required>
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email</label>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="Email"
+                               placeholder="Email"
+                               required>
+                    </div>
+                    <!-- Trường mật khẩu với nút hiển thị -->
+                    <div class="mb-3 position-relative">
+                        <label for="password" class="form-label fw-semibold">Mật khẩu</label>
+                        <input type="password"
+                               class="form-control pe-5"
+                               id="password"
+                               name="PasswordHash"
+                               placeholder="Nhập mật khẩu"
+                               required>
+                        <i class="bi bi-eye-slash toggle-password"
+                           style="position: absolute; right: 15px; bottom: 10px; cursor: pointer;"></i>
+                    </div>
+
+                    <div id="password-rules-wrapper" style="display: none;">
+                        <ul id="password-rules" class="password-rules-list">
+                            <li id="rule-length"><i class="bi bi-x-circle rule-icon"></i> Ít nhất 6 ký tự</li>
+                            <li id="rule-uppercase"><i class="bi bi-x-circle rule-icon"></i> Ít nhất 1 chữ hoa</li>
+                            <li id="rule-number"><i class="bi bi-x-circle rule-icon"></i> Ít nhất 1 chữ số</li>
+                            <li id="rule-special"><i class="bi bi-x-circle rule-icon"></i> Ít nhất 1 ký tự đặc biệt</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <!-- Sign Up Button -->
-            <button type="submit"
-                    class="btn btn-primary w-100 mb-3 fw-semibold">
+            <button type="submit" class="btn btn-primary w-100 mb-3 fw-semibold">
                 Đăng ký
             </button>
 
-            <!-- Already have an account? -->
             <div class="text-center">
                 <a href="/login" class="text-decoration-none">
                     Đã có tài khoản? Đăng nhập tại đây
@@ -167,8 +169,49 @@
         </form>
     </div>
 </div>
-
 <script>
+        // Thêm logic toggle password
+    document.querySelector('.toggle-password').addEventListener('click', function(e) {
+        const passwordInput = document.getElementById('password');
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('bi-eye-slash');
+        this.classList.toggle('bi-eye');
+    });
+
+    // Thêm validation password real-time
+    document.getElementById('password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const rulesWrapper = document.getElementById('password-rules-wrapper');
+
+        rulesWrapper.style.display = password.length > 0 ? 'block' : 'none';
+
+        const isLengthValid = password.length >= 6;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecial = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+
+        updateRule('rule-length', isLengthValid);
+        updateRule('rule-uppercase', hasUppercase);
+        updateRule('rule-number', hasNumber);
+        updateRule('rule-special', hasSpecial);
+    });
+
+    function updateRule(ruleId, isValid) {
+        const ruleElement = document.getElementById(ruleId);
+        const icon = ruleElement.querySelector('.rule-icon');
+
+        if (isValid) {
+            icon.classList.remove('bi-x-circle');
+            icon.classList.add('bi-check-circle');
+            ruleElement.classList.add('valid');
+        } else {
+            icon.classList.remove('bi-check-circle');
+            icon.classList.add('bi-x-circle');
+            ruleElement.classList.remove('valid');
+        }
+    }
+
     // Hàm preview ảnh
     function previewImage(input, previewId) {
         const preview = document.getElementById(previewId);
@@ -244,9 +287,8 @@
         });
     });
 
-    // Xử lý sự kiện submit của form đăng ký: gọi API Register bằng fetch
     document.getElementById("registerForm").addEventListener("submit", function(e) {
-        e.preventDefault(); // Ngăn submit form truyền thống
+        e.preventDefault();
         const form = this;
         const formData = new FormData(form);
 
@@ -261,8 +303,7 @@
             return response.text();
         })
         .then(result => {
-            alert(result); // Hiển thị thông báo từ API
-            // Sau khi đăng ký thành công, chuyển hướng người dùng
+            alert(result);
             window.location.href = "/wireless-charging/auth";
         })
         .catch(error => {
