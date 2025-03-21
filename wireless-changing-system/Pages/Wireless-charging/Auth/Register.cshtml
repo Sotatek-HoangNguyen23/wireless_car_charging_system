@@ -3,16 +3,16 @@
 @{
 }
 <style>
-     input[type="password"]::-ms-reveal,
-     input[type="password"]::-ms-clear {
-         display: none;
-     }
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+        display: none;
+    }
 </style>
 <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
     <img src="~/img/logo.png" alt="Logo" class="mb-4 hide-mobile" style="max-width: 120px" />
 
     <div class="card p-4 shadow mobi-margin-top" style="max-width: 800px; width: 100%;">
-        <h2 class="text-center mb-4">Create a new account</h2>
+        <h2 class="text-center mb-4">Tạo tài khoản mới</h2>
         <form id="registerForm" method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-6 pe-md-3" style="margin:0px">
@@ -22,7 +22,7 @@
                                class="form-control"
                                id="fullname"
                                name="Fullname"
-                               placeholder="Full Name"
+                               placeholder="Họ và tên"
                                readonly
                                required>
                     </div>
@@ -33,23 +33,22 @@
                                class="form-control"
                                id="dob"
                                name="Dob"
-                               readonly
                                required>
                     </div>
                     <div class="mb-3">
-                        <label for="cccd" class="form-label fw-semibold">CCCD Code</label>
+                        <label for="cccd" class="form-label fw-semibold">Số CCCD</label>
                         <input type="text"
                                class="form-control"
                                id="cccd"
                                name="CccdCode"
-                               placeholder="CCCD Code"
+                               placeholder="Nhập số CCCD"
                                minlength="9"
                                maxlength="12"
                                readonly
                                required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Gender:</label>
+                        <label class="form-label fw-semibold">Giới tính:</label>
                         <div class="d-flex gap-4">
                             <div class="form-check">
                                 <input class="form-check-input"
@@ -73,21 +72,18 @@
                         </div>
                     </div>
 
-
-
-                    <!-- Address -->
                     <div class="mb-3">
-                        <label for="address" class="form-label fw-semibold">Address</label>
+                        <label for="address" class="form-label fw-semibold">Địa chỉ</label>
                         <input type="text"
                                class="form-control"
                                id="address"
                                name="Address"
-                               placeholder="Address"
+                               placeholder="Nhập địa chỉ"
                                required>
                     </div>
-                    <!-- CCCD Front Image -->
+
                     <div class="mb-3">
-                        <label for="cccdFront" class="form-label fw-semibold">CCCD Front Image</label>
+                        <label for="cccdFront" class="form-label fw-semibold">Ảnh mặt trước CCCD</label>
                         <input type="file"
                                class="form-control"
                                id="cccdFront"
@@ -99,7 +95,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="cccdBack" class="form-label fw-semibold">CCCD Back Image</label>
+                        <label for="cccdBack" class="form-label fw-semibold">Ảnh mặt sau CCCD</label>
                         <input type="file"
                                class="form-control"
                                id="cccdBack"
@@ -113,27 +109,25 @@
 
                 <div class="col-md-6 ps-md-3">
                     <div class="mb-3">
-                        <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                        <label for="phone" class="form-label fw-semibold">Số điện thoại</label>
                         <input type="tel"
                                class="form-control"
                                id="phone"
                                name="PhoneNumber"
-                               placeholder="Phone Number"
+                               placeholder="Nhập số điện thoại"
                                required>
                     </div>
 
-
-                    <!-- Email -->
                     <div class="mb-3">
                         <label for="email" class="form-label fw-semibold">Email</label>
                         <input type="email"
                                class="form-control"
                                id="email"
                                name="Email"
-                               placeholder="Email"
+                               placeholder="Nhập địa chỉ email"
                                required>
                     </div>
-                    <!-- Trường mật khẩu với nút hiển thị -->
+
                     <div class="mb-3 position-relative">
                         <label for="password" class="form-label fw-semibold">Mật khẩu</label>
                         <input type="password"
@@ -156,8 +150,16 @@
                     </div>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary w-100 mb-3 fw-semibold">
+            <div class="form-check mb-3">
+                <input class="form-check-input"
+                       type="checkbox"
+                       id="agreeTerms"
+                       required>
+                <label class="form-check-label" for="agreeTerms">
+                    Tôi đồng ý với <a href="#" class="text-decoration-none">điều khoản dịch vụ</a>
+                </label>
+            </div>
+            <button type="submit" id="regisBtn" class="btn btn-primary w-100 mb-3 fw-semibold">
                 Đăng ký
             </button>
 
@@ -169,8 +171,34 @@
         </form>
     </div>
 </div>
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+<div id="success-toast" class="custom-toast success-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-check-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Thành công!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
 <script>
-        // Thêm logic toggle password
+    let validCCCD=false;
+    let allValid = false;
+    const regisBtn = document.getElementById('regisBtn');
+    const agreeCheckbox = document.getElementById('agreeTerms');
+
+    regisBtn.disabled = true;
+    agreeCheckbox.addEventListener('change', (e) => {
+        regisBtn.disabled = !(allValid && e.target.checked);
+    });
+
+
     document.querySelector('.toggle-password').addEventListener('click', function(e) {
         const passwordInput = document.getElementById('password');
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -195,6 +223,9 @@
         updateRule('rule-uppercase', hasUppercase);
         updateRule('rule-number', hasNumber);
         updateRule('rule-special', hasSpecial);
+
+        allValid = isLengthValid && hasUppercase && hasNumber && hasSpecial;
+       regisBtn.disabled =  !(allValid && agreeCheckbox.checked);
     });
 
     function updateRule(ruleId, isValid) {
@@ -250,7 +281,7 @@
         .then(response => response.ok ? response.text() : Promise.reject("Lỗi server"))
         .then(result => {
             if(result.trim() === "Không tìm thấy QR code") {
-                alert("Không đọc được QR code, vui lòng gửi lại ảnh CCCD Front.");
+                showToast("Không đọc được QR code, vui lòng gửi lại ảnh CCCD Front.");
                 return;
             }
 
@@ -277,21 +308,48 @@
                     document.getElementById("female").checked = true;
                 }
                 document.getElementById("address").value = parts[5].trim();
+                validCCCD = true;
             } else {
-                alert("Dữ liệu QR code không hợp lệ, vui lòng gửi lại ảnh CCCD Front.");
+                showToast("Dữ liệu QR code không hợp lệ, vui lòng gửi lại ảnh CCCD.");
             }
         })
         .catch(error => {
             console.error(error);
-            alert("Lỗi khi đọc QR code, vui lòng gửi lại ảnh CCCD Front.");
+            showToast("Lỗi khi đọc QR code, vui lòng gửi lại ảnh CCCD.");
         });
     });
-
     document.getElementById("registerForm").addEventListener("submit", function(e) {
         e.preventDefault();
         const form = this;
         const formData = new FormData(form);
+         const dobValue = document.getElementById('dob').value;
+         const requiredFields = [
+            {id: 'cccdFront', message: 'Vui lòng tải lên ảnh mặt trước CCCD'},
+            {id: 'cccdBack', message: 'Vui lòng tải lên ảnh mặt sau CCCD'},
+            {id: 'phone', message: 'Vui lòng nhập số điện thoại'},
+            {id: 'email', message: 'Vui lòng nhập địa chỉ email'},
+            {id: 'password', message: 'Vui lòng nhập mật khẩu'},
+            {id: 'dob', message: 'Vui lòng chọn ngày sinh'},
+            {id: 'fullname', message: 'Vui lòng kiểm tra lại thông tin từ CCCD'},
+            {id: 'address', message: 'Vui lòng nhập địa chỉ'}
+        ];
+           requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element.value.trim() || (element.id === 'cccdFront' && !element.files[0])) {
+                showToast(field.message);
+                element.classList.add('invalid-field');
+                isValid = false;
+            }
+        });
 
+       if(!validateDOB(dobValue)) {
+            return;
+       }
+       if(!validCCCD) {
+            showToast("Vui lòng chọn ảnh CCCD và chờ đọc QR code thành công");
+            return;
+        }
+        
         fetch("https://localhost:7191/api/auth/register", {
             method: "POST",
             body: formData
@@ -303,12 +361,91 @@
             return response.text();
         })
         .then(result => {
-            alert(result);
+            showSuccessToast(result);
             window.location.href = "/wireless-charging/auth";
         })
         .catch(error => {
             console.error(error);
-            alert("Đăng ký thất bại: " + (error.Error || "Lỗi không xác định"));
+            showToast("Đăng ký thất bại: " + (error.Error || "Lỗi không xác định"));
         });
     });
+    document.getElementById("dob").addEventListener("change", function(e) {
+        const dobValue = e.target.value;
+        validateDOB(dobValue);
+     });
+
+    const phoneInput = document.getElementById('phone');
+
+    phoneInput.addEventListener('blur', function(e) {
+        const phone = e.target.value;
+        if (phone.length > 0) {
+            const isValid = validatePhone(phone);
+            if (!isValid) {
+                this.classList.add('invalid-field');
+            } else {
+                this.classList.remove('invalid-field');
+            }
+        }
+    });
+
+    phoneInput.addEventListener('keydown', function(e) {
+        const allowedKeys = [
+            'Backspace', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Delete', 'Tab', 'Home', 'End'
+        ];
+        if (allowedKeys.indexOf(e.key) !== -1) {
+            return;
+        }
+
+        // Nếu ô input rỗng và phím nhập là dấu '+' cho phép
+        if (this.value.length === 0 && e.key === '+') {
+            return;
+        }
+
+        if (!/^\d$/.test(e.key)) {
+            e.preventDefault();
+        }
+    });
+
+    function validatePhone(phone) {
+        const regex = /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\d{7}$/;
+        if (!regex.test(phone)) {
+            showToast("Số điện thoại không hợp lệ. Ví dụ: 0912345678 hoặc +84981234567");
+            return false;
+        }
+        return true;
+    }
+
+
+    function validateDOB(dobString) {
+        const dob = new Date(dobString);
+        const today = new Date();
+        const minAgeDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+
+        if(dob > today) {
+            showToast("Ngày sinh không thể là ngày trong tương lai");
+            return false;
+        }
+
+        // Kiểm tra đủ 18 tuổi
+        if(dob >= minAgeDate) {
+            showToast("Bạn phải đủ 18 tuổi để đăng ký");
+            return false;
+        }
+
+        return true;
+    }
+
+    function showSuccessToast(message) {
+        const toast = document.getElementById('success-toast');
+        toast.querySelector('.toast-content p').textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+    function showToast(message) {
+        const toast = document.getElementById('error-toast');
+        toast.querySelector('.toast-content p').textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+    }
 </script>
