@@ -28,7 +28,6 @@ namespace API.Controllers
                         Title = "Validation Error",
                         Detail = "Email là bắt buộc",
                         Status = 400,
-                        Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                     });
                 }
 
@@ -41,8 +40,6 @@ namespace API.Controllers
                         Title = "Not Found",
                         Detail = $"Không tìm thấy người dùng với email {emailRequest.Email}",
                         Status = 404,
-                        Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
-
                     });
                 }
 
@@ -52,11 +49,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails
                 {
-                    Type = "Server Error",
                     Title = "Internal Server Error",
                     Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
-                    Status = 500,
-                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
+                    Status = 500
                 });
             }
         }

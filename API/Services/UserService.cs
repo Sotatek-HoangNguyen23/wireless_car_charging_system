@@ -22,71 +22,90 @@ namespace API.Services
             _imageService = imageService;
             _otpServices = otpServices;
         }
+
         public async Task RegisterAsync(RegisterRequest request)
         {
             if (request == null)
             {
-                throw new ArgumentException("Request cannot be null");
+                throw new ArgumentException("Request không được null");
             }
-            ImageUploadResult? frontUploadResult = null;
-            ImageUploadResult? backUploadResult = null;
+
+            var existingEmail = await _userRepository.GetUserByEmail(request.Email);
+            if (existingEmail != null)
+            {
+                throw new InvalidOperationException("Email đã tồn tại");
+            }
+            var existingCccd = await _cccdRepository.GetCccdByCode(request.CccdCode.Trim());
+            if (existingCccd != null)
+            {
+                throw new InvalidOperationException("CCCD đã tồn tại");
+            }
+            var existingPhone = await _userRepository.GetUserByPhone(request.PhoneNumber);
+            if (existingPhone != null)
+            {
+                throw new InvalidOperationException("Số điện thoại đã tồn tại");
+            }
+
+            // Kiểm tra độ mạnh của mật khẩu
             if (!IsPasswordCorrect(request.PasswordHash))
             {
-                throw new ArgumentException("Password is not strong enough");
+                throw new ArgumentException("Mật khẩu không đủ mạnh");
             }
+
+            ImageUploadResult? frontUploadResult = null;
+            ImageUploadResult? backUploadResult = null;
+
             try
             {
+                // Xác thực ảnh trước khi upload
                 _imageService.ValidateImage(request.CCCDFrontImage);
                 _imageService.ValidateImage(request.CCCDBackImage);
+
+                // Upload ảnh song song
                 var frontUploadTask = _imageService.UploadImagetAsync(request.CCCDFrontImage);
                 var backUploadTask = _imageService.UploadImagetAsync(request.CCCDBackImage);
                 await Task.WhenAll(frontUploadTask, backUploadTask);
 
                 frontUploadResult = await frontUploadTask;
                 backUploadResult = await backUploadTask;
+                // Mã hóa mật khẩu
+                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
 
-                var existingUser = await _userRepository.GetUserByEmail(request.Email);
-                if (existingUser != null)
+                // Khởi tạo đối tượng người dùng
+                var user = new User
                 {
-                    throw new ArgumentException("Email đã tồn tại");
-                }
-                var existingCccd = await _cccdRepository.GetCccdByCode(request.CccdCode);
-                if (existingCccd != null)
-                {
-                    throw new ArgumentException("CCCD đã tồn tại");
-                }
-                var existingPhone = await _userRepository.GetUserByPhone(request.PhoneNumber);
-                if (existingPhone != null) {
-                    throw new ArgumentException("Phone đã tồn tại");
-                }
-                var password = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
-                var user = new User();
-                user.Email = request.Email;
-                user.PasswordHash = password;
-                user.Fullname = request.Fullname;
-                user.PhoneNumber = request.PhoneNumber;
-                user.Dob = request.Dob;
-                user.RoleId = 1;
-                user.Gender = request.Gender;
-                user.Address = request.Address;
-                user.Status = "Active";
-                user.CreateAt = DateTime.UtcNow;
-                user.UpdateAt = DateTime.UtcNow;
+                    Email = request.Email,
+                    PasswordHash = hashedPassword,
+                    Fullname = request.Fullname,
+                    PhoneNumber = request.PhoneNumber,
+                    Dob = request.Dob,
+                    RoleId = 1,
+                    Gender = request.Gender,
+                    Address = request.Address,
+                    Status = "Active",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                };
+
+                // Sử dụng transaction để đảm bảo tính toàn vẹn của dữ liệu
                 using var transaction = await _userRepository.BeginTransactionAsync();
-
                 try
                 {
+                    // Lưu thông tin người dùng
                     await _userRepository.SaveUser(user);
 
-                    var cccd = new Cccd();
-                    cccd.UserId = user.UserId;
-                    cccd.Code = request.CccdCode;
-                    cccd.ImgFront = frontUploadResult.Url.ToString();
-                    cccd.ImgFrontPubblicId = frontUploadResult.PublicId;
-                    cccd.ImgBack = backUploadResult.Url.ToString();
-                    cccd.ImgBackPubblicId = backUploadResult.PublicId;
-                    cccd.CreateAt = DateTime.UtcNow;
-                    cccd.UpdateAt = DateTime.UtcNow;
+                    // Tạo thông tin CCCD
+                    var cccd = new Cccd
+                    {
+                        UserId = user.UserId,
+                        Code = request.CccdCode.Trim(),
+                        ImgFront = frontUploadResult.Url.ToString(),
+                        ImgFrontPubblicId = frontUploadResult.PublicId,
+                        ImgBack = backUploadResult.Url.ToString(),
+                        ImgBackPubblicId = backUploadResult.PublicId,
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow
+                    };
 
                     await _cccdRepository.SaveCccd(cccd);
                     await transaction.CommitAsync();
@@ -94,11 +113,13 @@ namespace API.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    throw new Exception("đăng ký thất bại", ex);
+                    // Ném lỗi với thông báo chi tiết cho biết thất bại trong quá trình lưu dữ liệu
+                    throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu", ex);
                 }
             }
             catch (Exception ex)
             {
+                // Nếu có lỗi xảy ra, tiến hành xóa ảnh đã upload (nếu có)
                 var deleteTasks = new List<Task>();
                 if (frontUploadResult != null)
                     deleteTasks.Add(_imageService.DeleteImageAsync(frontUploadResult.PublicId));
@@ -106,10 +127,11 @@ namespace API.Services
                     deleteTasks.Add(_imageService.DeleteImageAsync(backUploadResult.PublicId));
 
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("đăng ký thất bại", ex);
+                // Ném lỗi với thông báo tổng quát, bao gồm inner exception để dễ dàng debug
+                throw new Exception("Đăng ký thất bại", ex);
             }
-
         }
+
         public async Task<UserDto> GetUserByEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -233,7 +255,7 @@ namespace API.Services
             catch (Exception ex)
             {
                 throw new Exception("Reset password failed", ex);
-            }          
+            }
         }
     }
 }

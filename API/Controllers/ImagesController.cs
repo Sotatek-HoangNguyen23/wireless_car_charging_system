@@ -20,28 +20,35 @@ namespace API.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest(new { Error = "No file uploaded" });
+                return BadRequest(new ProblemDetails
+                {
+                    Title= "Invalid Request",
+                    Detail = "Please upload an image file",
+                    Status = StatusCodes.Status400BadRequest
+                });
             }
 
             try
             {
-                var result = await _imageService.ReadSmallQrCodeWithCropAndZoom(file);
-                return Ok(result);
+                var result = await _imageService.ReadSmallQrCode(file);
+                return Ok(new { Result = result });
             }
             catch (InvalidImageException ex)
             {
-                return BadRequest(new
+                return BadRequest(new ProblemDetails
                 {
-                    Error = "Invalid image",
-                    Details = ex.Message
+                    Title= "Invalid Request",
+                    Detail = ex.Message,
+                    Status = StatusCodes.Status400BadRequest
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
                 {
-                    Error = "Error processing QR code",
-                    Details = ex.Message
+                    Title = "Internal Server Error",
+                    Detail = ex.Message,
+                    Status = StatusCodes.Status500InternalServerError
                 });
             }
         }
@@ -53,18 +60,20 @@ namespace API.Controllers
                 // Xóa ảnh từ Cloudinary
                 var result = await _imageService.DeleteImageAsync(publicId);
 
-                return Ok(new
+                return Ok(new 
                 {
+                    Title = "Delete Image Success",
                     Message = "Xóa ảnh thành công",
-                    Result = result.Result
+                    Detail = result.Result
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                return BadRequest(new ProblemDetails
                 {
-                    Error = "Xóa ảnh thất bại",
-                    Details = ex.Message
+                    Title = "Delete Image Failed",
+                    Detail = ex.Message,
+                    Status = StatusCodes.Status400BadRequest
                 });
             }
         }

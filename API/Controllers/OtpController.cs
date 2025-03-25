@@ -48,11 +48,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails
                 {
-                    Type = "Server Error",
                     Title = "Internal Server Error",
                     Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500,
-                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                 });
             }
 
@@ -89,11 +87,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails
                 {
-                    Type = "Server Error",
                     Title = "Internal Server Error",
                     Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500,
-                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                 });
             }
         }
@@ -118,11 +114,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails
                 {
-                    Type = "Server Error",
                     Title = "Internal Server Error",
                     Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500,
-                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                 });
             }
         }
@@ -156,11 +150,9 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails
                 {
-                    Type = "Server Error",
                     Title = "Internal Server Error",
                     Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500,
-                    Extensions = { ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier }
                 });
             }
         }

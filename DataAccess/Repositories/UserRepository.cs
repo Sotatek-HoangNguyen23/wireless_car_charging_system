@@ -31,7 +31,7 @@ namespace DataAccess.Repositories
 
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == email);
         } 
         public async Task<User?> GetUserByPhone(string phone)
         {
@@ -42,14 +42,14 @@ namespace DataAccess.Repositories
 
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(u => u.PhoneNumber == phone);
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phone);
         }
 
         public async Task<User?> GetUserById(int id)
         {
             return await _context.Users.Include(u => u.Role)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(u => u.UserId == id);
+                .FirstOrDefaultAsync(u => u.UserId == id);
         }
         public async Task<User?> GetUserByCccd(string cccd)
         {
@@ -61,7 +61,7 @@ namespace DataAccess.Repositories
                 .Include(u => u.Role)
                 .Include(u => u.Cccds)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(u => u.Cccds.Any(c => c.Code == cccd));
+                .FirstOrDefaultAsync(u => u.Cccds.Any(c => c.Code == cccd));
         }
 
 

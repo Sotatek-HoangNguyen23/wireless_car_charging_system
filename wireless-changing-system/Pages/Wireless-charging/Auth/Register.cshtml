@@ -248,9 +248,10 @@
     }
 
     // Hàm preview ảnh
-    function previewImage(input, previewId) {
+       function previewImage(input, previewId) {
         const preview = document.getElementById(previewId);
         const file = input.files[0];
+
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -263,74 +264,96 @@
             preview.src = '';
         }
     }
-
     // Khi chọn ảnh CCCD Front: preview và gọi API quét QR code
-    document.getElementById("cccdFront").addEventListener("change", function() {
-        const fileInput = this;
-        const file = fileInput.files[0];
-        if (!file) return;
+      document.getElementById("cccdFront").addEventListener("change", async function() {
+          validCCCD = false;
+        try {
+            const file = this.files[0];
+            if (!file) return;
 
-        // Hiển thị preview
-        previewImage(fileInput, 'cccdFrontPreview');
+            previewImage(this, 'cccdFrontPreview');
 
-        // Tạo FormData và thêm file
-        const formData = new FormData();
-        formData.append("file", file);
+            const formData = new FormData();
+            formData.append("file", file);
 
-        // Gọi API POST /read-qr để quét QR code
-        fetch("https://localhost:7191/api/Images/read-qr", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.ok ? response.text() : Promise.reject("Lỗi server"))
-        .then(result => {
-            if(result.trim() === "Không tìm thấy QR code") {
-                showToast("Không đọc được QR code, vui lòng gửi lại ảnh CCCD Front.");
-                return;
-            }
+            const response = await fetch("https://localhost:7191/api/Images/read-qr", {
+                method: "POST",
+                headers: { "Accept": "text/plain" },
+                body: formData
+            });
+            const data = await response.json();
+         if (!response.ok) {
+              throw new Error(data.detail || "Lỗi đọc ảnh CCCD");
+          }
 
-            const parts = result.split("|");
-            if(parts.length >= 6) {
+
+          const parts = data.result.split("|");
+            if (parts.length >= 6) {
                 document.getElementById("cccd").value = parts[0].trim();
                 document.getElementById("fullname").value = parts[2].trim();
 
-                // Chuyển định dạng ngày ddMMyyyy sang yyyy-MM-dd
-                let dob = parts[3].trim();
-                if(dob.length === 8) {
+                const dob = parts[3].trim();
+                if (dob.length === 8) {
                     const day = dob.substring(0,2);
                     const month = dob.substring(2,4);
                     const year = dob.substring(4);
                     document.getElementById("dob").value = `${year}-${month}-${day}`;
-                } else {
-                    document.getElementById("dob").value = "";
                 }
 
                 const gender = parts[4].trim().toLowerCase();
-                if(gender === "nam") {
-                    document.getElementById("male").checked = true;
-                } else if(gender === "nữ") {
-                    document.getElementById("female").checked = true;
-                }
+                document.getElementById(gender === "nam" ? "male" : "female").checked = true;
                 document.getElementById("address").value = parts[5].trim();
                 validCCCD = true;
-            } else {
-                showToast("Dữ liệu QR code không hợp lệ, vui lòng gửi lại ảnh CCCD.");
             }
-        })
-        .catch(error => {
-            console.error(error);
-            showToast("Lỗi khi đọc QR code, vui lòng gửi lại ảnh CCCD.");
-        });
+        } catch (error) {
+
+              if (error.message === "Không tìm thấy QR code trong ảnh") {
+                  showToast("Không đọc được CCCD, vui lòng gửi lại ảnh");
+                  return;
+              }
+            showToast( error.message);
+            validCCCD = false;
+        }
     });
 
-    // Xử lý submit form
-    document.getElementById("registerForm").addEventListener("submit", function(e) {
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
         e.preventDefault();
         const form = this;
-        const formData = new FormData(form);
-        const dobValue = document.getElementById('dob').value;
-        
-        // Kiểm tra các trường bắt buộc
+
+        try {
+            // Hiển thị trạng thái loading
+            regisBtn.disabled = true;
+            regisBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+            // Validate form
+            if (!validateForm()) return;
+
+            const formData = new FormData(form);
+            const response = await fetch("https://localhost:7191/api/auth/register", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Đăng ký thất bại');
+            }
+
+            showSuccessToast("Đăng ký thành công!");
+            setTimeout(() => {
+                window.location.href = "./";
+            }, 2000);
+        } catch (error) {
+            showToast(error.message);
+        } finally {
+            regisBtn.disabled = false;
+            regisBtn.innerHTML = 'Đăng ký';
+        }
+    });
+
+    // Hàm validate tổng hợp
+     function validateForm() {
         let isValid = true;
         const requiredFields = [
             {id: 'cccdFront', message: 'Vui lòng tải lên ảnh mặt trước CCCD'},
@@ -342,10 +365,10 @@
             {id: 'fullname', message: 'Vui lòng kiểm tra lại thông tin từ CCCD'},
             {id: 'address', message: 'Vui lòng nhập địa chỉ'}
         ];
+
         requiredFields.forEach(field => {
             const element = document.getElementById(field.id);
-            // Với file input, kiểm tra file có được chọn không
-            if (field.id === 'cccdFront') {
+            if (field.id === 'cccdFront' || field.id === 'cccdBack') {
                 if (!element.files[0]) {
                     showToast(field.message);
                     element.classList.add('invalid-field');
@@ -358,43 +381,21 @@
             }
         });
 
-        // Kiểm tra email hợp lệ (nếu có thể thêm bước này)
-        const email = document.getElementById('email').value.trim();
-        if (!validateEmail(email)) {
+        if (!validateEmail(document.getElementById('email').value)) {
             showToast("Email không hợp lệ");
             isValid = false;
         }
 
-        if (!validateDOB(dobValue)) {
+        if (!validateDOB(document.getElementById('dob').value)) {
+            showToast("Ngày sinh không hợp lệ");
             isValid = false;
         }
         if (!validCCCD) {
-            showToast("Vui lòng chọn ảnh CCCD và chờ đọc QR code thành công");
+            showToast("Vui lòng kiểm tra lại thông tin từ CCCD");
             isValid = false;
         }
-        if (!isValid) {
-            return;
-        }
-
-        fetch("https://localhost:7191/api/auth/register", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(errorData => Promise.reject(errorData));
-            }
-            return response.text();
-        })
-        .then(result => {
-            showSuccessToast(result);
-            window.location.href = "/wireless-charging/auth";
-        })
-        .catch(error => {
-            console.error(error);
-            showToast("Đăng ký thất bại: " + (error.Error || "Lỗi không xác định"));
-        });
-    });
+        return isValid;
+    }
 
     document.getElementById("dob").addEventListener("change", function(e) {
         const dobValue = e.target.value;
@@ -415,7 +416,20 @@
             }
         }
     });
-
+    const emails=document.getElementById('email');
+    emails.addEventListener('blur', function(e) {
+        const email = e.target.value;
+        console.log(email);
+        if (email.length > 0) {
+            const isValid = validateEmail(email);
+            if (!isValid) {
+                showToast("Email không hợp lệ");
+                this.classList.add('invalid-field');
+            } else {
+                this.classList.remove('invalid-field');
+            }
+        }
+    });
     phoneInput.addEventListener('keydown', function(e) {
         const allowedKeys = [
             'Backspace', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
