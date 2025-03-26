@@ -65,7 +65,12 @@ namespace API.Controllers
                 var response = await _authService.Authenticate(request);
                 if (response == null)
                 {
-                    return Unauthorized("Email hoặc password không hợp lệ");
+                    return Unauthorized(new ProblemDetails
+                    {
+                        Title = "Unauthorized",
+                        Detail = "Email hoặc password không đúng",
+                        Status = 401
+                    });
                 }
                 Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
                 {
@@ -96,7 +101,7 @@ namespace API.Controllers
                 {
                     return BadRequest(new {
                         Title = "Invalid Request",
-                        Detail = "Refresh token not found",
+                        Detail = "Không tìm thấy refresh token",
                         Status = 400
                     });
                 }
@@ -132,7 +137,7 @@ namespace API.Controllers
                     return Unauthorized(new ProblemDetails
                     {
                         Title = "Unauthorized",
-                        Detail = "Refresh token not found",
+                        Detail = "Không tìm thấy refresh token",
                         Status = 401
                     });
                 }
