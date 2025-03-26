@@ -76,6 +76,15 @@ namespace API.Services
             return await _balanceRepo.GetBalanceTransactionByOrderIdAsync(orderId.ToString());
         }
 
+        public async Task<Balance> GetBalanceByUserId(int userId)
+        {
+            return await _balanceRepo.GetBalanceByUserId(userId);
+        }
+
+        public async Task<List<TransactionDTO>> GetTransactionHistory(int userId, DateTime? start, DateTime? end)
+        {
+            return await _balanceRepo.GetTransactionHistory(userId, start, end);
+        }
     }
 }
 

@@ -1,4 +1,5 @@
-﻿using DataAccess.Models;
+﻿using DataAccess.DTOs;
+using DataAccess.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,7 @@ namespace DataAccess.Interfaces
         Task<Balance> GetBalanceByUserId(int userId);
 
         Task<Balance> UpdateBalance(Balance balance );
+
+        Task<List<TransactionDTO>> GetTransactionHistory( int userId, DateTime? start, DateTime? end);
     }
 }

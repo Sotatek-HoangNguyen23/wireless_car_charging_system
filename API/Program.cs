@@ -17,9 +17,15 @@ using CloudinaryDotNet.Actions;
 using dotenv.net;
 using Microsoft.AspNetCore.Http.Features;
 using DataAccess.Repositories.StationRepo;
+using API.Hubs;
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<SqlDependencyService>();
+
 //=================================
 // Cloudinary configuration
 DotEnv.Load();
@@ -134,6 +140,16 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 
 var app = builder.Build();
 app.UseCors("AllowAllOrigins");
+app.UseRouting();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<RealTimeHub>("/realtimeHub");
+});
+
+var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
+sqlDependencyService.StartListening();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -87,7 +87,10 @@ namespace DataAccess.Repositories.CarRepo
                             StationName = s.StationName,
                             Address = sl.Address,
                             Status = cs.Status,
-                            BatteryLevel = rtd.BatteryLevel
+                            BatteryLevel = rtd.BatteryLevel,
+                            ChargingPower = rtd.ChargingPower,
+                            Temperature = rtd.Temperature,
+                            Cost = cs.Cost
                         };
 
             return query.FirstOrDefault(); 
