@@ -4,8 +4,8 @@
     <div>
         <div class="container py-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0">My Cars</h3>
-                <a href="/wireless-charging/vehicles/addcar" class="btn btn-primary">+ Add Car</a>
+                <h3 class="mb-0">Xe của tôi</h3>
+                <a href="/wireless-charging/vehicles/addcar" class="btn btn-primary">+ Thêm xe</a>
             </div>
 
             <div id="cars-container" class="row">
@@ -18,9 +18,9 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
-            const userId = getUserId(); 
+            const userId = sessionStorage.getItem("userId");
             if (!userId) {
-                console.error("User ID is missing.");
+                alert("User chưa đăng nhập!");
                 return;
             }
             await fetchCarsByUserId(userId);
@@ -56,8 +56,8 @@
                                     <h5 class="card-title mb-1">${car.carName}</h5>
                                     <p class="card-text  mb-2">${car.type} - <span class="text-muted"> ${car.brand}</span></p>
                                     <div class="mb-3">
-                                        <span class="d-block"><strong>Plate:</strong> ${car.licensePlate}</span>
-                                        <span class="d-block"><strong>Color:</strong> ${car.color}</span>
+                                        <span class="d-block"><strong>Biển số:</strong> ${car.licensePlate}</span>
+                                        <span class="d-block"><strong>Màu:</strong> ${car.color}</span>
                                     </div>
                                     <button class="btn btn-outline-primary" onclick="viewCar(${car.carId})">View</button>
                                 </div>
@@ -75,8 +75,6 @@
             window.location.href = `/wireless-charging/vehicles/cardetail?carId=${carId}`;
         }
 
-        function getUserId() {        
-            return 2;
-        }
+        
     </script>
 }

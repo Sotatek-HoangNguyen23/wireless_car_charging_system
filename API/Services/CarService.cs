@@ -1,6 +1,7 @@
 ﻿using DataAccess.DTOs;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using System.Text.RegularExpressions;
 
 namespace API.Services
 {
@@ -43,9 +44,14 @@ namespace API.Services
 
         public void addCar(int carModel, int userId, string licensePlate, string carName)
         {
+            if (!IsValidVietnameseLicensePlate(licensePlate))
+            {
+                throw new ArgumentException("Invalid license plate format");
+            }
+
             if (_myCars.checkDuplicateLicensePlate(licensePlate))
             {
-                throw new ArgumentException("License Plate already exist");
+                throw new ArgumentException("License Plate already exists");
             }
 
             try
@@ -60,6 +66,41 @@ namespace API.Services
 
         public void editCar(int carModel, int carId, string licensePlate, string carName) {
             _myCars.editCar(carModel,carId,licensePlate,carName);
+        }
+
+        private bool IsValidVietnameseLicensePlate(string licensePlate)
+        {
+            string pattern = @"^\d{2}[A-Z]{1,2}-\d{3}\.\d{2}$";
+            return Regex.IsMatch(licensePlate, pattern);
+        }
+
+        public async Task SendRentRequestForRent(int userId, int carId, DateTime startDate, DateTime endDate)
+        {
+            if (startDate >= endDate)
+            {
+                throw new ArgumentException("Start date must be before end date.");
+            }
+            var userCar = new UserCar
+            {
+                UserId = userId,
+                CarId = carId,
+                Role = "Renter",
+                IsAllowedToCharge = false,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            await _myCars.SendRentRequestForRent(userCar);
+        }
+
+        public async Task<List<RentConfirmDto>> GetRentRequest(int driverId)
+        {
+            return await _myCars.GetRentRequest(driverId);
+        }
+
+        public async Task<bool> ConfirmRentalAsync(int userId, int carId, string role)
+        {
+            return await _myCars.UpdateIsAllowedToChargeAsync(userId, carId, role);
         }
     }
 }

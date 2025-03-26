@@ -1,4 +1,5 @@
-﻿using DataAccess.DTOs.Auth;
+﻿using DataAccess.DTOs;
+using DataAccess.DTOs.Auth;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -17,6 +18,11 @@ namespace DataAccess.Interfaces
         Task<User?> GetUserById(int id);
         Task<User?> GetUserByCccd(string cccd);
         Task SaveUser(User user);
+
+        Task <ProfileDTO?> GetProfileByUserId( int userId); 
         Task UpdateUser(User user);
+
+        Task<List<User>> GetUserByEmailOrPhone(string search);
+       
     }
 }

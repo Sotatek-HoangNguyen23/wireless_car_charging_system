@@ -37,4 +37,42 @@ namespace DataAccess.DTOs
         public string CarName { get; set; }
     }
 
+    public class RentRequestDto
+    {
+        public int UserId { get; set; }
+        public int CarId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+
+    public class RentConfirmDto
+    {
+        public int DriverId { get; set; }
+
+        public int OwnerId { get; set; }
+
+        public string OwnerName { get; set; }
+
+        public string OwnerPhone { get; set; }
+        public int CarId { get; set; }
+
+        public string LicensePlate { get; set; }
+
+        public bool? IsAllowedToCharge { get; set; }
+        public string? Type { get; set; }
+
+        public string? Color { get; set; }
+        public string? Brand { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+    }
+
+    public class ConfirmRentDto{
+        public int UserId { get; set; }
+        public int CarId { get; set; }
+        public string Role { get; set; }
+    }
+
 }

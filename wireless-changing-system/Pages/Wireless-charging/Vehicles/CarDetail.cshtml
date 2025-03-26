@@ -12,8 +12,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="card-title mb-0" id="car-name">VF 9 ECO</h3>
                     <div>
-                        <button class="btn btn-outline-danger me-2 del-btn">Delete Car</button>
-                        <button class="btn btn-outline-secondary" onclick="navigateToEditCar()">Edit Car</button>
+                        <button class="btn btn-outline-danger me-2 del-btn">Xóa xe</button>
+                        <button class="btn btn-outline-secondary" onclick="navigateToEditCar()">Sửa </button>
 
                     </div>
                 </div>
@@ -43,33 +43,34 @@
                             <img id="car-image" src="" alt="Car Image" class="img-fluid rounded" style="width: 100%; max-width: 300px;">
                         </div>-->
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Type:</span> <span id="car-type"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Loại:</span> <span id="car-type"></span></p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Brand:</span> <span id="car-brand"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Hãng:</span> <span id="car-brand"></span></p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">License Plate:</span> <span id="car-license-plate"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Biển số:</span> <span id="car-license-plate"></span></p>
                         </div>
                         
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Seat:</span> <span id="car-seat"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Số chỗ:</span> <span id="car-seat"></span></p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Color:</span> <span id="car-color"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Màu:</span> <span id="car-color"></span></p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Average Range:</span> <span id="car-average-range"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Quãng đường trung bình:</span> <span id="car-average-range"></span></p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Charging Standard:</span> <span id="car-charging-standard"></span></p>
+                            <p class="mb-0"><span class="fw-bold">Loại sạc:</span> <span id="car-charging-standard"></span></p>
                         </div>
                     </div>
 
                     
                     <div>
-                        <button class="btn btn-primary btn-lg">RENT</button>
-                        <button class="btn btn-outline-primary btn-lg" onclick="navigateToChargingHistory()">Charging History</button>
+                        <button class="btn btn-primary btn-lg" onclick="navigateToRentPage()">CHO THUÊ</button>
+
+                        <button class="btn btn-outline-primary btn-lg" onclick="navigateToChargingHistory()">Lịch sử sạc</button>
                     </div>
                 </div>
             </div>
@@ -93,7 +94,14 @@
         function getCarIdFromUrl() {
             return new URLSearchParams(window.location.search).get('carId');
         }
-
+                function navigateToRentPage() {
+            const carId = getCarIdFromUrl();
+            if (carId) {
+                window.location.href = `/wireless-charging/vehicles/rent?carId=${carId}`;
+            } else {
+                console.error("Car ID is missing.");
+            }
+        }
         async function fetchCarDetails(carId) {
             try {
                 const response = await fetch(`https://localhost:7191/api/Car/detail/${carId}`);
@@ -153,7 +161,7 @@
             if (!confirm("Are you sure you want to delete this car?")) return;
 
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/${carId}`, {
+                const response = await fetch(`https://localhost:7191/api/Car/Delete/${carId}`, {
                     method: 'DELETE'
                 });
 

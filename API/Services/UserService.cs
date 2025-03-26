@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet.Core;
+using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
@@ -257,5 +258,82 @@ namespace API.Services
                 throw new Exception("Reset password failed", ex);
             }
         }
+
+        public async Task<ProfileDTO?> GetProfileByUserId(int userId)
+        {
+            if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.");
+            }
+
+            var profile = await _userRepository.GetProfileByUserId(userId);
+            if (profile == null)
+            {
+                throw new Exception("User profile not found.");
+            }
+
+            return profile;
+        }
+
+        public async Task UpdateUserProfileAsync(int userId, RequestProfile request)
+        {
+            if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.");
+            }
+
+            var user = await _userRepository.GetUserById(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            // Update user properties
+            user.Fullname = request.Fullname ?? user.Fullname;
+            user.Email = request.Email ?? user.Email;
+            user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
+            user.Dob = request.Dob ?? user.Dob;
+            user.Gender = request.Gender ?? user.Gender;
+            user.Address = request.Address ?? user.Address;
+            user.UpdateAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateUser(user);
+        }
+
+        public async Task ChangePasswordAsync(ChangePassDTO passDTO)
+        {
+            if (string.IsNullOrWhiteSpace(passDTO.Password) ||
+                string.IsNullOrWhiteSpace(passDTO.NewPassword) ||
+                string.IsNullOrWhiteSpace(passDTO.ConfirmNewPassword))
+            {
+                throw new ArgumentException("Passwords cannot be empty.");
+            }
+
+            if (passDTO.NewPassword != passDTO.ConfirmNewPassword)
+            {
+                throw new ArgumentException("New password and confirmation do not match.");
+            }
+
+            var user = await _userRepository.GetUserById(passDTO.UserId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found.");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(passDTO.Password, user.PasswordHash))
+            {
+                throw new ArgumentException("Mật khẩu hiện tại không đúng.");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(passDTO.NewPassword);
+            await _userRepository.UpdateUser(user);
+        }
+
+        public async Task<List<User>> GetUsersByEmailOrPhoneAsync(string search)
+        {
+            return await _userRepository.GetUserByEmailOrPhone(search);
+        }
     }
+
+
 }
