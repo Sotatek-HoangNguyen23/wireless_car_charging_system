@@ -182,6 +182,7 @@ namespace API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult GetUsers(
             [FromQuery] string? searchQuery,
@@ -200,6 +201,7 @@ namespace API.Controllers
             await _userService.ChangeUserStatusAsync(userId, newStatus);
             return Ok(new { message = "User status updated successfully." });
         }
+        [AllowAnonymous]
 
         [HttpGet("Feedback")]
         public IActionResult GetFeedbacks(
@@ -212,6 +214,7 @@ namespace API.Controllers
             var result = _userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
             return Ok(result);
         }
+        [AllowAnonymous]
 
         [HttpGet("Feedback/{userId}")]
         public async Task<IActionResult> GetFeedback(int userId)
