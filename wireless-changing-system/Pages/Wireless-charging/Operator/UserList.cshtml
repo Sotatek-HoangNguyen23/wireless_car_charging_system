@@ -1,0 +1,266 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.User.UserListModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .role-tabs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-4">
+        <h2 class="mb-3">User List</h2>
+
+        <!-- Thanh Search -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" id="searchName" placeholder="Search by Name or Email or Phone Number" />
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="searchStatus">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection -->
+        <ul class="nav nav-pills role-tabs">
+            <li class="nav-item">
+                <a class="nav-link" data-role="2">Operator</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" data-role="3">Station Owner</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-role="4">Driver</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="stationOwner">
+                <div class="table-responsive">
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>        
+        </div>
+
+        <!-- Phân trang -->
+        <nav>
+            <ul class="pagination justify-content-center mt-3"></ul>
+        </nav>
+
+    </div>
+
+    <!-- Modal Feedback -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">User Feedback</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>User:</strong> <span id="feedbackUser"></span></p>
+                    <div id="feedbackList"></div> <!-- Chứa danh sách feedback -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill"></i>  
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0">Đã xảy ra lỗi khi gửi mã OTP</p>
+    </div>
+</div>
+
+    <script>
+        let currentPage = 1;
+        let pageSize = 5;
+        let currentRoleId = 3; // Mặc định Station Owner
+        let currentStatus = "";
+        let searchQuery = "";
+
+        // Gọi API để lấy danh sách user
+        function fetchUsers(page = 1) {
+            let url = `https://localhost:7191/api/User?searchQuery=${searchQuery}&roleId=${currentRoleId}&status=${currentStatus}&pageNumber=${page}&pageSize=${pageSize}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    updateUserTable(data.data);
+                    updatePagination(data.totalPages, page);
+                })
+                .catch(error => console.error("Error fetching users:", error));
+        }
+
+        // Cập nhật bảng hiển thị danh sách user
+        function updateUserTable(users) {
+            let tableBody = document.getElementById("userTableBody");
+            tableBody.innerHTML = "";
+
+            users.forEach(user => {
+                let statusBadge = user.status === "Active"
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+
+                let row = `
+                    <tr>
+                        <td>${user.userId}</td>
+                        <td>${user.fullname}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phoneNumber}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm change-status-btn"
+                                    data-id="${user.userId}" data-status="${user.status}">
+                                Change Status
+                            </button>
+                            <button class="btn btn-info btn-sm view-feedback-btn"
+                                    data-id="${user.userId}">
+                                View Feedback
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Cập nhật phân trang
+        function updatePagination(totalPages, currentPage) {
+            let pagination = document.querySelector(".pagination");
+            pagination.innerHTML = "";
+
+            let prevClass = currentPage === 1 ? "disabled" : "";
+            pagination.innerHTML += `<li class="page-item ${prevClass}">
+                <a class="page-link" href="#" onclick="fetchUsers(${currentPage - 1})">Previous</a>
+            </li>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                let activeClass = i === currentPage ? "active" : "";
+                pagination.innerHTML += `<li class="page-item ${activeClass}">
+                    <a class="page-link" href="#" onclick="fetchUsers(${i})">${i}</a>
+                </li>`;
+            }
+
+            let nextClass = currentPage === totalPages ? "disabled" : "";
+            pagination.innerHTML += `<li class="page-item ${nextClass}">
+                <a class="page-link" href="#" onclick="fetchUsers(${currentPage + 1})">Next</a>
+            </li>`;
+        }
+
+        // Xử lý khi người dùng nhập vào ô search
+        document.getElementById("searchName").addEventListener("input", function () {
+            searchQuery = this.value;
+            fetchUsers(1);
+        });
+
+        // Xử lý khi người dùng chọn trạng thái
+        document.getElementById("searchStatus").addEventListener("change", function () {
+            currentStatus = this.value;
+            fetchUsers(1);
+        });
+
+        // Xử lý chọn Role
+        document.querySelectorAll(".role-tabs .nav-link").forEach(roleTab => {
+            roleTab.addEventListener("click", function () {
+                document.querySelector(".role-tabs .nav-link.active").classList.remove("active");
+                this.classList.add("active");
+
+                currentRoleId = this.getAttribute("data-role"); // Lấy roleId từ data-role
+                fetchUsers(1);
+            });
+        });
+
+        // Change Status
+        document.addEventListener("click", function (e) {
+            if (e.target.classList.contains("change-status-btn")) {
+                let userId = e.target.getAttribute("data-id");
+                let newStatus = e.target.getAttribute("data-status") === "Active" ? "Inactive" : "Active";
+
+                fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newStatus)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchUsers(); // Reload danh sách user
+                });
+            }
+        });
+
+        $(document).on("click", ".view-feedback-btn", function () {
+            let userId = $(this).data("id");
+
+            $.ajax({
+                url: `https://localhost:7191/api/User/Feedback/${userId}`,
+                method: "GET",
+                success: function (data) {
+                    $("#feedbackUser").text( userId);
+                    let feedbackHtml = "";
+                    data.forEach(feedback => {
+                        feedbackHtml += `
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <p>${feedback.message}</p>
+                                    <small class="text-muted">${new Date(feedback.createdAt).toLocaleString()}</small>
+                                </div>
+                            </div>`;
+                    });
+                    $("#feedbackList").html(feedbackHtml);
+                    $("#feedbackModal").modal("show");
+                },
+                error: function () {
+                    $("#feedbackList").html("<p class='text-danger'>No feedback available.</p>");
+                    $("#feedbackModal").modal("show");
+                }
+            });
+        });
+
+
+        // Khởi động lần đầu
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchUsers();
+        });       
+    </script>
+
+</body>
+</html>

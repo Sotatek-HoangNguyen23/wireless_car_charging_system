@@ -1,6 +1,8 @@
 ﻿using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,10 @@ namespace DataAccess.Interfaces
         Task UpdateUser(User user);
 
         Task<List<User>> GetUserByEmailOrPhone(string search);
-       
+        PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize);
+        Task ChangeUserStatusAsync(int userId, string newStatus);
+        PagedResult<FeedbackDto> GetFeedbacks(string?search, DateTime? startDate, DateTime? endDate, int page, int pageSize);
+        Task<List<Feedback>> GetFeedbackByUserId(int userId);
+
     }
 }

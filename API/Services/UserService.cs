@@ -6,6 +6,7 @@ using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
 using System.Text.RegularExpressions;
 
 namespace API.Services
@@ -310,6 +311,26 @@ namespace API.Services
         public async Task<List<User>> GetUsersByEmailOrPhoneAsync(string search)
         {
             return await _userRepository.GetUserByEmailOrPhone(search);
+        }
+
+        public PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize)
+        {
+            return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
+        }
+
+        public async Task ChangeUserStatusAsync(int userId, string newStatus)
+        {
+            await _userRepository.ChangeUserStatusAsync(userId, newStatus);
+        }
+
+        public PagedResult<FeedbackDto> GetFeedbacks(string? search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
+        {
+            return _userRepository.GetFeedbacks(search, startDate, endDate, page, pageSize);
+        }
+
+        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
+        {
+            return await _userRepository.GetFeedbackByUserId(userId);
         }
     }
 

@@ -60,5 +60,46 @@ namespace API.Controllers
                 });
             }
         }
+
+        [HttpGet]
+        public IActionResult GetUsers(
+            [FromQuery] string? searchQuery,
+            [FromQuery] string? status,
+            [FromQuery] int? roleId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 5)
+        {
+            var result = _userService.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
+            return Ok(result);
+        }
+
+        [HttpPut("change-status/{userId}")]
+        public async Task<IActionResult> ChangeUserStatus(int userId, [FromBody] string newStatus)
+        {
+            await _userService.ChangeUserStatusAsync(userId, newStatus);
+            return Ok(new { message = "User status updated successfully." });
+        }
+
+        [HttpGet("Feedback")]
+        public IActionResult GetFeedbacks(
+            [FromQuery] string? search,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var result = _userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
+            return Ok(result);
+        }
+
+        [HttpGet("Feedback/{userId}")]
+        public async Task<IActionResult> GetFeedback(int userId)
+        {
+            var feedbacks = await _userService.GetFeedbackByUserId(userId);
+            if (feedbacks == null || feedbacks.Count == 0)
+                return NotFound(new { message = "No feedback found" });
+
+            return Ok(feedbacks);
+        }
     }
 }

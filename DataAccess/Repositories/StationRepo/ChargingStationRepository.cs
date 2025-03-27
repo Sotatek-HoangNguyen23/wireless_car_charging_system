@@ -10,6 +10,12 @@ namespace DataAccess.Repositories.StationRepo
     {
         public List<T> Data { get; set; }
         public int TotalPages { get; set; }
+
+        public PagedResult(List<T> data, int totalRecords, int pageSize)
+        {
+            Data = data;
+            TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+        }
     }
 
     public class ChargingStationRepository : IChargingStationRepository
@@ -71,8 +77,7 @@ namespace DataAccess.Repositories.StationRepo
             }
 
             // Tính tổng số trang
-            int totalRecords = query.Count();
-            int totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            int totalRecords = query.Count(); ; ;    
 
             // Phân trang (chỉ lấy dữ liệu của trang hiện tại)
             var data = stationList
@@ -80,7 +85,7 @@ namespace DataAccess.Repositories.StationRepo
                 .Take(pageSize)
                 .ToList();
 
-            return new PagedResult<ChargingStationDto> { Data = data, TotalPages = totalPages };
+            return new PagedResult<ChargingStationDto> (data, totalRecords, pageSize);
         }
 
         // Hàm tính khoảng cách giữa hai điểm theo công thức Haversine

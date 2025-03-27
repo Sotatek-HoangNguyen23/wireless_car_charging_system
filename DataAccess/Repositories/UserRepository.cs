@@ -1,7 +1,9 @@
 ﻿using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -117,6 +119,88 @@ namespace DataAccess.Repositories
             return await _context.Users
         .Where(u => u.Email.Contains(search) || u.PhoneNumber.Contains(search))
         .ToListAsync();
+        }
+
+        public PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize)
+        {
+            var query = _context.Users.AsQueryable();
+
+            if (roleId.HasValue)
+            {
+                query = query.Where(u => u.RoleId == roleId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                query = query.Where(u => u.Fullname.Contains(searchQuery) || u.Email.Contains(searchQuery) || u.PhoneNumber.Contains(searchQuery));
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(u => u.Status.Contains(status));
+            }
+
+            int totalRecords = query.Count();
+
+            var users = query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(u => new UserDto
+                {
+                    UserId = u.UserId,
+                    Fullname = u.Fullname,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Status = u.Status,
+                    Role = new RoleDto
+                    {
+                        RoleId = u.Role.RoleId,
+                        Name = u.Role.RoleName
+                    }
+                }).ToList();
+
+            return new PagedResult<UserDto>(users, totalRecords, pageSize);
+        }
+
+        public async Task ChangeUserStatusAsync(int userId, string newStatus)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Status = newStatus;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public PagedResult<FeedbackDto> GetFeedbacks(string?search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
+        {
+            var query = _context.Feedbacks
+                .Where(f =>
+                    (string.IsNullOrEmpty(search) || f.User.Email.Contains(search) || f.Message.Contains(search)) &&
+                    (!startDate.HasValue || f.CreatedAt >= startDate) &&
+                    (!endDate.HasValue || f.CreatedAt <= endDate)
+                )
+                .Select(f => new FeedbackDto
+                {
+                    Id = f.FeedbackId,
+                    User = f.User.Email,
+                    Message = f.Message,
+                    Date = f.CreatedAt
+                });
+
+            int totalCount = query.Count(); ;
+            var data = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return new PagedResult<FeedbackDto> (data, totalCount, pageSize);
+        }
+
+        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
+        {
+            return await _context.Feedbacks
+                .Where(f => f.UserId == userId)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
         }
     }
 }

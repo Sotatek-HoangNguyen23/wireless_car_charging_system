@@ -1,0 +1,169 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Operator.FeedbackListModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback List</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .role-tabs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-4">
+        <h2 class="mb-3">Feedback List</h2>
+
+        <!-- Thanh Search -->
+        <div class="filter-section p-3  rounded">
+            <div class="row g-2">
+                <!-- Ô nhập Search -->
+                <div class="col-md-4">
+                    <label for="searchName" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchName" placeholder="Search by message" />
+                </div>
+
+                <!-- Ô chọn Start Date -->
+                <div class="col-md-4">
+                    <label for="searchStartDate" class="form-label d-block">Start Date</label>
+                    <input type="date" class="form-control" id="searchStartDate">
+                </div>
+
+                <!-- Ô chọn End Date -->
+                <div class="col-md-4">
+                    <label for="searchEndDate" class="form-label d-block">End Date</label>
+                    <input type="date" class="form-control" id="searchEndDate">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="stationOwner">
+                <div class="table-responsive">
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phân trang -->
+        <nav>
+            <ul class="pagination justify-content-center mt-3"></ul>
+        </nav>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+            const pageSize = 10;
+
+            // Gọi API để load feedback
+            function loadFeedbacks(page = 1) {
+                const search = $("#searchName").val();
+                const startDate = $("#searchStartDate").val();
+                const endDate = $("#searchEndDate").val();
+
+                $.ajax({
+                    url: "https://localhost:7191/api/User/Feedback",
+                    type: "GET",
+                    data: { search, startDate, endDate, page, pageSize },
+                    success: function (response) {
+                        renderTable(response.data);
+                        renderPagination(response.totalPages, page);
+                    },
+                    error: function (xhr) {
+                        console.error("Error loading feedbacks", xhr);
+                    }
+                });
+            }
+
+            // Hiển thị danh sách feedback vào bảng
+            function renderTable(feedbacks) {
+                const tbody = $("#userTableBody");
+                tbody.empty();
+
+                if (feedbacks.length === 0) {
+                    tbody.append(`<tr><td colspan="4" class="text-center">No feedback found</td></tr>`);
+                    return;
+                }
+
+                feedbacks.forEach(f => {
+                    tbody.append(`
+                        <tr>
+                            <td>${f.id}</td>
+                            <td>${f.user}</td>
+                            <td>${f.message}</td>
+                            <td>${new Date(f.date).toLocaleDateString()}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // Hiển thị phân trang
+            function renderPagination(totalPages, currentPage) {
+                const pagination = $(".pagination");
+
+                let paginationHtml = `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+                    </li>
+                `;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                }
+
+                paginationHtml += `
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+                    </li>
+                `;
+
+                pagination.append(paginationHtml);
+            }
+
+            // Xử lý sự kiện khi click vào trang trong phân trang
+            $(".pagination").on("click", ".page-link", function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data("page"));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadFeedbacks(page);
+                }
+            });
+
+            // Xử lý sự kiện tìm kiếm
+            $("#searchName, #searchStartDate, #searchEndDate").on("input change", function () {
+                currentPage = 1;
+                loadFeedbacks();
+            });
+
+            // Gọi API lần đầu
+            loadFeedbacks();
+        });
+
+    </script>
+</body>
+</html>

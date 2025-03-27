@@ -45,7 +45,7 @@ namespace DataAccess.Repositories.StationRepo
                 .Take(pageSize)
                 .ToList();
 
-            return new PagedResult<ChargingPointDto> { Data = data, TotalPages = totalPages }; ;
+            return new PagedResult<ChargingPointDto>(data, totalRecords, pageSize);
         }
 
         public ChargingPointDto? GetPointById(int pointId)
