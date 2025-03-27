@@ -4,7 +4,6 @@
 }
 <style>
     /* ========= [1] STYLES CHO PHẦN CONTAINER BÊN NGOÀI ========= */
-
     .driver-license-container {
         margin: 2rem auto;
         background: #fff;
@@ -29,14 +28,12 @@
     }
 
     /* ========= [2] STYLES CHO LICENSE-ITEM VÀ THẺ GPLX ========= */
-
-    /* Mỗi license-item sẽ dùng flex để đặt card bên trái, nút bên phải */
     .license-item {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start; /* card cao hơn nút, nên để flex-start */
+        align-items: flex-start;
         margin-bottom: 2rem;
-        gap: 1rem; /* Khoảng cách giữa card và nút */
+        gap: 1rem;
     }
 
     .license-card {
@@ -76,7 +73,7 @@
     .license-card-title {
         text-align: center;
         margin: 5px 0;
-        color: #c00; /* Màu đỏ */
+        color: #c00;
     }
 
         .license-card-title h4 {
@@ -96,20 +93,6 @@
         display: flex;
         flex-wrap: nowrap;
     }
-
-    .license-card-photo {
-        width: 120px;
-        text-align: center;
-        margin-right: 10px;
-    }
-
-        .license-card-photo img {
-            width: 100px;
-            height: 120px;
-            border: 2px solid #666;
-            border-radius: 2px;
-            object-fit: cover;
-        }
 
     .photo-hint {
         font-size: 0.7rem;
@@ -147,35 +130,33 @@
 
     /* ========= [3] MEDIA QUERY - MOBILE ========= */
     @@media (max-width: 576px) {
-        .license-card {
-            width: 95%;
-            height: auto;
-        }
+        .license-card
 
-        .license-card-header {
-            flex-wrap: wrap;
-        }
+    {
+        width: 95%;
+        height: auto;
+    }
 
-        .license-card-header-left,
-        .license-card-header-center {
-            width: 100%;
-            text-align: center;
-        }
+    .license-card-header {
+        flex-wrap: wrap;
+    }
 
-        .license-card-main {
-            flex-direction: column;
-            align-items: center;
-        }
+    .license-card-header-left,
+    .license-card-header-center {
+        width: 100%;
+        text-align: center;
+    }
 
-        .license-card-photo {
-            margin-right: 0;
-            margin-bottom: 10px;
-        }
-        /* License-item: nút sẽ xuống dưới thẻ GPLX */
-        .license-item {
-            flex-direction: column;
-            align-items: center;
-        }
+    .license-card-main {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .license-item {
+        flex-direction: column;
+        align-items: center;
+    }
+
     }
 
     .license-actions {
@@ -216,42 +197,48 @@
         transform: translateY(0);
     }
 
-    /* Responsive cho nút */
     @@media (max-width: 576px) {
-        .license-actions {
-            flex-direction: row;
-            justify-content: center;
-            width: 100%;
-            margin-top: 1rem;
+        .license-actions
+
+    {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .btn-action {
+        width: auto;
+        height: 70px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+        .btn-action i {
+            margin-right: 4px;
         }
 
-        .btn-action {
-            width: auto;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-        }
-
-            .btn-action i {
-                margin-right: 4px;
-            }
     }
 
     @@media (max-width: 400px) {
-        .btn-action span {
-            display: none;
-        }
+        .btn-action span
 
-        .btn-action i {
-            margin-right: 0;
-            font-size: 1.1rem;
-        }
+    {
+        display: none;
+    }
+
+    .btn-action i {
+        margin-right: 0;
+        font-size: 1.1rem;
+    }
+
     }
 </style>
 
 <!-- PHẦN GIAO DIỆN -->
 <div class="container-fluid">
     <div class="driver-license-container">
-        <!-- Header chung (bên ngoài) -->
+        <!-- Header chung -->
         <div class="driver-license-header">
             <div>
                 <h3 class="mb-0">BẰNG LÁI XE VIỆT NAM</h3>
@@ -263,88 +250,152 @@
         </div>
 
         <!-- Khu vực chứa các license-item -->
-        <div class="license-view">
-            <!-- Mỗi license-item là 1 thẻ GPLX + 2 nút bên phải -->
-            <div class="license-item">
-                <!-- Bên trái: .license-card -->
-                <div class="license-card">
-                    <!-- Header THẺ GPLX -->
-                    <div class="license-card-header">
-                        <!-- BỘ GTVT (trái) -->
-                        <div class="license-card-header-left">
-                            <strong>BỘ GTVT</strong>
-                        </div>
-                        <!-- Quốc hiệu (giữa) -->
-                        <div class="license-card-header-center">
-                            <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                            <div>Độc lập - Tự do - Hạnh phúc</div>
-                        </div>
-                    </div>
-
-                    <!-- Tiêu đề GPLX -->
-                    <div class="license-card-title">
-                        <h4>GIẤY PHÉP LÁI XE</h4>
-                        <small>DRIVER'S LICENSE</small>
-                    </div>
-                    <!-- Số GPLX (đặt dưới tiêu đề) -->
-                    <div class="license-card-header-center">
-                        Số No: 99017000806
-                    </div>
-
-                    <!-- Khu vực chính: Ảnh + Thông tin -->
-                    <div class="license-card-main">
-                        <!-- Ảnh chân dung -->
-                        <div class="license-card-photo">
-                            <img src="https://via.placeholder.com/100x120" alt="Ảnh chân dung">
-                            <div class="photo-hint">(3x4)</div>
-                        </div>
-
-                        <!-- Thông tin chi tiết -->
-                        <div class="license-card-info">
-                            <div class="info-row">
-                                <span class="label">Họ tên/Full name:</span>
-                                <span class="value">NGUYỄN VĂN A</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Ngày sinh/Date of Birth:</span>
-                                <span class="value">25/12/1992</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Quốc tịch/Nationality:</span>
-                                <span class="value">VIỆT NAM</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Nơi cư trú/Address:</span>
-                                <span class="value">P. Đông Sơn, TP. Thanh Hóa, T. Thanh Hóa</span>
-                            </div>
-
-                            <!-- Hạng và Giá trị đến (cùng hàng) -->
-                            <div class="info-row-inline">
-                                <div>
-                                    <span class="label">Hạng/Class:</span>
-                                    <span class="value">B1</span>
-                                </div>
-                                <div>
-                                    <span class="label">Giá trị đến/Valid until:</span>
-                                    <span class="value">25/12/2052</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="license-actions">
-                    <button class="btn btn-warning btn-action mb-2">
-                        <i class="bi bi-pencil-square"></i>
-                        Cập nhật
-                    </button>
-                    <button class="btn btn-danger btn-action">
-                        <i class="bi bi-trash"></i>
-                        Xóa
-                    </button>
-                </div>
-            </div>
-            <!-- Thêm license-item khác nếu cần -->
+        <div class="license-view" id="licenseView">
+            <!-- License items sẽ được render từ JavaScript -->
         </div>
     </div>
 </div>
+
+<div id="error-toast" class="custom-toast" style="display:none;">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadDriverLicenses();
+        setupEventListeners();
+    });
+
+    async function loadDriverLicenses() {
+        try {
+            const response = await fetchWithAuth('https://localhost:7191/api/user/driver-licenses/users');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail);
+            }
+            const licenses = await response.json();
+            renderLicenses(licenses);
+        } catch (error) {
+            showToast(error.message);
+        }
+    }
+
+
+
+    function renderLicenses(licenses) {
+        const container = document.getElementById('licenseView');
+        container.innerHTML = ''; // Xóa nội dung cũ
+
+        licenses.forEach(license => {
+            const licenseItem = document.createElement('div');
+            licenseItem.className = 'license-item';
+
+            // Tạo thẻ license-card
+            const card = document.createElement('div');
+            card.className = 'license-card';
+
+            // Ví dụ: Thêm header card
+            card.innerHTML = `
+                <div class="license-card-header">
+                    <div class="license-card-header-left"><strong>BỘ GTVT</strong></div>
+                    <div class="license-card-header-center">
+                        <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                        <div>Độc lập - Tự do - Hạnh phúc</div>
+                    </div>
+                </div>
+                <div class="license-card-title">
+                    <h4>GIẤY PHÉP LÁI XE</h4>
+                    <small>DRIVER'S LICENSE</small>
+                </div>
+                <div class="license-card-header-center">
+                    Số No: ${license.licenseNumber || 'N/A'}
+                </div>
+                <div class="license-card-main">
+                    <div class="license-card-info">
+                        <div class="info-row">
+                            <span class="label">Họ tên/Full name:</span>
+                            <span class="value">${license.fullName || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Ngày sinh/Date of Birth:</span>
+                            <span class="value">${license.dateOfBirth || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Quốc tịch/Nationality:</span>
+                            <span class="value">${license.nationality || 'VIỆT NAM'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Nơi cư trú/Address:</span>
+                            <span class="value">${license.address || 'N/A'}</span>
+                        </div>
+                        <div class="info-row-inline">
+                            <div>
+                                <span class="label">Hạng/Class:</span>
+                                <span class="value">${license.class || 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span class="label">Giá trị đến/Valid until:</span>
+                                <span class="value">${license.validUntil || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Tạo phần action cho license
+            const actions = document.createElement('div');
+            actions.className = 'license-actions';
+            actions.innerHTML = `
+                <button class="btn btn-warning btn-action mb-2" onclick="openUpdateModal('${license.licenseNumber}')">
+                    <i class="bi bi-pencil-square"></i> Cập nhật
+                </button>
+                <button class="btn btn-danger btn-action" onclick="deleteLicense('${license.licenseNumber}')">
+                    <i class="bi bi-trash"></i> Xóa
+                </button>
+            `;
+
+            licenseItem.appendChild(card);
+            licenseItem.appendChild(actions);
+            container.appendChild(licenseItem);
+        });
+    }
+
+    async function deleteLicense(licenseCode) {
+        if (!confirm('Bạn có chắc chắn muốn xóa bằng lái này?')) return;
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/user/driver-licenses/${licenseCode}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error(await response.text());
+            await loadDriverLicenses();
+        } catch (error) {
+            showToast(error.message);
+        }
+    }
+
+    // Modal cho chức năng Add/Update (stub)
+    function openUpdateModal(licenseCode = '') {
+        // Triển khai modal để nhập thông tin
+        alert('Mở modal cho ' + (licenseCode ? `cập nhật ${licenseCode}` : 'thêm mới'));
+    }
+
+    // Stub hàm thiết lập sự kiện
+    function setupEventListeners() {
+        // Nếu có các sự kiện bổ sung, thiết lập tại đây
+    }
+
+    // Stub hàm hiển thị toast lỗi
+    function showToast(message) {
+        const toast = document.getElementById('error-toast');
+        toast.style.display = 'block';
+        toast.querySelector('.toast-content p').textContent = message;
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+</script>

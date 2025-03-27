@@ -437,7 +437,6 @@ namespace API.Services
                 try
                 {
                     await _licenseRepository.UpdateLicense(license);
-
                     // Xóa ảnh cũ sau khi update thành công
                     var deleteTasks = new List<Task>();
                     if (newFront != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldFront));
@@ -464,46 +463,53 @@ namespace API.Services
             }
         }
 
-        public async Task<IEnumerable<DriverLicenseResponse>> GetDriverLicensesAsync(int userid)
+        //public async Task<IEnumerable<DriverLicenseResponse>> GetDriverLicensesAsync(int userid)
+        //{
+        //    var licenses = await _licenseRepository.GetLicensesByUserId(userid);
+        //    if (licenses == null || !licenses.Any())
+        //    {
+        //        return Enumerable.Empty<DriverLicenseResponse>();
+
+
+        //    }
+        //    return licenses.Select(l => new DriverLicenseResponse
+        //    {
+        //        LicenseNumber = l.Code,
+        //        Class = l.Class,
+        //        FrontImageUrl = l.ImgFront,
+        //        BackImageUrl = l.ImgBack,
+        //        Status = l.Status,
+        //        CreatedAt = l.CreateAt,
+        //        UpdatedAt = l.UpdateAt
+        //    });
+        //}
+        public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userId)
         {
-            var licenses = await _licenseRepository.GetLicensesByUserId(userid);
-            if (licenses == null || !licenses.Any())
+            var licenses = await _licenseRepository.GetLicensesByUserId(userId);
+            if (licenses == null)
             {
                 return Enumerable.Empty<DriverLicenseResponse>();
-
-
             }
-            return licenses.Select(l => new DriverLicenseResponse
-            {
-                LicenseNumber = l.Code,
-                Class = l.Class,
-                FrontImageUrl = l.ImgFront,
-                BackImageUrl = l.ImgBack,
-                Status = l.Status,
-                CreatedAt = l.CreateAt,
-                UpdatedAt = l.UpdateAt
-            });
-        }
-        public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userid)
-        {
-            var licenses = await _licenseRepository.GetLicensesByUserId(userid);
-            if (licenses == null || !licenses.Any())
-            {
-                return Enumerable.Empty<DriverLicenseResponse>();
 
+            var result = new List<DriverLicenseResponse>();
 
+            foreach (var license in licenses.Where(l => l.Status == "Active"))
+            {
+                try
+                {
+                    var qrContent = await _imageService.ReadQrCodeUrl(license.ImgBack);
+                    result.Add(new DriverLicenseResponse(license, qrContent));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing license {license.Code}: {ex.Message}");
+                    result.Add(new DriverLicenseResponse(license, ""));
+                }
             }
-            return licenses.Select(l => new DriverLicenseResponse
-            {
-                LicenseNumber = l.Code,
-                Class = l.Class,
-                FrontImageUrl = l.ImgFront,
-                BackImageUrl = l.ImgBack,
-                Status = l.Status,
-                CreatedAt = l.CreateAt,
-                UpdatedAt = l.UpdateAt
-            }).Where(c => c.Status != "Inactive");
+
+            return result;
         }
+
         public async Task DeleteDriverLicenseAsync(string licenseCode)
         {
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);

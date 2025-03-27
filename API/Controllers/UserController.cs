@@ -47,7 +47,7 @@ namespace API.Controllers
             }
         }
         [Authorize("Driver")]
-        [HttpPost()]
+        [HttpPost("driver-licenses")]
         public async Task<IActionResult> AddDriverLicense([FromForm] DriverLicenseRequest request)
         {
                        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -86,7 +86,7 @@ namespace API.Controllers
         }
         // PUT: api/driver-licenses/{licenseCode}
         [Authorize("Driver")]
-        [HttpPut("{licenseCode}")]
+        [HttpPut("driver-licenses/{licenseCode}")]
         public async Task<IActionResult> UpdateDriverLicense(string licenseCode,[FromForm] DriverLicenseRequest request)
         {
             try
@@ -115,7 +115,7 @@ namespace API.Controllers
 
         // DELETE: api/driver-licenses/{licenseCode}
         [Authorize("Driver")]
-        [HttpDelete("{licenseCode}")]
+        [HttpDelete("driver-licenses/{licenseCode}")]
         public async Task<IActionResult> DeleteDriverLicense(string licenseCode)
         {
             try
@@ -142,9 +142,8 @@ namespace API.Controllers
                 });
             }
         }
-        // GET: api/driver-licenses/user
         [Authorize("Driver")]
-        [HttpGet("user")]
+        [HttpGet("driver-licenses/users")]
         public async Task<IActionResult> GetDriverLicenseByUser()
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -160,7 +159,7 @@ namespace API.Controllers
             int userId = int.Parse(userIdClaim.Trim());
             try
             {
-                var driverLicense = await _userService.GetDriverLicensesAsync(userId);
+                var driverLicense = await _userService.GetActiveDriverLicensesAsync(userId);
                 return Ok(driverLicense);
             }
             catch (ArgumentException ex)

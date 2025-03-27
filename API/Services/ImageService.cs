@@ -104,7 +104,51 @@ namespace API.Services
             // Thử đọc QR code
             return TryReadQrCode(image);
         }
+        public async Task<string> ReadQrCodeUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("URL không hợp lệ");
 
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                throw new ArgumentException("URL không đúng định dạng");
+
+            using var httpClient = new HttpClient();
+            byte[] imageBytes;
+
+            try
+            {
+                imageBytes = await httpClient.GetByteArrayAsync(url);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException($"Không thể tải ảnh từ URL: {ex.Message}");
+            }
+
+            if (imageBytes.Length > 5 * 1024 * 1024)
+                throw new InvalidImageException("File có dung lượng vượt quá 5MB limit");
+
+            try
+            {
+                using var stream = new MemoryStream(imageBytes);
+                using var image = await Image.LoadAsync<Rgba32>(stream);
+
+                image.Mutate(ctx => ctx
+                    .Resize(new ResizeOptions
+                    {
+                        Size = new SixLabors.ImageSharp.Size(image.Width * 2, image.Height * 2),
+                        Mode = ResizeMode.Stretch,
+                        Sampler = KnownResamplers.Lanczos3
+                    })
+                    .GaussianSharpen(3)
+                );
+
+                return TryReadQrCode(image);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException( ex.Message);
+            }
+        }
         private string TryReadQrCode(Image<Rgba32> image)
         {
             try
