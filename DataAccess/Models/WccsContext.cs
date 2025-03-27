@@ -383,12 +383,43 @@ public partial class WccsContext : DbContext
             entity.ToTable("real_time_data");
 
             entity.Property(e => e.DataId).HasColumnName("data_id");
-            entity.Property(e => e.BatteryLevel).HasColumnName("battery_level");
+            entity.Property(e => e.BatteryLevel)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("battery_level");
+            entity.Property(e => e.BatteryVoltage)
+                .HasMaxLength(50)
+                .HasColumnName("battery_voltage");
             entity.Property(e => e.CarId).HasColumnName("car_id");
-            entity.Property(e => e.ChargingPower).HasColumnName("charging_power");
+            entity.Property(e => e.ChargingCurrent)
+                .HasMaxLength(50)
+                .HasColumnName("charging_current");
+            entity.Property(e => e.ChargingPower)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("charging_power");
+            entity.Property(e => e.ChargingTime)
+                .HasMaxLength(50)
+                .HasColumnName("charging_time");
             entity.Property(e => e.ChargingpointId).HasColumnName("chargingpoint_id");
-            entity.Property(e => e.Temperature).HasColumnName("temperature");
-            entity.Property(e => e.Timestamp).HasColumnName("timestamp");
+            entity.Property(e => e.Cost)
+                .HasMaxLength(50)
+                .HasColumnName("cost");
+            entity.Property(e => e.EnergyConsumed)
+                .HasMaxLength(50)
+                .HasColumnName("energy_consumed");
+            entity.Property(e => e.Powerpoint)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("powerpoint");
+            entity.Property(e => e.Temperature)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("temperature");
+            entity.Property(e => e.TimeMoment)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("time_moment");
 
             entity.HasOne(d => d.Car).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.CarId)

@@ -46,5 +46,34 @@ namespace API.Controllers
                 : Ok(new { status = payment.Status });
         }
 
+        [HttpGet("balance/{userId}")]
+        public async Task<IActionResult> GetBalanceByUserId([FromRoute] int userId)
+        {
+            var balance = await _paymentService.GetBalanceByUserId(userId);
+
+            if (balance == null)
+            {
+                return NotFound(new { message = "Balance not found" });
+            }
+
+            return Ok(balance);
+        }
+
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetTransactionHistory(
+        [FromQuery] int userId,
+        
+        [FromQuery] DateTime? start,
+        [FromQuery] DateTime? end)
+        {
+            var transactions = await _paymentService.GetTransactionHistory(userId, start, end);
+
+            if (transactions == null || transactions.Count == 0)
+                return NotFound(new { message = "No transactions found" });
+
+            return Ok(transactions);
+        }
+
+
     }
 }

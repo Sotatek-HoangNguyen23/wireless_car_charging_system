@@ -8,74 +8,82 @@
             <div class="col-md-8 profile-content">
                 <button class="btn btn-primary mb-3" id="change-password-btn">Đổi mật khẩu</button>
 
-                <!--<div class="form-group">
-                    <img alt="User profile picture" class="profile-img" height="100" src="https://placehold.co/100x100" width="100" id="profile-img" />
-                </div>-->
-                <div class="form-group">
-                    <label for="fullname">Họ tên:</label>
-                    <input class="form-control" id="fullname" type="text" />
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input class="form-control" id="email" type="text" />
-                </div>
-                <div class="form-group">
-                    <label for="phone">Số điện thoại:</label>
-                    <input class="form-control" id="phone" type="text" />
-                </div>
-                <div class="form-group">
-                    <label for="cccd">
-                        Số CCCD:
-                        <span id="toggle-cccd" class="toggle-cccd ms-1">
-                            
-                                <i class="bi bi-eye"></i>
+            <div class="d-flex justify-content-center mb-3">
+                <button class="btn btn-outline-primary" id="change-password-btn">
+                    <i class="bi bi-key-fill me-2"></i>Đổi mật khẩu
+                </button>
+            </div>
 
-                        
-                        </span>
-                    </label>
-                    <input class="form-control" id="cccd" type="text" readonly/>
-                    <div class="img-cccd d-none mt-2">
-                        <img id="imgFront" class="img-thumbnail mb-2" width="250" />
-                        <img id="imgBack" class="img-thumbnail" width="250" />
-                    </div>
+            <div class="form-group">
+                <label for="fullname" class="fw-bold">Họ tên:</label>
+                <input class="form-control" id="fullname" type="text" />
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="fw-bold">Email:</label>
+                <input class="form-control" id="email" type="text" />
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="fw-bold">Số điện thoại:</label>
+                <input class="form-control" id="phone" type="text" />
+            </div>
+
+            <div class="form-group">
+                <label for="cccd" class="fw-bold d-flex align-items-center">
+                    Số CCCD:
+                    <span id="toggle-cccd" class="ms-2 text-primary" role="button">
+                        <i class="bi bi-eye"></i>
+                    </span>
+                </label>
+                <input class="form-control" id="cccd" type="text" readonly />
+                <div class="img-cccd d-none mt-2">
+                    <img id="imgFront" class="img-thumbnail mb-2" width="250" />
+                    <img id="imgBack" class="img-thumbnail" width="250" />
                 </div>
-                <div class="form-group">
-                    <label for="dob">Ngày sinh:</label>
-                    <input type="date" class="form-control" id="dob" />
+            </div>
+
+            <div class="form-group">
+                <label for="dob" class="fw-bold">Ngày sinh:</label>
+                <input type="date" class="form-control" id="dob" />
+            </div>
+
+            <div class="form-group">
+                <label class="fw-bold">Giới tính:</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" name="gender" type="radio" value="true" id="male" />
+                    <label class="form-check-label" for="male">Nam</label>
                 </div>
-                <div class="form-group">
-                    <label>Giới tính:</label>
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input class="form-radio" name="gender" type="radio" value="true" />
-                            <span>Nam</span>
-                        </label>
-                        <label class="form-check-label">
-                            <input class="form-radio" name="gender" type="radio" value="false" />
-                            <span>Nữ</span>
-                        </label>
-                    </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" name="gender" type="radio" value="false" id="female" />
+                    <label class="form-check-label" for="female">Nữ</label>
                 </div>
-                <div class="form-group mb-2">
-                    <label for="address">Địa chỉ:</label>
-                    <input type="text" class="form-control" id="address" />
-                </div>
-                <div class="text-center">
-                    <button id="save-btn" class="btn btn-primary">Lưu</button>
-                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="address" class="fw-bold">Địa chỉ:</label>
+                <input type="text" class="form-control" id="address" />
+            </div>
+
+            <div class="text-center">
+                <button id="save-btn" class="btn btn-primary w-100">
+                    <i class="bi bi-save me-2"></i>Lưu
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Modal thông báo -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="successModalLabel">Thông báo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Thông báo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    Cập nhật thông tin thành công!
+                <div class="modal-body text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <p class="mt-2">Cập nhật thông tin thành công!</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -91,9 +99,10 @@
                 alert("User chưa đăng nhập!");
                 return;
             }
-                    document.getElementById("change-password-btn").addEventListener("click", function () {
-            window.location.href = "https://localhost:5216/wireless-charging/profiles/changepassword";
-        });
+
+            document.getElementById("change-password-btn").addEventListener("click", function () {
+                window.location.href = "https://localhost:5216/wireless-charging/profiles/changepassword";
+            });
 
             fetch(`https://localhost:7191/api/Auth/profile/${userId}`)
                 .then(response => response.json())
@@ -104,68 +113,49 @@
                     document.getElementById("cccd").value = data.code;
                     document.getElementById("dob").value = data.dob.split("T")[0];
                     document.getElementById("address").value = data.address;
-                   // document.getElementById("profile-img").src = data.imgFront;
-
-                    // Giới tính
                     document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
 
-                    // Hình ảnh CCCD
                     document.getElementById("imgFront").src = data.imgFront;
                     document.getElementById("imgBack").src = data.imgBack;
                 })
                 .catch(error => console.error("Error fetching profile data:", error));
 
-            // Sự kiện click để ẩn/hiện ảnh CCCD và đổi icon
             document.getElementById("toggle-cccd").addEventListener("click", function () {
                 const cccdImages = document.querySelector(".img-cccd");
                 const icon = document.querySelector("#toggle-cccd i");
 
                 cccdImages.classList.toggle("d-none");
-                if (cccdImages.classList.contains("d-none")) {
-                    icon.classList.remove("bi-eye-slash");
-                    icon.classList.add("bi-eye");
-                } else {
-                    icon.classList.remove("bi-eye");
-                    icon.classList.add("bi-eye-slash");
-                }
+                icon.classList.toggle("bi-eye-slash");
+                icon.classList.toggle("bi-eye");
             });
-            //edit user
-                    document.getElementById("save-btn").addEventListener("click", function () {
-            const updatedData = {
-                fullname: document.getElementById("fullname").value,
-                email: document.getElementById("email").value,
-                phoneNumber: document.getElementById("phone").value,
-                dob: new Date(document.getElementById("dob").value).toISOString(),
-                gender: document.querySelector('input[name="gender"]:checked').value === "true",
-                address: document.getElementById("address").value
-            };
 
-            fetch(`https://localhost:7191/api/Auth/profile/${userId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(updatedData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Cập nhật thất bại");
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Hiển thị modal Bootstrap
-                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
-            })
-            .catch(error => {
-                console.error("Lỗi cập nhật:", error);
-                alert("Cập nhật thất bại, vui lòng thử lại!");
+            document.getElementById("save-btn").addEventListener("click", function () {
+                const updatedData = {
+                    fullname: document.getElementById("fullname").value,
+                    email: document.getElementById("email").value,
+                    phoneNumber: document.getElementById("phone").value,
+                    dob: new Date(document.getElementById("dob").value).toISOString(),
+                    gender: document.querySelector('input[name="gender"]:checked').value === "true",
+                    address: document.getElementById("address").value
+                };
+
+                fetch(`https://localhost:7191/api/Auth/profile/${userId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatedData)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Cập nhật thất bại");
+                    return response.json();
+                })
+                .then(() => {
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                })
+                .catch(error => {
+                    console.error("Lỗi cập nhật:", error);
+                    alert("Cập nhật thất bại, vui lòng thử lại!");
+                });
             });
-        });
-
         });
     </script>
 }
-
-

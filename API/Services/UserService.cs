@@ -6,6 +6,7 @@ using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using Org.BouncyCastle.Asn1.Ocsp;
 using DataAccess.Repositories.StationRepo;
 using System.Text.RegularExpressions;
 
@@ -283,7 +284,10 @@ namespace API.Services
             {
                 throw new ArgumentException("Passwords cannot be empty.");
             }
-
+            if (!IsPasswordCorrect(passDTO.NewPassword))
+            {
+                throw new ArgumentException("Password is not strong enough");
+            }
             if (passDTO.NewPassword != passDTO.ConfirmNewPassword)
             {
                 throw new ArgumentException("New password and confirmation do not match.");
