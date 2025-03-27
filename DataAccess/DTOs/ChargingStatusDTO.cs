@@ -23,13 +23,15 @@ namespace DataAccess.DTOs
 
         public string? Status { get; set; }
 
-        public double? BatteryLevel { get; set; }
-        public double? ChargingPower { get; set; }
+        public string? BatteryLevel { get; set; }
+        public string? ChargingPower { get; set; }
 
-        public double? Temperature { get; set; }
+        public string? Temperature { get; set; }
 
-        public double? Cost { get; set; }
+        public string? Cost { get; set; }
 
+
+        public string? Current { get; set; }
 
     }
 

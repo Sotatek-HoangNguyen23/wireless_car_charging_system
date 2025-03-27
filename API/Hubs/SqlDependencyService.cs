@@ -42,7 +42,12 @@ namespace API.Hubs
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                using (SqlCommand command = new SqlCommand("SELECT data_id, car_id, chargingpoint_id, battery_level, charging_power, temperature, timestamp FROM dbo.real_time_data", connection))
+                using (SqlCommand command = new SqlCommand(@"
+            SELECT data_id, car_id, chargingpoint_id, battery_level, 
+                   charging_power, temperature, time_moment, battery_voltage, 
+                   charging_current, charging_time, energy_consumed, cost, 
+                   powerpoint
+            FROM dbo.real_time_data", connection)) // Đã sửa cột
                 {
                     SqlDependency dependency = new SqlDependency(command);
                     dependency.OnChange += OnDatabaseChange;
@@ -50,6 +55,8 @@ namespace API.Hubs
                 }
             }
         }
+
+
 
         private async void OnDatabaseChange(object sender, SqlNotificationEventArgs e)
         {
