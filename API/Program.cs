@@ -63,7 +63,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
-
+builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OtpServices>();
@@ -71,11 +71,16 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICccdRepository, CccdRepository>();
-builder.Services.AddScoped<ITest, Test>();
-
+builder.Services.AddScoped<IChargingStationRepository, ChargingStationRepository>();
+builder.Services.AddScoped<ChargingStationService>();
+builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
+builder.Services.AddScoped<IMyCars, MyCarsRepo>();
+builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
+builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
 
 //=======================================
 // JWt configuration
@@ -111,12 +116,6 @@ builder.Services.AddCors(options =>
                   .AllowCredentials();
         });
 });
-builder.Services.AddScoped<IChargingStationRepository, ChargingStationRepository>();
-builder.Services.AddScoped<ChargingStationService>();
-builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
-builder.Services.AddScoped<IMyCars, MyCarsRepo>(); 
-builder.Services.AddScoped<CarService>();
-builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
 
 builder.Services.AddAuthorization(options =>
 {

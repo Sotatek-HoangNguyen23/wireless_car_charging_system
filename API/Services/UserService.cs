@@ -14,14 +14,16 @@ namespace API.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICccdRepository _cccdRepository;
+        private readonly IDriverLicenseRepository _licenseRepository;
         private readonly ImageService _imageService;
         private readonly OtpServices _otpServices;
-        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices)
+        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices, IDriverLicenseRepository licenseRepository)
         {
             _userRepository = userRepository;
             _cccdRepository = cccdRepository;
             _imageService = imageService;
             _otpServices = otpServices;
+            _licenseRepository = licenseRepository;
         }
 
         public async Task RegisterAsync(RegisterRequest request)
@@ -195,35 +197,7 @@ namespace API.Services
             UserDto.Role.Name = user.Role?.RoleName ?? "Unknown";
             return UserDto;
         }
-        public bool IsEmailCorrect(string email)
-        {
-            string regex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, regex);
-        }
-        public bool IsPhoneCorrect(string phone)
-        {
-            string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9\d|2[0-9])\d{7}$";
-            return Regex.IsMatch(phone, regex);
-        }
-        public bool IsPasswordCorrect(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                return false;
 
-            var hasMinimumLength = password.Length >= 6;
-            var hasUpperCase = password.Any(char.IsUpper);
-            var hasNumber = password.Any(char.IsDigit);
-            var hasSpecialChar = password.Any(c => !char.IsLetterOrDigit(c));
-
-            var allowedSpecialChars = "!@#$%^&*(),.?\":{}|<>";
-            var hasValidSpecialChar = password.Any(c => allowedSpecialChars.Contains(c));
-
-            return hasMinimumLength &&
-                   hasUpperCase &&
-                   hasNumber &&
-                   hasSpecialChar &&
-                   hasValidSpecialChar;
-        }
         public async Task<bool> ResetPassword(ResetPasswordRequest request)
         {
             try
@@ -333,7 +307,254 @@ namespace API.Services
         {
             return await _userRepository.GetUserByEmailOrPhone(search);
         }
+        public async Task AddDriverLicenseAsync(int userId, DriverLicenseRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentException("Request cannot be null");
+            }
+            var user = await _userRepository.GetUserById(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            ImageUploadResult frontUpload = null;
+            ImageUploadResult backUpload = null;
+            var existingLicenses = await _licenseRepository.GetLicensesByUserId(userId);
+            if (existingLicenses != null)
+            {
+                foreach (var license in existingLicenses)
+                {
+                    if (license.Code == request.LicenseNumber)
+                    {
+                        if (license.Status == "Inactive")
+                        {
+
+                            license.Status = "Active";
+                            license.Class = request.Class;
+                            license.UpdateAt = DateTime.UtcNow;
+                           
+                            await _licenseRepository.UpdateLicense(license);
+                            return;
+                        }
+                        else
+                        {
+                            throw new ArgumentException("License already exists");
+                        }
+                    }
+                }
+            }
+            try
+            {
+                _imageService.ValidateImage(request.LicenseFrontImage);
+                _imageService.ValidateImage(request.LicenseBackImage);
+                frontUpload = await _imageService.UploadImagetAsync(request.LicenseFrontImage);
+                backUpload = await _imageService.UploadImagetAsync(request.LicenseBackImage);
+                var license = new DriverLicense
+                {
+                    UserId = userId,
+                    Code = request.LicenseNumber,
+                    Class = request.Class,
+                    ImgFront = frontUpload.Url.ToString(),
+                    ImgFrontPubblicId = frontUpload.PublicId,
+                    ImgBack = backUpload.Url.ToString(),
+                    ImgBackPubblicId = backUpload.PublicId,
+                    Status = "Active",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                };
+                using var transaction = await _licenseRepository.BeginTransactionAsync();
+                try
+                {
+                    await _licenseRepository.SaveLicense(license);
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                var deleteTasks = new List<Task>();
+                if (frontUpload != null)
+                    deleteTasks.Add(_imageService.DeleteImageAsync(frontUpload.PublicId));
+                if (backUpload != null)
+                    deleteTasks.Add(_imageService.DeleteImageAsync(backUpload.PublicId));
+                await Task.WhenAll(deleteTasks);
+                throw new Exception("Add license failed", ex);
+            }
+
+        }
+        public async Task UpdateDriverLiscense(string licensecode, DriverLicenseRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentException("Request cannot be null");
+            }
+            var license = await _licenseRepository.GetLicenseByCode(licensecode);
+            if (license == null)
+            {
+                throw new ArgumentException("License not found");
+            }
+            ImageUploadResult newFront = null;
+            ImageUploadResult newBack = null;
+            var oldFront = license.ImgFrontPubblicId;
+            var oldBack = license.ImgBackPubblicId;
+            try
+            {
+                if (request.LicenseFrontImage != null)
+                {
+                    _imageService.ValidateImage(request.LicenseFrontImage);
+                    newFront = await _imageService.UploadImagetAsync(request.LicenseFrontImage);
+                }
+
+                if (request.LicenseBackImage != null)
+                {
+                    _imageService.ValidateImage(request.LicenseBackImage);
+                    newBack = await _imageService.UploadImagetAsync(request.LicenseBackImage);
+                }
+
+
+                // Cập nhật thông tin
+                license.Code = request.LicenseNumber;
+                license.Class = request.Class;
+                license.UpdateAt = DateTime.UtcNow;
+                if (newFront != null)
+                {
+                    license.ImgFront = newFront.Url.ToString();
+                    license.ImgFrontPubblicId = newFront.PublicId;
+                }
+
+                if (newBack != null)
+                {
+                    license.ImgBack = newBack.Url.ToString();
+                    license.ImgBackPubblicId = newBack.PublicId;
+                }
+                using var transaction = await _licenseRepository.BeginTransactionAsync();
+                try
+                {
+                    await _licenseRepository.UpdateLicense(license);
+
+                    // Xóa ảnh cũ sau khi update thành công
+                    var deleteTasks = new List<Task>();
+                    if (newFront != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldFront));
+                    if (newBack != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldBack));
+
+                    await Task.WhenAll(deleteTasks);
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                var deleteTasks = new List<Task>();
+                if (newFront != null)
+                    deleteTasks.Add(_imageService.DeleteImageAsync(newFront.PublicId));
+                if (newBack != null)
+                    deleteTasks.Add(_imageService.DeleteImageAsync(newBack.PublicId));
+                await Task.WhenAll(deleteTasks);
+                throw new Exception("Update license failed", ex);
+            }
+        }
+
+        public async Task<IEnumerable<DriverLicenseResponse>> GetDriverLicensesAsync(int userid)
+        {
+            var licenses = await _licenseRepository.GetLicensesByUserId(userid);
+            if (licenses == null || !licenses.Any())
+            {
+                return Enumerable.Empty<DriverLicenseResponse>();
+
+
+            }
+            return licenses.Select(l => new DriverLicenseResponse
+            {
+                LicenseNumber = l.Code,
+                Class = l.Class,
+                FrontImageUrl = l.ImgFront,
+                BackImageUrl = l.ImgBack,
+                Status = l.Status,
+                CreatedAt = l.CreateAt,
+                UpdatedAt = l.UpdateAt
+            });
+        }
+        public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userid)
+        {
+            var licenses = await _licenseRepository.GetLicensesByUserId(userid);
+            if (licenses == null || !licenses.Any())
+            {
+                return Enumerable.Empty<DriverLicenseResponse>();
+
+
+            }
+            return licenses.Select(l => new DriverLicenseResponse
+            {
+                LicenseNumber = l.Code,
+                Class = l.Class,
+                FrontImageUrl = l.ImgFront,
+                BackImageUrl = l.ImgBack,
+                Status = l.Status,
+                CreatedAt = l.CreateAt,
+                UpdatedAt = l.UpdateAt
+            }).Where(c => c.Status != "Inactive");
+        }
+        public async Task DeleteDriverLicenseAsync(string licenseCode)
+        {
+            var license = await _licenseRepository.GetLicenseByCode(licenseCode);
+            if (license == null)
+            {
+                throw new ArgumentException("License not found");
+            }
+
+            license.Status = "Inactive";
+            license.UpdateAt = DateTime.UtcNow;
+
+            using var transaction = await _licenseRepository.BeginTransactionAsync();
+            try
+            {
+                await _licenseRepository.UpdateLicense(license);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+        public bool IsEmailCorrect(string email)
+        {
+            string regex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, regex);
+        }
+        public bool IsPhoneCorrect(string phone)
+        {
+            string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9\d|2[0-9])\d{7}$";
+            return Regex.IsMatch(phone, regex);
+        }
+        public bool IsPasswordCorrect(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return false;
+
+            var hasMinimumLength = password.Length >= 6;
+            var hasUpperCase = password.Any(char.IsUpper);
+            var hasNumber = password.Any(char.IsDigit);
+            var hasSpecialChar = password.Any(c => !char.IsLetterOrDigit(c));
+
+            var allowedSpecialChars = "!@#$%^&*(),.?\":{}|<>";
+            var hasValidSpecialChar = password.Any(c => allowedSpecialChars.Contains(c));
+
+            return hasMinimumLength &&
+                   hasUpperCase &&
+                   hasNumber &&
+                   hasSpecialChar &&
+                   hasValidSpecialChar;
+        }
     }
-
-
 }

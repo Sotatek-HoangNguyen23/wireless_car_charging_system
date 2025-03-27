@@ -1,0 +1,350 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Profiles.DriverLisenseModel
+@{
+}
+<style>
+    /* ========= [1] STYLES CHO PHẦN CONTAINER BÊN NGOÀI ========= */
+
+    .driver-license-container {
+        margin: 2rem auto;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        max-width: 900px;
+        border-radius: 8px;
+    }
+
+    .driver-license-header {
+        background: #007bff;
+        color: #fff;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px;
+    }
+
+    .license-view {
+        margin-top: 1rem;
+    }
+
+    /* ========= [2] STYLES CHO LICENSE-ITEM VÀ THẺ GPLX ========= */
+
+    /* Mỗi license-item sẽ dùng flex để đặt card bên trái, nút bên phải */
+    .license-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start; /* card cao hơn nút, nên để flex-start */
+        margin-bottom: 2rem;
+        gap: 1rem; /* Khoảng cách giữa card và nút */
+    }
+
+    .license-card {
+        width: 530px;
+        height: 270px;
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #fefefe;
+        position: relative;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+
+    .license-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 0.85rem;
+    }
+
+    .license-card-header-left {
+        text-transform: uppercase;
+        line-height: 1.3;
+        margin-right: 10px;
+    }
+
+    .license-card-header-center {
+        text-align: center;
+        line-height: 1.2;
+        font-size: 0.9rem;
+        font-weight: 600;
+        min-width: 100px;
+    }
+
+    .license-card-title {
+        text-align: center;
+        margin: 5px 0;
+        color: #c00; /* Màu đỏ */
+    }
+
+        .license-card-title h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .license-card-title small {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #333;
+        }
+
+    .license-card-main {
+        margin-top: 5px;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .license-card-photo {
+        width: 120px;
+        text-align: center;
+        margin-right: 10px;
+    }
+
+        .license-card-photo img {
+            width: 100px;
+            height: 120px;
+            border: 2px solid #666;
+            border-radius: 2px;
+            object-fit: cover;
+        }
+
+    .photo-hint {
+        font-size: 0.7rem;
+        margin-top: 3px;
+        color: #555;
+    }
+
+    .license-card-info {
+        flex: 1;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .info-row {
+        margin-bottom: 4px;
+    }
+
+    .label {
+        font-weight: 500;
+        color: #444;
+        min-width: 100px;
+        display: inline-block;
+    }
+
+    .value {
+        font-weight: 600;
+        color: #000;
+    }
+
+    .info-row-inline {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 4px;
+    }
+
+    /* ========= [3] MEDIA QUERY - MOBILE ========= */
+    @@media (max-width: 576px) {
+        .license-card {
+            width: 95%;
+            height: auto;
+        }
+
+        .license-card-header {
+            flex-wrap: wrap;
+        }
+
+        .license-card-header-left,
+        .license-card-header-center {
+            width: 100%;
+            text-align: center;
+        }
+
+        .license-card-main {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .license-card-photo {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+        /* License-item: nút sẽ xuống dưới thẻ GPLX */
+        .license-item {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+
+    .license-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 10px;
+        min-width: 120px;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-action:active {
+        transform: translateY(0);
+    }
+
+    /* Responsive cho nút */
+    @@media (max-width: 576px) {
+        .license-actions {
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-action {
+            width: auto;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+            .btn-action i {
+                margin-right: 4px;
+            }
+    }
+
+    @@media (max-width: 400px) {
+        .btn-action span {
+            display: none;
+        }
+
+        .btn-action i {
+            margin-right: 0;
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<!-- PHẦN GIAO DIỆN -->
+<div class="container-fluid">
+    <div class="driver-license-container">
+        <!-- Header chung (bên ngoài) -->
+        <div class="driver-license-header">
+            <div>
+                <h3 class="mb-0">BẰNG LÁI XE VIỆT NAM</h3>
+                <small>DRIVING LICENSE</small>
+            </div>
+            <div>
+                <button class="btn btn-light" id="btnAddLisense">Thêm mới +</button>
+            </div>
+        </div>
+
+        <!-- Khu vực chứa các license-item -->
+        <div class="license-view">
+            <!-- Mỗi license-item là 1 thẻ GPLX + 2 nút bên phải -->
+            <div class="license-item">
+                <!-- Bên trái: .license-card -->
+                <div class="license-card">
+                    <!-- Header THẺ GPLX -->
+                    <div class="license-card-header">
+                        <!-- BỘ GTVT (trái) -->
+                        <div class="license-card-header-left">
+                            <strong>BỘ GTVT</strong>
+                        </div>
+                        <!-- Quốc hiệu (giữa) -->
+                        <div class="license-card-header-center">
+                            <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                            <div>Độc lập - Tự do - Hạnh phúc</div>
+                        </div>
+                    </div>
+
+                    <!-- Tiêu đề GPLX -->
+                    <div class="license-card-title">
+                        <h4>GIẤY PHÉP LÁI XE</h4>
+                        <small>DRIVER'S LICENSE</small>
+                    </div>
+                    <!-- Số GPLX (đặt dưới tiêu đề) -->
+                    <div class="license-card-header-center">
+                        Số No: 99017000806
+                    </div>
+
+                    <!-- Khu vực chính: Ảnh + Thông tin -->
+                    <div class="license-card-main">
+                        <!-- Ảnh chân dung -->
+                        <div class="license-card-photo">
+                            <img src="https://via.placeholder.com/100x120" alt="Ảnh chân dung">
+                            <div class="photo-hint">(3x4)</div>
+                        </div>
+
+                        <!-- Thông tin chi tiết -->
+                        <div class="license-card-info">
+                            <div class="info-row">
+                                <span class="label">Họ tên/Full name:</span>
+                                <span class="value">NGUYỄN VĂN A</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Ngày sinh/Date of Birth:</span>
+                                <span class="value">25/12/1992</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Quốc tịch/Nationality:</span>
+                                <span class="value">VIỆT NAM</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Nơi cư trú/Address:</span>
+                                <span class="value">P. Đông Sơn, TP. Thanh Hóa, T. Thanh Hóa</span>
+                            </div>
+
+                            <!-- Hạng và Giá trị đến (cùng hàng) -->
+                            <div class="info-row-inline">
+                                <div>
+                                    <span class="label">Hạng/Class:</span>
+                                    <span class="value">B1</span>
+                                </div>
+                                <div>
+                                    <span class="label">Giá trị đến/Valid until:</span>
+                                    <span class="value">25/12/2052</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="license-actions">
+                    <button class="btn btn-warning btn-action mb-2">
+                        <i class="bi bi-pencil-square"></i>
+                        Cập nhật
+                    </button>
+                    <button class="btn btn-danger btn-action">
+                        <i class="bi bi-trash"></i>
+                        Xóa
+                    </button>
+                </div>
+            </div>
+            <!-- Thêm license-item khác nếu cần -->
+        </div>
+    </div>
+</div>

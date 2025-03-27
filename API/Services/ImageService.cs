@@ -23,7 +23,7 @@ namespace API.Services
         public ImageService(Cloudinary cloudinary)
         {
             _cloudinary = cloudinary;
-   
+
         }
 
         public async Task<ImageUploadResult> UploadImagetAsync(IFormFile file)
@@ -83,12 +83,12 @@ namespace API.Services
 
 
         public async Task<string> ReadSmallQrCode(IFormFile file)
-        //    {
+        {
             ValidateImage(file);
-        //        await file.CopyToAsync(memoryStream);
-        //        memoryStream.Position = 0;
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
 
-        //        using var image = await Image.LoadAsync<Rgba32>(memoryStream);
             using var image = await Image.LoadAsync<Rgba32>(memoryStream);
 
             image.Mutate(ctx => ctx
@@ -100,11 +100,11 @@ namespace API.Services
                 })
                 .GaussianSharpen(3)
             );
-                    Mode = ResizeMode.Stretch,
+
             // Thử đọc QR code
             return TryReadQrCode(image);
         }
-            {
+
         private string TryReadQrCode(Image<Rgba32> image)
         {
             try
@@ -118,40 +118,6 @@ namespace API.Services
                         TryInverted = true
                     }
                 };
-                using var croppedImage = originalImage.Clone(ctx => ctx.Crop(cropRect));
-
-                // Phóng to vùng cắt 200%
-                croppedImage.Mutate(ctx => ctx
-                    .Resize(new ResizeOptions
-                    {
-                        Size = new SixLabors.ImageSharp.Size(croppedImage.Width * 2, croppedImage.Height * 2),
-                        Mode = ResizeMode.Stretch,
-                        Sampler = KnownResamplers.Lanczos3
-                    })
-                    .GaussianSharpen(3)
-                );
-
-                result = ReadQrCodeFromImage(croppedImage);
-                if (!string.IsNullOrEmpty(result) && result != "Không tìm thấy QR code")
-                {
-                    return result;
-                }
-            }
-
-            return "Không tìm thấy QR code";
-        }
-
-        private string ReadQrCodeFromImage(Image<Rgba32> image)
-        {
-            var reader = new ZXing.ImageSharp.BarcodeReader<Rgba32>
-            {
-                Options = new DecodingOptions
-                {
-                    PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
-                    TryHarder = true,
-                    TryInverted = true
-                }
-            };
 
                 var luminanceSource = new ImageSharpLuminanceSource<Rgba32>(image);
                 var result = reader.Decode(luminanceSource);
@@ -159,11 +125,11 @@ namespace API.Services
                 {
                     throw new Exception();
                 }
-              return result.Text;
+                return result.Text;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                throw new Exception("Không tìm thấy QR code trong ảnh",e);
+                throw new Exception("Không tìm thấy QR code trong ảnh", e);
             }
         }
 

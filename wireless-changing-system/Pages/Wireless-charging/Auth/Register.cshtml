@@ -419,7 +419,6 @@
     const emails=document.getElementById('email');
     emails.addEventListener('blur', function(e) {
         const email = e.target.value;
-        console.log(email);
         if (email.length > 0) {
             const isValid = validateEmail(email);
             if (!isValid) {
