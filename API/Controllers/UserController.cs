@@ -194,6 +194,7 @@ namespace API.Controllers
             var result = _userService.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
             return Ok(result);
         }
+        [AllowAnonymous]
 
         [HttpPut("change-status/{userId}")]
         public async Task<IActionResult> ChangeUserStatus(int userId, [FromBody] string newStatus)

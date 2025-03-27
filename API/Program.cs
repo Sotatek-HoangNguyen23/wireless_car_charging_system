@@ -141,11 +141,6 @@ var app = builder.Build();
 app.UseCors("AllowAllOrigins");
 app.UseRouting();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapHub<RealTimeHub>("/realtimeHub");
-});
-
 var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
 sqlDependencyService.StartListening();
 
@@ -161,5 +156,11 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<RealTimeHub>("/realtimeHub");
+});
+
 app.MapControllers();
 app.Run();
