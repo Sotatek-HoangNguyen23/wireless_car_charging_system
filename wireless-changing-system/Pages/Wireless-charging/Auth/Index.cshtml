@@ -19,15 +19,15 @@
 
                 <form id="loginForm">
                     <div class="mb-3">
-                        <input type="text" id="emailInput"
+                        <input type="email" id="emailInput"
                                class="form-control form-control-lg"
-                               placeholder="Email hoặc Số điện thoại">
+                               placeholder="Email" required>
                     </div>
 
                     <div class="mb-3">
                         <input type="password" id="passwordInput"
                                class="form-control form-control-lg"
-                               placeholder="Mật khẩu">                 
+                               placeholder="Mật khẩu" required>                 
                     </div>
 
                     <button type="submit"
@@ -58,7 +58,7 @@
     <i class="bi bi-exclamation-circle-fill"></i>  
     <div class="toast-content">
         <strong>Lỗi!</strong>
-        <p class="mb-0">Đã xảy ra lỗi khi gửi mã OTP</p>
+        <p class="mb-0">Đã xảy ra lỗi he thong</p>
     </div>
 </div>
 <script>
@@ -81,21 +81,21 @@
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Đăng nhập thất bại');
+          const errorText = await response.json();
+          throw new Error(errorText.detail || 'Đăng nhập thất bại');
         }
 
         const result = await response.json();
         sessionStorage.setItem("accessToken", result.accessToken);
         sessionStorage.setItem("fullName", result.fullname);
         sessionStorage.setItem("role", result.role);
-        sessionStorage.setItem("userId", result.id);
+        // sessionStorage.setItem("userId", result.id);
         sessionStorage.setItem("avartar_url", "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
         window.location.href = '/';
         console.log('Đăng nhập thành công:', result);
 
       } catch (error) {
-        console.error('Lỗi khi đăng nhập:', error);
+        console.error('Lỗi khi đăng nhập:', error.value);
          showToast(toast, error.message);
             console.error('Lỗi:', error);
       }

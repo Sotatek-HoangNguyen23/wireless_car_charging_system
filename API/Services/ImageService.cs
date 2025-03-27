@@ -23,7 +23,7 @@ namespace API.Services
         public ImageService(Cloudinary cloudinary)
         {
             _cloudinary = cloudinary;
-   
+
         }
 
         public async Task<ImageUploadResult> UploadImagetAsync(IFormFile file)
@@ -82,8 +82,9 @@ namespace API.Services
         }
 
 
-        public async Task<string> ReadSmallQrCodeWithCropAndZoom(IFormFile file)
+        public async Task<string> ReadSmallQrCode(IFormFile file)
         {
+            ValidateImage(file);
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
@@ -100,121 +101,80 @@ namespace API.Services
                 .GaussianSharpen(3)
             );
 
-            // Sử dụng BarcodeReader<Rgba32> với kiểu pixel Rgba32
-            var reader = new ZXing.ImageSharp.BarcodeReader<Rgba32>
-            {
-                Options = new DecodingOptions
-                {
-                    PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
-                    TryHarder = true,
-                    TryInverted = true
-                }
-            };
-
-            var luminanceSource = new ImageSharpLuminanceSource<Rgba32>(image);
-            var result = reader.Decode(luminanceSource);
-
-            return result?.Text ?? "Không tìm thấy QR code";
+            // Thử đọc QR code
+            return TryReadQrCode(image);
         }
-        //public async Task<string> ReadSmallQrCodeWithCropAndZoom(IFormFile file)
-        //{
-        //    // Load ảnh từ file
-        //    using var memoryStream = new MemoryStream();
-        //    await file.CopyToAsync(memoryStream);
-        //    memoryStream.Position = 0;
-        //    using var originalImage = await Image.LoadAsync<Rgba32>(memoryStream);
-
-        //    // 1. Thử phóng to toàn ảnh 200% và quét QR code
-        //    string result = ReadQrCodeFromImage(originalImage.Clone(ctx =>
-        //        ctx.Resize(new ResizeOptions
-        //        {
-        //            Size = new SixLabors.ImageSharp.Size(originalImage.Width * 2, originalImage.Height * 2),
-        //            Mode = ResizeMode.Stretch,
-        //            Sampler = KnownResamplers.Lanczos3
-        //        })
-        //        .GaussianSharpen(3)
-        //    ));
-
-        //    if (!string.IsNullOrEmpty(result) && result != "Không tìm thấy QR code")
-        //    {
-        //        return result;
-        //    }
-
-        //    // Nếu không thành công, thử cắt ảnh thành các phần và phóng to từng phần
-        //    int parts = 2; // chia làm 2 phần theo mỗi hướng
-        //    int width = originalImage.Width;
-        //    int height = originalImage.Height;
-
-        //    // 2. Cắt theo chiều ngang: chia làm 2 phần (trên và dưới)
-        //    for (int i = 0; i < parts; i++)
-        //    {
-        //        int cropY = i * (height / parts);
-        //        int cropHeight = height / parts;
-        //        var cropRect = new SixLabors.ImageSharp.Rectangle(0, cropY, width, cropHeight);
-        //        using var croppedImage = originalImage.Clone(ctx => ctx.Crop(cropRect));
-
-        //        // Phóng to vùng cắt 200%
-        //        croppedImage.Mutate(ctx => ctx
-        //            .Resize(new ResizeOptions
-        //            {
-        //                Size = new SixLabors.ImageSharp.Size(croppedImage.Width * 2, croppedImage.Height * 2),
-        //                Mode = ResizeMode.Stretch,
-        //                Sampler = KnownResamplers.Lanczos3
-        //            })
-        //            .GaussianSharpen(3)
-        //        );
-
-        //        result = ReadQrCodeFromImage(croppedImage);
-        //        if (!string.IsNullOrEmpty(result) && result != "Không tìm thấy QR code")
-        //        {
-        //            return result;
-        //        }
-        //    }
-
-        //    // 3. Cắt theo chiều dọc: chia làm 2 phần (trái và phải)
-        //    for (int i = 0; i < parts; i++)
-        //    {
-        //        int cropX = i * (width / parts);
-        //        int cropWidth = width / parts;
-        //        var cropRect = new SixLabors.ImageSharp.Rectangle(cropX, 0, cropWidth, height);
-        //        using var croppedImage = originalImage.Clone(ctx => ctx.Crop(cropRect));
-
-        //        // Phóng to vùng cắt 200%
-        //        croppedImage.Mutate(ctx => ctx
-        //            .Resize(new ResizeOptions
-        //            {
-        //                Size = new SixLabors.ImageSharp.Size(croppedImage.Width * 2, croppedImage.Height * 2),
-        //                Mode = ResizeMode.Stretch,
-        //                Sampler = KnownResamplers.Lanczos3
-        //            })
-        //            .GaussianSharpen(3)
-        //        );
-
-        //        result = ReadQrCodeFromImage(croppedImage);
-        //        if (!string.IsNullOrEmpty(result) && result != "Không tìm thấy QR code")
-        //        {
-        //            return result;
-        //        }
-        //    }
-
-        //    return "Không tìm thấy QR code";
-        //}
-
-        private string ReadQrCodeFromImage(Image<Rgba32> image)
+        public async Task<string> ReadQrCodeUrl(string url)
         {
-            var reader = new ZXing.ImageSharp.BarcodeReader<Rgba32>
-            {
-                Options = new DecodingOptions
-                {
-                    PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
-                    TryHarder = true,
-                    TryInverted = true
-                }
-            };
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("URL không hợp lệ");
 
-            var luminanceSource = new ImageSharpLuminanceSource<Rgba32>(image);
-            var result = reader.Decode(luminanceSource);
-            return result?.Text ?? "Không tìm thấy QR code";
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                throw new ArgumentException("URL không đúng định dạng");
+
+            using var httpClient = new HttpClient();
+            byte[] imageBytes;
+
+            try
+            {
+                imageBytes = await httpClient.GetByteArrayAsync(url);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException($"Không thể tải ảnh từ URL: {ex.Message}");
+            }
+
+            if (imageBytes.Length > 5 * 1024 * 1024)
+                throw new InvalidImageException("File có dung lượng vượt quá 5MB limit");
+
+            try
+            {
+                using var stream = new MemoryStream(imageBytes);
+                using var image = await Image.LoadAsync<Rgba32>(stream);
+
+                image.Mutate(ctx => ctx
+                    .Resize(new ResizeOptions
+                    {
+                        Size = new SixLabors.ImageSharp.Size(image.Width * 2, image.Height * 2),
+                        Mode = ResizeMode.Stretch,
+                        Sampler = KnownResamplers.Lanczos3
+                    })
+                    .GaussianSharpen(3)
+                );
+
+                return TryReadQrCode(image);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException( ex.Message);
+            }
+        }
+        private string TryReadQrCode(Image<Rgba32> image)
+        {
+            try
+            {
+                var reader = new ZXing.ImageSharp.BarcodeReader<Rgba32>
+                {
+                    Options = new DecodingOptions
+                    {
+                        PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
+                        TryHarder = true,
+                        TryInverted = true
+                    }
+                };
+
+                var luminanceSource = new ImageSharpLuminanceSource<Rgba32>(image);
+                var result = reader.Decode(luminanceSource);
+                if (result == null)
+                {
+                    throw new Exception();
+                }
+                return result.Text;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Không tìm thấy QR code trong ảnh", e);
+            }
         }
 
         public void ValidateImage(IFormFile file)
@@ -223,13 +183,13 @@ namespace API.Services
                 throw new InvalidImageException("No file provided");
 
             if (file.Length > 5 * 1024 * 1024)
-                throw new InvalidImageException("File size exceeds 5MB limit");
+                throw new InvalidImageException("File có dung lượng vượt quá 5MB limit");
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
             if (!allowedExtensions.Contains(extension))
-                throw new InvalidImageException($"Invalid file type. Allowed types: {string.Join(", ", allowedExtensions)}");
+                throw new InvalidImageException($"Lỗi định dạng file ảnh. Chỉ chấp nhận: {string.Join(", ", allowedExtensions)}");
         }
 
     }

@@ -27,12 +27,36 @@ namespace API.Controllers
             try
             {
                 await _userService.RegisterAsync(request);
-                return Ok("Register Success");
+                return Ok(new { result = "Register Success" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new
+                {
+                    Title = "Conflict",
+                    Error = "Dublicate",
+                    Detail = ex.Message
+                });
             }
             catch (ArgumentException e)
             {
-                return BadRequest(e.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = e.Message,
+                    Status = 500
+                });
+            }          
+            catch (Exception e)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
             }
+           
         }
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] AuthenticateRequest request)
@@ -42,7 +66,12 @@ namespace API.Controllers
                 var response = await _authService.Authenticate(request);
                 if (response == null)
                 {
-                    return Unauthorized("Email hoặc password không hợp lệ");
+                    return Unauthorized(new ProblemDetails
+                    {
+                        Title = "Unauthorized",
+                        Detail = "Email hoặc password không đúng",
+                        Status = 401
+                    });
                 }
                 Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
                 {
@@ -56,7 +85,12 @@ namespace API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 500
+                });
             }
         }
         [HttpPost("logout")]
@@ -66,7 +100,11 @@ namespace API.Controllers
             {
                 if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
                 {
-                    return BadRequest(new { Message = "No active session" });
+                    return BadRequest(new {
+                        Title = "Invalid Request",
+                        Detail = "Không tìm thấy refresh token",
+                        Status = 400
+                    });
                 }
 
                 await _authService.Logout(refreshToken);
@@ -78,10 +116,15 @@ namespace API.Controllers
                     Path = "/"
                 });
 
-                return Ok(new { Message = "Successfully logged out" });
+                return Ok(new { Result = "Successfully logged out" });
             }catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Internal server error" });
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ex.Message,
+                    Status = 500
+                });
             }
         }
 
@@ -92,7 +135,12 @@ namespace API.Controllers
             {
                 if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
                 {
-                    return Unauthorized("Refresh token not found.");
+                    return Unauthorized(new ProblemDetails
+                    {
+                        Title = "Unauthorized",
+                        Detail = "Không tìm thấy refresh token",
+                        Status = 401
+                    });
                 }
 
                 var response = await _authService.RefreshToken(refreshToken);
@@ -107,7 +155,12 @@ namespace API.Controllers
             }
             catch (ArgumentException e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
             }
         }
 

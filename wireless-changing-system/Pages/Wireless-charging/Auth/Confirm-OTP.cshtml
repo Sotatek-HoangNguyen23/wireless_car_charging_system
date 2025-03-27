@@ -92,6 +92,10 @@
             resendLink.style.textDecoration = 'underline';
             resendLink.style.color = 'blue';
         }
+        function checkOTPInputs() {
+            const allFilled = Array.from(inputs).every(input => input.value.length === 1);
+            verifyBtn.disabled = !allFilled;
+        }
 
         // Xử lý tự động chuyển focus giữa các input OTP
         inputs.forEach((input, index) => {
@@ -99,6 +103,7 @@
                 // Chỉ cho phép nhập số
                 if (e.target.value.match(/[^0-9]/)) {
                     e.target.value = '';
+                    checkOTPInputs();
                     return;
                 }
                 if (e.target.value.length === 1 && index < inputs.length - 1) {
@@ -110,7 +115,9 @@
                 if (e.key === 'Backspace' && index > 0 && e.target.value === '') {
                     inputs[index - 1].focus();
                 }
+                setTimeout(checkOTPInputs, 0);
             });
+            checkOTPInputs();
         });
 
         // Xử lý paste OTP
@@ -121,6 +128,7 @@
                     input.value = pasteData[index] || '';
                 });
                 inputs[5].focus();
+                checkOTPInputs();
                 verifyBtn.click();
             }
         });
@@ -149,7 +157,7 @@
                     throw new Error(errorData.detail || 'Gửi lại mã thất bại');
                 } else {
                     submitCountdown = 0;
-                    verifyBtn.disabled = false;
+                    checkOTPInputs();
                 }
 
                 clearInput();
@@ -165,8 +173,8 @@
 
            // Xác thực OTP
     verifyBtn.addEventListener('click', async () => {
-         const originalText = verifyBtn.innerHTML; 
-         const originalDisabledState = verifyBtn.disabled; 
+         const originalText = verifyBtn.innerHTML;
+         const originalDisabledState = verifyBtn.disabled;
         if (submitCountdown >= 3) {
             showToast("Bạn đã nhập sai quá 3 lần. Vui lòng thử lại sau.");
             return;
@@ -233,11 +241,11 @@
             }
 
             const result = await tokenResponse.json();
-            return result.token; 
+            return result.token;
 
         } catch (error) {
             showToast(error.message);
-            throw error; 
+            throw error;
         }
     }
         function clearInput(){
@@ -251,5 +259,6 @@
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 5000);
         }
+            checkOTPInputs();
     });
 </script>
