@@ -86,10 +86,10 @@
         }
 
         const result = await response.json();
-        // sessionStorage.setItem("accessToken", result.accessToken);
-        // sessionStorage.setItem("fullName", result.fullname);
-        // sessionStorage.setItem("role", result.role);
-        // sessionStorage.setItem("avartar_url", "https:th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
+        sessionStorage.setItem("accessToken", result.accessToken);
+        sessionStorage.setItem("fullName", result.fullname);
+        sessionStorage.setItem("role", result.role);
+        sessionStorage.setItem("avatar_url", "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
         window.location.href = '/';
         console.log('Đăng nhập thành công:', result);
 
@@ -109,6 +109,26 @@
             toastElement.classList.remove('show');
         }, 5000);
     }
+     function updateUserUI() {
+        const fullName = sessionStorage.getItem('fullName');
+        const avatarUrl = sessionStorage.getItem('avatar_url');
+
+        // Cập nhật tên user
+        const userNameElements = document.querySelectorAll('.user-fullname');
+        userNameElements.forEach(element => {
+            element.textContent = fullName || 'Guest';
+        });
+
+        // Cập nhật avatar
+        const avatarElements = document.querySelectorAll('.user-avatar');
+        avatarElements.forEach(element => {
+            element.src = avatarUrl || '/img/default-avatar.png';
+        });
+    }
+
+    // Gọi hàm khi trang tải xong
+    document.addEventListener('DOMContentLoaded', updateUserUI);
+        window.addEventListener('userDataUpdated', updateUserUI);
 </script>
 <script type="module">
     import { logout } from '/js/apiClient.js';

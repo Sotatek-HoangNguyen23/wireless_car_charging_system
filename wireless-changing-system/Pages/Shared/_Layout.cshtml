@@ -126,40 +126,36 @@
     <script src="~/js-cookie/js.cookie.min.js"></script>
     <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        // Tách logic cập nhật UI thành hàm riêng
+        function updateUserInterface() {
             const accessToken = sessionStorage.getItem("accessToken");
-            if (accessToken) {
-                const fullName = sessionStorage.getItem("fullName");
-                const role = sessionStorage.getItem("role");
-                const menuItems = document.querySelectorAll('.role-based-menu');
-                menuItems.forEach(item => {
-                    const requiredRoles = item.getAttribute('data-required-role').split(',');
-                    if (requiredRoles.includes(role)) {
-                        item.classList.remove('d-none');
-                    }
-                });
+            const role = sessionStorage.getItem("role");
+            const fullName = sessionStorage.getItem("fullName");
+            const avatarUrl = sessionStorage.getItem("avatar_url"); 
 
-                const defaultAvatarUrl = '@Url.Content("~/img/avartar.jpg")';
-                const avatarUrl = sessionStorage.getItem("avatar_url") || defaultAvatarUrl;
-                document.getElementById("userName").textContent = fullName;
-                document.getElementById("userAvatar").src = avatarUrl;
+            // Cập nhật menu theo role
+            const menuItems = document.querySelectorAll('.role-based-menu');
+            menuItems.forEach(item => {
+                const requiredRoles = item.getAttribute('data-required-role').split(',');
+                item.classList.toggle('d-none', !requiredRoles.some(r => r.trim() === role));
+            });
+
+            // Cập nhật thông tin user
+            if (accessToken) {
+                const defaultAvatarUrl = '@Url.Content("~/img/avatar.jpg")'; // Sửa chính tả
+                document.getElementById("userName").textContent = fullName || '';
+                document.getElementById("userAvatar").src = avatarUrl || defaultAvatarUrl;
                 document.getElementById("authSection").classList.add("d-none");
                 document.getElementById("userSection").classList.remove("d-none");
+            } else {
+                document.getElementById("authSection").classList.remove("d-none");
+                document.getElementById("userSection").classList.add("d-none");
             }
-        });
+        }
 
-         function showSuccessToast(message) {
-            const toast = document.getElementById('success-toast');
-            toast.querySelector('.toast-content p').textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 5000);
-        }
-        function showToast(message) {
-            const toast = document.getElementById('error-toast');
-            toast.querySelector('.toast-content p').textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 5000);
-        }
+        // Lắng nghe các sự kiện cần cập nhật UI
+        document.addEventListener("DOMContentLoaded", updateUserInterface);
+        window.addEventListener('userDataUpdated', updateUserInterface); 
     </script>
     <script type="module">
         import { logout } from '/js/apiClient.js';

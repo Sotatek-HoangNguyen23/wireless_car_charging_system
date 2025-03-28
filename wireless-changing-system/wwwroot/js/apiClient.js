@@ -1,33 +1,29 @@
 ﻿let isRefreshing = false;
 let refreshPromise = null;
 
-// Hàm chung xử lý refresh token
 async function performTokenRefresh() {
     try {
         const refreshResponse = await fetch('https://localhost:7191/api/auth/refresh-token', {
             method: 'POST',
             credentials: 'include'
         });
-        console.log('Refresh Token Response:', {
-            status: refreshResponse.status,
-            headers: [...refreshResponse.headers.entries()]
-        });
-        if (!refreshResponse.ok) {
-            const errorText = await refreshResponse.text();
-            throw new Error(`Refresh failed: ${errorText}`);
-        }
-        const data = await refreshResponse.json();
 
-        //sessionStorage.setItem('accessToken', data.accessToken);
-        //if (data.fullName) sessionStorage.setItem('fullname', data.fullname);
-        //if (data.role) sessionStorage.setItem('role', data.role);
-        //if (data.avatarUrl) sessionStorage.setItem('avatar_url', data.avatarUrl);
+        if (!refreshResponse.ok) throw new Error('Refresh failed');
+        const data = await refreshResponse.json();
+        console.log('New token:', data);
+        // Lưu thông tin mới vào sessionStorage
+        sessionStorage.setItem('accessToken', data.accessToken);
+        sessionStorage.setItem('fullName', data.fullname); // Đảm bảo key đúng
+        sessionStorage.setItem("avatar_url", "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
+        sessionStorage.setItem('role', data.role);
+
+        const event = new Event('userDataUpdated');
+        window.dispatchEvent(event);
 
         return data.accessToken;
     } catch (error) {
-        console.error('Refresh token error:', error);
         logout();
-        throw error; // Re-throw để xử lý ở nơi gọi
+        throw error;
     }
 }
 
