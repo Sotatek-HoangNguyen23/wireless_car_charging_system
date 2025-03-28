@@ -4,18 +4,84 @@
     ViewData["Title"] = "Nạp tiền";
 }
 
+
+
 <div class="container mt-5">
-    <div class="row justify-content-center mb-2">
-        <h3>Nạp tiền</h3>
-        <div>Số dư tài khoản: ... VNĐ</div>
-        <input type="number" id="txtThanhTien" class="form-control" style="width: 400px"
-               placeholder="Nhập số tiền bạn muốn nạp (VNĐ)">
+    <div class="card shadow-lg p-4">
+        <h3 class="text-center mb-3"><i class="bi bi-wallet2"></i> Nạp tiền</h3>
+        <div class="text-center mb-3">Số dư tài khoản: <strong><span id="balanceAmount">...</span> VNĐ</strong></div>
+
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
+            <input type="number" id="txtThanhTien" class="form-control" placeholder="Nhập số tiền bạn muốn nạp (VNĐ)">
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+            <button class="btn btn-primary" onclick="taoLinkThanhToan()">
+                <i class="bi bi-qr-code"></i> Tạo QR thanh toán
+            </button>
+            <button class="btn btn-success" onclick="toggleTransactionHistory()">
+                <i class="bi bi-clock-history"></i> Lịch sử nạp tiền
+            </button>
+        </div>
+
+        <h3 id="paymentStatus" class="text-success text-center mt-3" style="display: none;"></h3>
     </div>
-    <button class="btn btn-primary" onclick="taoLinkThanhToan()">Tạo QR thanh toán</button>
-    <h3 id="paymentStatus" style="color: green; display: none;"></h3>
+
+    <!-- Lịch sử giao dịch -->
+    <div id="transactionHistory" class="card mt-4 shadow-lg p-4" style="display: none;">
+        <h4 class="text-center"><i class="bi bi-list-check"></i> Lịch sử nạp tiền</h4>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="startDate" class="form-label"><i class="bi bi-calendar-check"></i> Từ ngày:</label>
+                <input type="date" id="startDate" class="form-control" onchange="fetchTransactionHistory()">
+            </div>
+            <div class="col-md-6">
+                <label for="endDate" class="form-label"><i class="bi bi-calendar-x"></i> Đến ngày:</label>
+                <input type="date" id="endDate" class="form-control" onchange="fetchTransactionHistory()">
+            </div>
+        </div>
+
+        <table class="table table-bordered mt-3 text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã giao dịch</th>
+                    <th>Số tiền (VNĐ)</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày giao dịch</th>
+                </tr>
+            </thead>
+            <tbody id="transactionTable">
+                <tr><td colspan="4" class="text-center">Không có dữ liệu</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        await loadBalance();
+    });
+
+    async function loadBalance() {
+        const userId = sessionStorage.getItem("userId");
+        if (!userId) {
+            alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://localhost:7191/api/Payment/balance/${userId}`);
+            if (!response.ok) throw new Error("Không thể lấy số dư!");
+            const balanceData = await response.json();
+            document.getElementById("balanceAmount").innerText = balanceData.balance1.toLocaleString();
+        } catch (error) {
+            console.error("Lỗi khi lấy số dư:", error);
+            document.getElementById("balanceAmount").innerText = "Lỗi tải số dư!";
+        }
+    }
+
     async function taoLinkThanhToan() {
         const thanhtien = parseInt(document.getElementById("txtThanhTien").value);
         if (!thanhtien || thanhtien <= 0) {
@@ -30,7 +96,7 @@
             price: thanhtien,
             orderId: randomOrderId,
             totalPrice: thanhtien,
-            description: "Nap tien vao tai khoan"
+            description: "Nap tien vao tai khoan",
         };
 
         try {
@@ -50,19 +116,16 @@
         }
     }
 
-        async function checkPaymentStatus(orderId, retryCount = 0) {
+    async function checkPaymentStatus(orderId, retryCount = 0) {
         try {
-            const response = await fetch(`https://localhost:7191/api/Payment/status/${orderId}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
+            const response = await fetch(`https://localhost:7191/api/Payment/status/${orderId}`);
             const data = await response.json();
             const statusElement = document.getElementById("paymentStatus");
             statusElement.style.display = "block";
 
             if (data.status === "PAID") {
                 statusElement.innerText = "Thanh toán thành công!";
+                await loadBalance();
                 return;
             } else if (data.status === "CANCELLED" || data.status === "FAILED") {
                 statusElement.innerText = "Thanh toán thất bại!";
@@ -79,4 +142,47 @@
         }
     }
 
+    function toggleTransactionHistory() {
+        const historyDiv = document.getElementById("transactionHistory");
+        historyDiv.style.display = historyDiv.style.display === "none" ? "block" : "none";
+        if (historyDiv.style.display === "block") fetchTransactionHistory();
+    }
+
+    async function fetchTransactionHistory() {
+        const userId = sessionStorage.getItem("userId");
+        if (!userId) {
+            alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        let url = `https://localhost:7191/api/Payment/transactions?userId=${userId}`;
+        if (startDate) url += `&start=${startDate}`;
+        if (endDate) url += `&end=${endDate}`;
+
+        try {
+            const response = await fetch(url);
+            const transactions = await response.json();
+            const tableBody = document.getElementById("transactionTable");
+            tableBody.innerHTML = "";
+
+            if (transactions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không có dữ liệu</td></tr>`;
+                return;
+            }
+
+            transactions.forEach(tr => {
+                const statusText = tr.status === "PAID" ? "Đã thanh toán" : tr.status;
+                tableBody.innerHTML += `<tr>
+                    <td>${tr.orderCode || "N/A"}</td>
+                    <td>${tr.amount.toLocaleString()}</td>
+                    <td>${statusText}</td>
+                    <td>${new Date(tr.transactionDate).toLocaleString()}</td>
+                </tr>`;
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy lịch sử giao dịch", error);
+        }
+    }
 </script>

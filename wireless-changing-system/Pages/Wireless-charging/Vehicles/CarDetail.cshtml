@@ -23,16 +23,18 @@
                         <div class="d-flex align-items-center mb-3">
                             <i class="bi bi-circle-fill" style="color: #00ff00; font-size: 20px;"></i>
 
-                            <span class="fw-bold ms-2 me-2">Charging:</span>
+                            <span class="fw-bold ms-2 me-2">Đang sạc:</span>
 
                             <i class="bi bi-battery-charging fs-1"></i>
 
                             <span id="charging-status" class="ms-2 fs-3">70%</span>
-                        </div>
 
+                            <button class="btn btn-outline-success mx-3" onclick="navigateToChargingAnalysis()">Xem chi tiết</button>
+                        </div>
+                       
 
                         <div class="mb-3">
-                            <i class="bi bi-geo-alt"></i><span class="fw-bold">Location:</span>
+                            <i class="bi bi-geo-alt"></i><span class="fw-bold">Trạm sạc:</span>
                             <p id="station-location" class="mb-0"></p>
                         </div>
 
@@ -90,7 +92,14 @@
 
             document.querySelector(".del-btn").addEventListener("click", () => deleteCar(carId));
         });
-
+                function navigateToChargingAnalysis() {
+            const carId = getCarIdFromUrl();
+            if (carId) {
+                window.location.href = `https://localhost:5216/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
+            } else {
+                console.error("Car ID is missing.");
+            }
+        }
         function getCarIdFromUrl() {
             return new URLSearchParams(window.location.search).get('carId');
         }

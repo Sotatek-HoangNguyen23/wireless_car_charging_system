@@ -71,27 +71,34 @@ namespace DataAccess.Repositories.CarRepo
 
         public ChargingStatusDTO? GetChargingStatusById(int carId)
         {
-            var query = from cs in _context.ChargingSessions
-                        join cp in _context.ChargingPoints on cs.ChargingPointId equals cp.ChargingPointId
-                        join s in _context.ChargingStations on cp.StationId equals s.StationId
-                        join sl in _context.StationLocations on s.StationLocationId equals sl.StationLocationId
-                        join rtd in _context.RealTimeData on cs.CarId equals rtd.CarId
-                        where cs.Status == "Charging" && cs.CarId == carId
-                        select new ChargingStatusDTO
-                        {
-                            SessionId = cs.SessionId,
-                            CarId = cs.CarId,
-                            ChargingPointId = cs.ChargingPointId,
-                            StationId = s.StationId,
-                            StationLocationId = s.StationLocationId,
-                            StationName = s.StationName,
-                            Address = sl.Address,
-                            Status = cs.Status,
-                            BatteryLevel = rtd.BatteryLevel
-                        };
+            var query = (from cs in _context.ChargingSessions
+                         join cp in _context.ChargingPoints on cs.ChargingPointId equals cp.ChargingPointId
+                         join s in _context.ChargingStations on cp.StationId equals s.StationId
+                         join sl in _context.StationLocations on s.StationLocationId equals sl.StationLocationId
+                         join rtd in _context.RealTimeData on cs.CarId equals rtd.CarId
+                         where cs.Status == "Charging" && cs.CarId == carId
+                         orderby EF.Functions.Collate(rtd.TimeMoment, "SQL_Latin1_General_CP1_CI_AS") descending
+                         select new ChargingStatusDTO
+                         {
+                             SessionId = cs.SessionId,
+                             CarId = cs.CarId,
+                             ChargingPointId = cs.ChargingPointId,
+                             StationId = s.StationId,
+                             StationLocationId = s.StationLocationId,
+                             StationName = s.StationName,
+                             Address = sl.Address,
+                             Status = cs.Status,
+                             BatteryLevel = rtd.BatteryLevel,
+                             ChargingPower = rtd.ChargingPower,
+                             Temperature = rtd.Temperature,
+                             Cost = rtd.Cost,
+                             Current = rtd.ChargingCurrent
+                         })
+                         .FirstOrDefault();
 
-            return query.FirstOrDefault(); 
+            return query;
         }
+
 
         public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId)
         {

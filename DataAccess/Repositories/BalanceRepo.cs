@@ -1,4 +1,5 @@
-﻿using DataAccess.Interfaces;
+﻿using DataAccess.DTOs;
+using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -35,6 +36,31 @@ namespace DataAccess.Repositories
         {
             return await _context.BalanceTransactions
                .FirstOrDefaultAsync(p => p.OrderCode == orderCode);
+        }
+
+        public async Task<List<TransactionDTO>> GetTransactionHistory(int userId, DateTime? start, DateTime? end)
+        {
+            var query = _context.BalanceTransactions
+            .Where(t => t.Balance.UserId == userId )
+            .AsQueryable();
+
+            if (start.HasValue)
+                query = query.Where(t => t.TransactionDate >= start.Value);
+
+            if (end.HasValue)
+                query = query.Where(t => t.TransactionDate <= end.Value);
+
+            return await query.Select(t => new TransactionDTO
+            {
+                TransactionId = t.TransactionId,
+                BalanceId = t.BalanceId,
+                UserId = t.Balance.UserId,
+                Amount = t.Amount,
+                Status = t.Status,
+                OrderCode = t.OrderCode,
+                TransactionType = t.TransactionType,
+                TransactionDate = t.TransactionDate
+            }).ToListAsync();
         }
 
         public async Task<Balance> UpdateBalance(Balance balance)
