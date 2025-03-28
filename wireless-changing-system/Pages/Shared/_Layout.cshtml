@@ -126,19 +126,10 @@
                 document.getElementById("authSection").classList.add("d-none");
                 document.getElementById("userSection").classList.remove("d-none");
             }
-    
-            const logoutBtn = document.getElementById("logoutBtn");
-            if (logoutBtn) {
-                logoutBtn.addEventListener("click", function (e) {
-                e.preventDefault();
-                logout();
-             });
-            }
         });
     </script>
     <script type="module">
         import { logout } from '/js/apiClient.js';
-
         document.getElementById("logoutBtn").addEventListener("click", function(e) {
             e.preventDefault();
             logout();

@@ -8,15 +8,20 @@ async function performTokenRefresh() {
             method: 'POST',
             credentials: 'include'
         });
-
-        if (!refreshResponse.ok) throw new Error('Refresh token failed');
-
+        console.log('Refresh Token Response:', {
+            status: refreshResponse.status,
+            headers: [...refreshResponse.headers.entries()]
+        });
+        if (!refreshResponse.ok) {
+            const errorText = await refreshResponse.text();
+            throw new Error(`Refresh failed: ${errorText}`);
+        }
         const data = await refreshResponse.json();
 
-        sessionStorage.setItem('accessToken', data.accessToken);
-        if (data.fullName) sessionStorage.setItem('fullName', data.fullName);
-        if (data.role) sessionStorage.setItem('role', data.role);
-        if (data.avatarUrl) sessionStorage.setItem('avatar_url', data.avatarUrl);
+        //sessionStorage.setItem('accessToken', data.accessToken);
+        //if (data.fullName) sessionStorage.setItem('fullname', data.fullname);
+        //if (data.role) sessionStorage.setItem('role', data.role);
+        //if (data.avatarUrl) sessionStorage.setItem('avatar_url', data.avatarUrl);
 
         return data.accessToken;
     } catch (error) {
