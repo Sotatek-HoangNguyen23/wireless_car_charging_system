@@ -1,5 +1,6 @@
 ﻿using API.Services;
 using DataAccess.DTOs.UserDTO;
+using DataAccess.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -225,6 +226,13 @@ namespace API.Controllers
                 return NotFound(new { message = "No feedback found" });
 
             return Ok(feedbacks);
+        }
+        [AllowAnonymous]
+        [HttpGet("licenses")]
+        public async Task<ActionResult<PagedResultD<DriverLicense>>> GetPagedLicenses([FromQuery] DriverLicenseFilter filter, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _userService.GetLicenseList( pageNumber, pageSize, filter);
+            return Ok(result);
         }
     }
 }

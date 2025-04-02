@@ -1,4 +1,5 @@
-﻿using DataAccess.Models;
+﻿using DataAccess.DTOs.UserDTO;
+using DataAccess.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace DataAccess.Interfaces
         Task UpdateLicense(DriverLicense liscense);
         Task<IEnumerable<DriverLicense>?> GetLicensesByUserId(int userId);
         Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<PagedResultD<DriverLicenseDTO>> GetPagedLicensesAsync(int pageNumber, int pageSize, DriverLicenseFilter filter);
 
     }
 }

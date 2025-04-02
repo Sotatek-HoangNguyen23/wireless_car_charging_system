@@ -538,7 +538,10 @@ namespace API.Services
                 throw;
             }
         }
-
+        public async Task<PagedResultD<DriverLicenseDTO>> GetLicenseList(int pageNumber, int pageSize, DriverLicenseFilter filter)
+        {
+            return await _licenseRepository.GetPagedLicensesAsync(pageNumber, pageSize, filter);
+        }
         public PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize)
         {
             return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
@@ -558,16 +561,17 @@ namespace API.Services
         {
             return await _userRepository.GetFeedbackByUserId(userId);
         }
-    
+
         public bool IsEmailCorrect(string email)
         {
-            string regex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, regex);
+            string regex = @"^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$";
+            return Regex.IsMatch(email, regex, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
         }
+
         public bool IsPhoneCorrect(string phone)
         {
-            string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9\d|2[0-9])\d{7}$";
-            return Regex.IsMatch(phone, regex);
+            string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9[0-9]|2[0-9])\d{7}$";
+            return Regex.IsMatch(phone, regex, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
         }
         public bool IsPasswordCorrect(string password)
         {
