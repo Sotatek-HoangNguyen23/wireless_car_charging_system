@@ -19,7 +19,7 @@ namespace API.Services
             _payOS = new PayOS(Constants.clientId, Constants.apiKey, Constants.checksumKey);
         }
 
-        public async Task<string> CreatePaymentLink(DepositDTO request)
+        public async Task<string> CreatePaymentLink(DepositDTO request, int userId)
         {
             var items = new List<ItemData> { new(request.Name, request.Quantity, request.Price) };
 
@@ -33,6 +33,8 @@ namespace API.Services
             );
 
             var paymentResult = await _payOS.createPaymentLink(paymentData);
+            var balance = _balanceRepo.GetBalanceByUserId(userId);
+            int balanceId = balance.Result.BalanceId;
 
             await _balanceRepo.AddBalanceTransactionAsync(new BalanceTransaction
             {
@@ -40,7 +42,7 @@ namespace API.Services
                 Amount = request.TotalPrice,
                 Status = "PENDING",
                 TransactionDate = DateTime.Now,
-                BalanceId = 1,
+                BalanceId = balanceId,
                 TransactionType = "DEPOSIT"
             });
 
@@ -48,13 +50,14 @@ namespace API.Services
         }
 
 
-        public async Task HandlePaymentCallback(int orderCode, string status)
+        public async Task HandlePaymentCallback(int orderCode, string status, int userId)
         {
+
             var payment = await _balanceRepo.UpdateBalanceTransactionStatusAsync(orderCode.ToString(), status);
 
             if (status.ToUpper() == "PAID" && payment != null)
             {
-                var balance = await _balanceRepo.GetBalanceByUserId(2);
+                var balance = await _balanceRepo.GetBalanceByUserId(userId);
                 if (balance != null)
                 {
                     balance.Balance1 += payment.Amount;

@@ -1,4 +1,5 @@
 ﻿using API.Services;
+using DataAccess.DTOs;
 using DataAccess.DTOs.UserDTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -225,6 +226,99 @@ namespace API.Controllers
                 return NotFound(new { message = "No feedback found" });
 
             return Ok(feedbacks);
+        }
+
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfileByUserId()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            try
+            {
+                var profile = await _userService.GetProfileByUserId(userId);
+                return Ok(profile);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
+            }
+        }
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateUserProfile( [FromBody] RequestProfile request)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            try
+            {
+                await _userService.UpdateUserProfileAsync(userId, request);
+                return Ok(new { Message = "Profile updated successfully" });
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(new { Message = e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
+            }
+        }
+
+
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePassDTO passDTO)
+        {
+            try
+            {
+                await _userService.ChangePasswordAsync(passDTO);
+                return Ok(new { Message = "Password changed successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("get-users-by-email-phone")]
+        public async Task<IActionResult> GetUsersByEmailPhone([FromQuery] string search)
+        {
+            var users = await _userService.GetUsersByEmailOrPhoneAsync(search);
+            if (users == null || users.Count == 0)
+            {
+                return NotFound("Không tìm thấy người dùng nào.");
+            }
+            return Ok(users);
         }
     }
 }

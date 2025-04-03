@@ -16,25 +16,26 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
+
         document.addEventListener("DOMContentLoaded", async () => {
-            const userId = sessionStorage.getItem("userId");
-            if (!userId) {
-                alert("User chưa đăng nhập!");
-                return;
-            }
-            await fetchCarsByUserId(userId);
+            await fetchCarsByUserId();
         });
 
-        async function fetchCarsByUserId(userId) {
+        async function fetchCarsByUserId() {
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/owner?userId=${userId}`);
-                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                const response = await fetchWithAuth('https://localhost:7191/api/Car/owner');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || `API Error: ${response.statusText}`);
+                }
 
                 const cars = await response.json();
                 displayCars(cars);
             } catch (error) {
                 console.error("Error fetching cars:", error);
+                showToast(error.message);
             }
         }
 
@@ -59,7 +60,7 @@
                                         <span class="d-block"><strong>Biển số:</strong> ${car.licensePlate}</span>
                                         <span class="d-block"><strong>Màu:</strong> ${car.color}</span>
                                     </div>
-                                    <button class="btn btn-outline-primary" onclick="viewCar(${car.carId})">View</button>
+                                    <button class="btn btn-outline-primary" onclick="viewCar(${car.carId})">Xem</button>
                                 </div>
                                 <img src="${car.img || ''}" alt="${car.carName}" class="img-fluid rounded" style="width: 150px; height: 120px;">
                             </div>
@@ -70,11 +71,10 @@
             });
         }
 
-        // navigate
-        function viewCar(carId) {
-            window.location.href = `/wireless-charging/vehicles/cardetail?carId=${carId}`;
-        }
-
+        window.viewCar = function(carId) {
         
+        window.location.href = `/wireless-charging/vehicles/cardetail?carId=${carId}`;
+    };
     </script>
+
 }

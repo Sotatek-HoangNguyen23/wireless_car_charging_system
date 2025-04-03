@@ -29,7 +29,10 @@
 
     
 }
-<script>
+<script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
+
+
     document.addEventListener("DOMContentLoaded", async () => {
         const carId = getCarIdFromUrl();
         if (!carId) {
@@ -51,7 +54,7 @@
 
     async function fetchChargingHistory(carId) {
         try {
-            const response = await fetch(`https://localhost:7191/api/Car/charging-history?carId=${carId}`);
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/charging-history?carId=${carId}`);
 
             if (response.status === 404) {
                 displayNotFound();
@@ -128,7 +131,7 @@
                 url += `&chargingStationId=${selectedStationId}`;
             }
 
-            const response = await fetch(url);
+            const response = await fetchWithAuth(url);
 
             if (response.status === 404) {
                 displayNotFound();

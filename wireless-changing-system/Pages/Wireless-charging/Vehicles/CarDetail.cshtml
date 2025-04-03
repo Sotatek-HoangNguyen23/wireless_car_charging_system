@@ -79,7 +79,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
+
         document.addEventListener("DOMContentLoaded", () => {
             const carId = getCarIdFromUrl();
             if (!carId) {
@@ -92,29 +94,34 @@
 
             document.querySelector(".del-btn").addEventListener("click", () => deleteCar(carId));
         });
-                function navigateToChargingAnalysis() {
+
+         function navigateToChargingAnalysis() {
             const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `https://localhost:5216/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
-            } else {
+            if (!carId) {
                 console.error("Car ID is missing.");
+                return;
             }
+            window.location.href = `/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
         }
+
         function getCarIdFromUrl() {
             return new URLSearchParams(window.location.search).get('carId');
         }
-                function navigateToRentPage() {
+                       window.navigateToRentPage = function () {
             const carId = getCarIdFromUrl();
             if (carId) {
                 window.location.href = `/wireless-charging/vehicles/rent?carId=${carId}`;
             } else {
                 console.error("Car ID is missing.");
             }
-        }
-        async function fetchCarDetails(carId) {
+        };
+            async function fetchCarDetails(carId) {
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/detail/${carId}`);
-                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                const response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || `API Error: ${response.statusText}`);
+                }
 
                 const car = await response.json();
                 updateCarDetails(car);
@@ -137,7 +144,7 @@
 
         async function fetchRealTimeStatus(carId) {
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/real-time-status/${carId}`);
+                const response = await fetchWithAuth(`https://localhost:7191/api/Car/real-time-status/${carId}`);
                 if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
 
                 const data = await response.json();
@@ -157,20 +164,20 @@
             }
         }
 
-        function navigateToChargingHistory() {
+                window.navigateToChargingAnalysis = function () {
             const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
-            } else {
+            if (!carId) {
                 console.error("Car ID is missing.");
+                return;
             }
-        }
+            window.location.href = `/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
+        };
 
         async function deleteCar(carId) {
             if (!confirm("Are you sure you want to delete this car?")) return;
 
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/Delete/${carId}`, {
+                const response = await fetchWithAuth(`https://localhost:7191/api/Car/Delete/${carId}`, {
                     method: 'DELETE'
                 });
 
@@ -182,14 +189,23 @@
             }
         }
 
-                function navigateToEditCar() {
+         window.navigateToEditCar = function () {
             const carId = getCarIdFromUrl();
             if (carId) {
                 window.location.href = `/wireless-charging/vehicles/editcar?carId=${carId}`;
             } else {
                 console.error("Car ID is missing.");
             }
-        }
+        };
+
+                window.navigateToChargingHistory = function () {
+            const carId = getCarIdFromUrl();
+            if (carId) {
+                window.location.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
+            } else {
+                console.error("Car ID is missing.");
+            }
+        };
     </script>
 }
 

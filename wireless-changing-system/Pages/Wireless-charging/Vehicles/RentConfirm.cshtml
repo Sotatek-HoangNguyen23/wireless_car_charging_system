@@ -42,18 +42,19 @@
     </div>
 }
 
-<script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
     document.addEventListener("DOMContentLoaded", async function () {
         await loadRentRequests();
     });
 
            async function loadRentRequests() {
-        const driverId = sessionStorage.getItem("userId");
-        const apiUrl = `https://localhost:7191/api/Car/rent-requests/${driverId}`;
+       
+        const apiUrl = `https://localhost:7191/api/Car/rent-requests`;
         const container = document.getElementById("rentConfirmContainer");
 
         try {
-            const response = await fetch(apiUrl);
+            const response = await fetchWithAuth(apiUrl);
 
             if (response.status === 404) {
                 container.innerHTML = `<p class="text-center text-muted fs-5">Không có yêu cầu </p>`;
@@ -134,7 +135,7 @@
         };
 
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetchWithAuth(apiUrl, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody)

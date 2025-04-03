@@ -4,8 +4,6 @@
     ViewData["Title"] = "Nạp tiền";
 }
 
-
-
 <div class="container mt-5">
     <div class="card shadow-lg p-4">
         <h3 class="text-center mb-3"><i class="bi bi-wallet2"></i> Nạp tiền</h3>
@@ -59,20 +57,16 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
     document.addEventListener("DOMContentLoaded", async function () {
         await loadBalance();
     });
 
     async function loadBalance() {
-        const userId = sessionStorage.getItem("userId");
-        if (!userId) {
-            alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
-            return;
-        }
-
         try {
-            const response = await fetch(`https://localhost:7191/api/Payment/balance/${userId}`);
+            const response = await fetchWithAuth(`https://localhost:7191/api/Payment/balance`);
             if (!response.ok) throw new Error("Không thể lấy số dư!");
             const balanceData = await response.json();
             document.getElementById("balanceAmount").innerText = balanceData.balance1.toLocaleString();
@@ -100,7 +94,7 @@
         };
 
         try {
-            const response = await fetch("https://localhost:7191/api/Payment/create", {
+            const response = await fetchWithAuth("https://localhost:7191/api/Payment/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
@@ -116,16 +110,22 @@
         }
     }
 
+    window.taoLinkThanhToan = taoLinkThanhToan;
+
     async function checkPaymentStatus(orderId, retryCount = 0) {
         try {
-            const response = await fetch(`https://localhost:7191/api/Payment/status/${orderId}`);
+            const response = await fetchWithAuth(`https://localhost:7191/api/Payment/status/${orderId}`);
             const data = await response.json();
             const statusElement = document.getElementById("paymentStatus");
             statusElement.style.display = "block";
 
             if (data.status === "PAID") {
-                statusElement.innerText = "Thanh toán thành công!";
-                await loadBalance();
+                statusElement.innerHTML = `
+                    <p>Thanh toán thành công!
+                    <span><button class="btn btn-outline-success" onclick="reloadPage()">Đóng</button></span></p>
+                    
+                `;
+                await loadBalance(); // Update the balance
                 return;
             } else if (data.status === "CANCELLED" || data.status === "FAILED") {
                 statusElement.innerText = "Thanh toán thất bại!";
@@ -142,6 +142,15 @@
         }
     }
 
+    // Reload balance function
+    function reloadPage() {
+        loadBalance(); // Reload the balance
+        document.getElementById("paymentStatus").style.display = "none";
+    }
+    window.reloadPage = reloadPage;
+
+    window.toggleTransactionHistory = toggleTransactionHistory;
+
     function toggleTransactionHistory() {
         const historyDiv = document.getElementById("transactionHistory");
         historyDiv.style.display = historyDiv.style.display === "none" ? "block" : "none";
@@ -149,20 +158,14 @@
     }
 
     async function fetchTransactionHistory() {
-        const userId = sessionStorage.getItem("userId");
-        if (!userId) {
-            alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
-            return;
-        }
-
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
-        let url = `https://localhost:7191/api/Payment/transactions?userId=${userId}`;
+        let url = `https://localhost:7191/api/Payment/transactions`;
         if (startDate) url += `&start=${startDate}`;
         if (endDate) url += `&end=${endDate}`;
 
         try {
-            const response = await fetch(url);
+            const response = await fetchWithAuth(url);
             const transactions = await response.json();
             const tableBody = document.getElementById("transactionTable");
             tableBody.innerHTML = "";

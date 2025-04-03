@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers
-{
+{   
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -164,75 +164,9 @@ namespace API.Controllers
             }
         }
 
-        [HttpGet("profile/{userId}")]
-        public async Task<IActionResult> GetProfileByUserId(int userId)
-        {
-            try
-            {
-                var profile = await _userService.GetProfileByUserId(userId);
-                return Ok(profile);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
-            }
-        }
-
-        [HttpPut("profile/{userId}")]
-        public async Task<IActionResult> UpdateUserProfile(int userId, [FromBody] RequestProfile request)
-        {
-            try
-            {
-                await _userService.UpdateUserProfileAsync(userId, request);
-                return Ok(new { Message = "Profile updated successfully" });
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(new { Message = e.Message });
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
-            }
-        }
+        
 
 
-        [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePassDTO passDTO)
-        {
-            try
-            {
-                await _userService.ChangePasswordAsync(passDTO);
-                return Ok(new { Message = "Password changed successfully" });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { Message = "Internal server error" });
-            }
-        }
-
-
-        [HttpGet("get-users-by-email-phone")]
-        public async Task<IActionResult> GetUsersByEmailPhone([FromQuery] string search)
-        {
-            var users = await _userService.GetUsersByEmailOrPhoneAsync(search);
-            if (users == null || users.Count == 0)
-            {
-                return NotFound("Không tìm thấy người dùng nào.");
-            }
-            return Ok(users);
-        }
+        
     }
 }

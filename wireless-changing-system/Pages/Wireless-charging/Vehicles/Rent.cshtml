@@ -56,7 +56,8 @@
     </div>
 }
 
-<script>
+<script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
     async function searchUsers() {
         let searchValue = document.getElementById("search-input").value.trim();
         if (!searchValue) {
@@ -64,10 +65,10 @@
             return;
         }
 
-        let apiUrl = `https://localhost:7191/api/Auth/get-users-by-email-phone?search=${encodeURIComponent(searchValue)}`;
+        let apiUrl = `https://localhost:7191/api/User/get-users-by-email-phone?search=${encodeURIComponent(searchValue)}`;
 
         try {
-            let response = await fetch(apiUrl);
+            let response = await fetchWithAuth(apiUrl);
             if (!response.ok) {
                 throw new Error("Không tìm thấy người dùng nào!");
             }
@@ -79,6 +80,7 @@
             document.getElementById("user-list").innerHTML = "";
         }
     }
+    window.searchUsers = searchUsers;
 
     function displayUserList(users) {
         let userListHtml = `<h5 class="fw-bold">Thông tin tìm kiếm</h5><div class="row">`;
@@ -102,7 +104,7 @@
 
     async function showRentPopup(userId) {
         let carId = new URLSearchParams(window.location.search).get('carId');
-        let response = await fetch(`https://localhost:7191/api/Car/detail/${carId}`);
+        let response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
         let car = await response.json();
          let selectedUserId = document.getElementById(`user-id-${userId}`).value;
          document.getElementById("confirmRentBtn").dataset.userId = selectedUserId;
@@ -130,13 +132,16 @@
             popup.remove();
         }, 3000);
     }
+
+    window.showRentPopup=showRentPopup;
+
     async function confirmRent() {
         let userId = document.getElementById("confirmRentBtn").dataset.userId;
         let carId = new URLSearchParams(window.location.search).get('carId');
         let startDate = document.getElementById("startDate").value;
         let endDate = document.getElementById("endDate").value;
 
-        let response = await fetch("https://localhost:7191/api/Car/send-rent-request", {
+        let response = await fetchWithAuth("https://localhost:7191/api/Car/send-rent-request", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId, carId, startDate, endDate })
@@ -158,4 +163,6 @@
         showPopup("Lỗi khi thuê xe!", "danger");
     }
     }
+
+    window.confirmRent=confirmRent;
 </script>
