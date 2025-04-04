@@ -41,8 +41,6 @@ namespace API.Services
                     PublicId = Guid.NewGuid().ToString(),
                     Overwrite = true,
                     Transformation = new Transformation()
-                        .Width(800)
-                        .Height(600)
                         .Crop("fill")
                         .Quality("auto"),
                 };

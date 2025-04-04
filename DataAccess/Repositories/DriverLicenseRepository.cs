@@ -34,10 +34,9 @@ namespace DataAccess.Repositories
 
             // Apply filters (unchanged)
             if (!string.IsNullOrEmpty(filter.Code))
-                query = query.Where(dl => dl.Code.Contains(filter.Code));
+                query = query.Where(dl => dl.Code != null && dl.Code.Contains(filter.Code));
             if (!string.IsNullOrEmpty(filter.Fullname))
-                query = query.Where(dl => EF.Functions.Collate(dl.User.Fullname, "Vietnamese_CI_AI").Contains(filter.Fullname));
-            if (!string.IsNullOrEmpty(filter.Status))
+                query = query.Where(dl => dl.User != null && EF.Functions.Collate(dl.User.Fullname ?? string.Empty, "Vietnamese_CI_AI").Contains(filter.Fullname)); if (!string.IsNullOrEmpty(filter.Status))
                 query = query.Where(dl => dl.Status == filter.Status);
             if (!string.IsNullOrEmpty(filter.Class))
                 query = query.Where(dl => dl.Class == filter.Class);
@@ -58,11 +57,11 @@ namespace DataAccess.Repositories
                    .Select(dl => new DriverLicenseDTO
                    {
                        LicenseId = dl.DriverLicenseId,
-                       LicenseNumber = dl.Code,
-                       Class = dl.Class,
-                       FrontImageUrl = dl.ImgFront,
-                       BackImageUrl = dl.ImgBack,
-                       Status = dl.Status,
+                       LicenseNumber = dl.Code ?? "N/A",
+                       Class = dl.Class ?? "N/A",
+                       FrontImageUrl = dl.ImgFront ?? "N/A",
+                       BackImageUrl = dl.ImgBack ?? "N/A",
+                       Status = dl.Status ?? "N/A",
                        CreatedAt = dl.CreateAt,
                        UpdatedAt = dl.UpdateAt,
                        User = new UserSimpleDTO

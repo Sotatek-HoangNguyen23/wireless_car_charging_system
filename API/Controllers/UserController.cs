@@ -42,11 +42,41 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + e.Message,
                     Status = 500
                 });
             }
         }
+
+        [Authorize("Driver")]
+        [HttpGet("driver-licenses/{licenseCode}")]
+        public async Task<IActionResult> GetDriverLicense(string licenseCode)
+        {
+            try
+            {
+                var driverLicense = await _userService.GetLicenseByCode(licenseCode);
+                return Ok(driverLicense);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = ex.Message,
+                    Status = 404
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau."+ex.Message,
+                    Status = 500
+                });
+            }
+        }
+
         [Authorize("Driver")]
         [HttpPost("driver-licenses")]
         public async Task<IActionResult> AddDriverLicense([FromForm] DriverLicenseRequest request)
@@ -66,7 +96,7 @@ namespace API.Controllers
             try
             {
                 await _userService.AddDriverLicenseAsync(userId, request);
-                return Ok(new {result="Them bang lai thanh cong"});
+                return Ok(new {result="Thêm bang lái thanh cong"});
             }
             catch (ArgumentException ex)
             {
@@ -80,7 +110,7 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails{
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
                     Status = 500
                 });
             }
@@ -90,10 +120,11 @@ namespace API.Controllers
         [HttpPut("driver-licenses/{licenseCode}")]
         public async Task<IActionResult> UpdateDriverLicense(string licenseCode,[FromForm] DriverLicenseRequest request)
         {
+            
             try
             {
                 await _userService.UpdateDriverLiscense(licenseCode, request);
-                return Ok(new { result = "Driver license updated successfully" });
+                return Ok(new { result ="Update Success" });
             }
             catch (ArgumentException ex)
             {
@@ -108,7 +139,7 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
                     Status = 500
                 });
             }
@@ -138,7 +169,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
                     Status = 500
                 });
             }
@@ -177,7 +208,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
                     Status = 500
                 });
             }

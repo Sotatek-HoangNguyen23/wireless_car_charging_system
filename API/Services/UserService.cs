@@ -312,6 +312,39 @@ namespace API.Services
         {
             return await _userRepository.GetUserByEmailOrPhone(search);
         }
+        public async Task<DriverLicenseDTO> GetLicenseByCode(string code)
+        {
+            var existingLicense = await _licenseRepository.GetLicenseByCode(code);
+            if (existingLicense == null)
+            {
+                throw new ArgumentException("License not found");
+            }
+            var user = await _userRepository.GetUserById(existingLicense.UserId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var licenseDTO = new DriverLicenseDTO
+            {
+                LicenseId = existingLicense.DriverLicenseId,
+                LicenseNumber = existingLicense.Code ?? "N/A",
+                Class = existingLicense.Class ?? "N/A",
+                FrontImageUrl = existingLicense.ImgFront ?? "N/A",
+                BackImageUrl = existingLicense.ImgBack ?? "N/A",
+                Status = existingLicense.Status ?? "N/A",
+                CreatedAt = existingLicense.CreateAt,
+                UpdatedAt = existingLicense.UpdateAt,
+                User = new UserSimpleDTO
+                {
+                    UserId = user.UserId,
+                    Fullname = user.Fullname ?? "",
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber
+                }
+            };
+            return licenseDTO;
+        }
         public async Task AddDriverLicenseAsync(int userId, DriverLicenseRequest request)
         {
             if (request == null)
@@ -324,8 +357,8 @@ namespace API.Services
                 throw new ArgumentException("User not found");
             }
 
-            ImageUploadResult frontUpload = null;
-            ImageUploadResult backUpload = null;
+            ImageUploadResult? frontUpload = null;
+            ImageUploadResult? backUpload = null;
             var existingLicenses = await _licenseRepository.GetLicensesByUserId(userId);
             if (existingLicenses != null)
             {
@@ -335,10 +368,24 @@ namespace API.Services
                     {
                         if (license.Status == "Inactive")
                         {
-
+                            _imageService.ValidateImage(request.LicenseFrontImage);
+                            _imageService.ValidateImage(request.LicenseBackImage);
+                            if (license.ImgFrontPubblicId != null && license.ImgBackPubblicId != null)
+                            {
+                                await _imageService.DeleteImageAsync(license.ImgFrontPubblicId);
+                                await _imageService.DeleteImageAsync(license.ImgBackPubblicId);
+                            }
+                            frontUpload = await _imageService.UploadImagetAsync(request.LicenseFrontImage);
+                            backUpload = await _imageService.UploadImagetAsync(request.LicenseBackImage);
+                            license.ImgFront = frontUpload.Url.ToString();
+                            license.ImgFrontPubblicId = frontUpload.PublicId;
+                            license.ImgBack = backUpload.Url.ToString();
+                            license.ImgBackPubblicId = backUpload.PublicId;
+                            license.Code = request.LicenseNumber;
                             license.Status = "Active";
                             license.Class = request.Class;
                             license.UpdateAt = DateTime.UtcNow;
+                            
                            
                             await _licenseRepository.UpdateLicense(license);
                             return;
@@ -404,8 +451,14 @@ namespace API.Services
             {
                 throw new ArgumentException("License not found");
             }
-            ImageUploadResult newFront = null;
-            ImageUploadResult newBack = null;
+            var existingLicenses = await _licenseRepository.GetLicenseByCode(request.LicenseNumber);
+            if (existingLicenses != null && existingLicenses.Code != licensecode)
+            {
+                throw new ArgumentException("License mà bạn muốn cập nhật đã tồn tại trong hệ thống");
+            }
+
+            ImageUploadResult? newFront = null;
+            ImageUploadResult? newBack = null;
             var oldFront = license.ImgFrontPubblicId;
             var oldBack = license.ImgBackPubblicId;
             try
@@ -444,8 +497,9 @@ namespace API.Services
                     await _licenseRepository.UpdateLicense(license);
                     // Xóa ảnh cũ sau khi update thành công
                     var deleteTasks = new List<Task>();
-                    if (newFront != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldFront));
-                    if (newBack != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldBack));
+                    if (oldFront != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldFront));
+                    if (oldBack != null) deleteTasks.Add(_imageService.DeleteImageAsync(oldBack));
+
 
                     await Task.WhenAll(deleteTasks);
                     await transaction.CommitAsync();
@@ -502,6 +556,10 @@ namespace API.Services
             {
                 try
                 {
+                    if (string.IsNullOrEmpty(license.ImgBack))
+                    {
+                        throw new ArgumentException("Image back URL is null or empty");
+                    }
                     var qrContent = await _imageService.ReadQrCodeUrl(license.ImgBack);
                     result.Add(new DriverLicenseResponse(license, qrContent));
                 }

@@ -14,4 +14,10 @@ namespace DataAccess.DTOs.UserDTO
         public required IFormFile LicenseFrontImage { get; set; }
         public required IFormFile LicenseBackImage { get; set; }
     }
+    public class DriverLicenseUpdateRequest
+    {
+        public required string LicenseNumber { get; set; }
+        public required IFormFile LicenseFrontImage { get; set; }
+        public required IFormFile LicenseBackImage { get; set; }
+    }
 }
