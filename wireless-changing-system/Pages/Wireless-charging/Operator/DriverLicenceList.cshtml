@@ -1,0 +1,439 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Operator.DriverLicenceListModel
+@{
+}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách bằng lái xe</h6>
+        </div>
+
+        <div class="card-body border-bottom">
+            <div class="row">
+                <!-- Cột trái - Filter chính -->
+                <div class="col-md-9">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Mã bằng lái</label>
+                            <input type="text" class="form-control" id="filterCode">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" class="form-control" id="filterFullname">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="">Tất cả</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Hạng bằng</label>
+                            <select class="form-select" id="filterClass">
+                                <option value="">Tất cả</option>
+                                <option value="A1">A1</option>
+                                <option value="B1">B1</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải - Filter ngày -->
+                <div class="col-md-3 border-start">
+                    <div class="ps-3">
+                        <div class="mb-3">
+                            <label class="form-label">Ngày tạo</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="filterFromCreateDate" placeholder="Từ ngày">
+                                <input type="date" class="form-control" id="filterToCreateDate" placeholder="Đến ngày">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ngày cập nhật</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="filterFromUpdateDate" placeholder="Từ ngày">
+                                <input type="date" class="form-control" id="filterToUpdateDate" placeholder="Đến ngày">
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100" onclick="loadLicenses()">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .border-start {
+                border-left: 1px solid #dee2e6 !important;
+            }
+
+            .input-group {
+                gap: 4px;
+                flex-wrap: nowrap;
+            }
+        </style>
+
+        <div class="card-body">
+            <div id="loading" class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                </div>
+            </div>
+
+            <div id="licenseTable" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Số bằng lái</th>
+                                <th>Thông tin người dùng</th>
+                                <th>Hạng bằng</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Ngày cập nhật</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenseList"></tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination" id="pagination"></ul>
+                </nav>
+            </div>
+
+            <div id="emptyMessage" class="alert alert-warning" style="display: none;">
+                Không tìm thấy bằng lái nào phù hợp
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết bằng lái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- Nội dung sẽ được điền bằng JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+<div id="success-toast" class="custom-toast success-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-check-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Thành công!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+    let currentPage = 1;
+    const pageSize = 10;
+
+    // Khởi tạo khi trang load xong
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLicenses();
+    });
+
+    async function loadLicenses(page = 1) {
+        try {
+            currentPage = page;
+            showLoading(true);
+
+            const params = new URLSearchParams({
+                pageNumber: page,
+                pageSize: pageSize,
+                code: document.getElementById('filterCode').value,
+                fullname: document.getElementById('filterFullname').value,
+                status: document.getElementById('filterStatus').value,
+                class: document.getElementById('filterClass').value,
+                fromCreateDate: document.getElementById('filterFromCreateDate').value,
+                toCreateDate: document.getElementById('filterToCreateDate').value,
+                fromUpdateDate: document.getElementById('filterFromUpdateDate').value,
+                toUpdateDate: document.getElementById('filterToUpdateDate').value
+            });
+
+            const response = await fetchWithAuth(`https://localhost:7191/api/user/licenses?${params}`);
+            if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Lỗi không xác định");
+            }
+            const data = await response.json();
+            renderLicenses(data);
+        } catch (error) {
+            console.error('Lỗi khi tải dữ liệu:', error);
+            showError();
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function renderLicenses(result) {
+        const tbody = document.getElementById('licenseList');
+        const pagination = document.getElementById('pagination');
+
+        // Clear old data
+        tbody.innerHTML = '';
+        pagination.innerHTML = '';
+
+        if (result.items.length === 0) {
+            document.getElementById('emptyMessage').style.display = 'block';
+            document.getElementById('licenseTable').style.display = 'none';
+            return;
+        }
+
+        // Render table rows
+        result.items.forEach(license => {
+             const actionButton = license.status === "Inactive" ?
+                `<button class="btn btn-sm btn-success" onclick="activateLicense('${license.licenseNumber}')">
+                    <i class="fas fa-check me-1"></i>Kích hoạt
+                </button>` :
+                `<button class="btn btn-sm btn-danger" onclick="deactivateLicense('${license.licenseNumber}')">
+                    <i class="fas fa-ban me-1"></i>Vô hiệu hóa
+                </button>`;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${license.licenseNumber}</td>
+                    <td>
+                        <div>${license.user.fullname}</div>
+                        <div>${license.user.phoneNumber}</div>
+                        <div>${license.user.email}</div>
+                    </td>
+                    <td>${license.class}</td>
+                    <td>
+                        <span class="badge ${getStatusClass(license.status)}">
+                            ${license.status}
+                        </span>
+                    </td>
+                    <td>${formatDate(license.createdAt)}</td>
+                    <td>${formatDate(license.updatedAt)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewDetail('${license.licenseNumber}')">
+                            <i class="fas fa-eye me-1"></i>Chi tiết
+                        </button>
+                        ${actionButton}
+                    </td>
+                </tr>
+            `;
+        });
+
+        // Render pagination
+        renderPagination(result.totalPages);
+
+        document.getElementById('licenseTable').style.display = 'block';
+        document.getElementById('emptyMessage').style.display = 'none';
+    }
+
+    function renderPagination(totalPages) {
+        const pagination = document.getElementById('pagination');
+        let html = '';
+
+        // Previous button
+        html += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" onclick="loadLicenses(${currentPage - 1})">Trước</a>
+            </li>
+        `;
+
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            html += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" onclick="loadLicenses(${i})">${i}</a>
+                </li>
+            `;
+        }
+
+        // Next button
+        html += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" onclick="loadLicenses(${currentPage + 1})">Sau</a>
+            </li>
+        `;
+
+        pagination.innerHTML = html;
+    }
+
+    function getStatusClass(status) {
+        switch (status) {
+            case 'Active': return 'bg-success';
+            case 'Pending': return 'bg-warning';
+            case 'Expired': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN');
+    }
+
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showError() {
+            showToast('Có lỗi xảy ra khi tải dữ liệu');
+    }
+         function showSuccessToast(message) {
+            const toast = document.getElementById('success-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+        function showToast(message) {
+            const toast = document.getElementById('error-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+    async function viewDetail(licenseCode) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}`);
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            showLicenseDetailModal(data);
+        } catch (error) {
+            showToast(error.message);
+            console.error('Error viewing detail:', error);
+        }
+    }
+
+    async function deactivateLicense(licenseCode) {
+        if (!confirm(`Xác nhận vô hiệu hóa bằng lái ${licenseCode}?`)) return;
+
+        try {
+            const response = await fetchWithAuth(
+                `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            showSuccessToast("Vô hiệu hóa thành công!");
+            await loadLicenses(currentPage);
+        } catch (error) {
+            showToast(error.message);
+            console.error('Error deactivating:', error);
+        }
+    }
+    async function activateLicense(licenseCode) {
+        if (!confirm(`Xác nhận kích hoạt bằng lái ${licenseCode}?`)) return;
+
+        try {
+            const response = await fetchWithAuth(
+                `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}/activate`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `Lỗi khi kích hoạt`);
+            }
+
+            showSuccessToast("Kích hoạt thành công!");
+            await loadLicenses(currentPage);
+        } catch (error) {
+            showToast(error.message);
+            console.error('Error activating:', error);
+        }
+    }
+    function showLicenseDetailModal(data) {
+        const frontImage = data.frontImageUrl ?
+            `<img src="${data.frontImageUrl}" class="img-fluid mb-3" alt="Mặt trước">` :
+            '<p class="text-muted">Không có ảnh mặt trước</p>';
+
+        const backImage = data.backImageUrl ?
+            `<img src="${data.backImageUrl}" class="img-fluid mb-3" alt="Mặt sau">` :
+            '<p class="text-muted">Không có ảnh mặt sau</p>';
+
+        const content = `
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Số bằng lái:</strong> ${data.licenseNumber}</p>
+                    <p><strong>Hạng bằng:</strong> ${data.class}</p>
+                    <p><strong>Trạng thái:</strong> <span class="badge ${getStatusClass(data.status)}">${data.status}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Ngày tạo:</strong> ${formatDate(data.createdAt)}</p>
+                    <p><strong>Ngày cập nhật:</strong> ${formatDate(data.updatedAt)}</p>
+                </div>
+            </div>
+            <hr>
+            <h5>Thông tin người dùng</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Họ tên:</strong> ${data.user.fullname}</p>
+                    <p><strong>Điện thoại:</strong> ${data.user.phoneNumber}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Email:</strong> ${data.user.email}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Ảnh mặt trước</h6>
+                    ${frontImage}
+                </div>
+                <div class="col-md-6">
+                    <h6>Ảnh mặt sau</h6>
+                    ${backImage}
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detailContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    }
+
+
+    window.activateLicense = activateLicense;
+    window.viewDetail = viewDetail;
+    window.deactivateLicense = deactivateLicense;
+</script>

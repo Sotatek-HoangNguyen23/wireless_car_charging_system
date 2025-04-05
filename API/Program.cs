@@ -129,6 +129,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Operator", policy => policy.RequireRole("Operator"));
     options.AddPolicy("Driver", policy => policy.RequireRole("Driver"));
     options.AddPolicy("AdminOrOperator", policy => policy.RequireRole("Admin", "Operator"));
+    options.AddPolicy("DriverOrOperator", policy => policy.RequireRole("Driver", "Operator"));
 
 });
 builder.Services.AddControllers();

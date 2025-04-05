@@ -223,12 +223,82 @@
             font-size: 1.1rem;
         }
     }
+
+    .image-preview {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        min-height: 200px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 10px;
+        background-color: #f8f9fa; 
+        min-height: 200px;
+    }
+
+    .preview-image {
+        display: block !important;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 180px;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .preview-text {
+        color: #6c757d;
+        font-style: italic;
+        position: absolute;
+        pointer-events: none;
+    }
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 0.25em solid #007bff;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner 0.75s linear infinite;
+    }
+
+    @@keyframes spinner {
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
-<!-- PHẦN GIAO DIỆN -->
 <div class="container-fluid">
     <div class="driver-license-container">
-        <!-- Header chung -->
         <div class="driver-license-header">
             <div>
                 <h3 class="mb-0">BẰNG LÁI XE VIỆT NAM</h3>
@@ -239,9 +309,8 @@
             </div>
         </div>
 
-        <!-- Khu vực chứa các license-item -->
+        <!-- license-item -->
         <div class="license-view" id="licenseView">
-            <!-- License items sẽ được render từ JavaScript -->
         </div>
     </div>
 </div>
@@ -337,80 +406,6 @@
         <p class="mb-0"></p>
     </div>
 </div>
-<style>
-    .image-preview {
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        min-height: 200px; /* Tăng chiều cao tối thiểu */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-        padding: 10px;
-        background-color: #f8f9fa; /* Thêm màu nền */
-        min-height: 200px;
-    }
-
-    .preview-image {
-        display: block !important;
-        width: auto;
-        height: auto;
-        max-width: 100%;
-        max-height: 180px;
-        border: 1px solid #ddd;
-        padding: 5px;
-    }
-
-    .preview-remove {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-    }
-
-    .preview-text {
-        color: #6c757d;
-        font-style: italic;
-        position: absolute;
-        pointer-events: none;
-    }
-    /* Thêm vào CSS */
-    .loading-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.8);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-
-    .loading-spinner {
-        width: 3rem;
-        height: 3rem;
-        border: 0.25em solid #007bff;
-        border-right-color: transparent;
-        border-radius: 50%;
-        animation: spinner 0.75s linear infinite;
-    }
-
-    @@keyframes spinner {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-</style>
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
 
@@ -546,7 +541,8 @@
             showToast(error.message);
         }
     }
-
+     let isFrontQRValid = false;
+     let isBackQRValid = false;
     // Update 
        async function openUpdateModal(licenseCode) {
             isFrontQRValid = false;
@@ -714,8 +710,7 @@
         };
     }
 
-     let isFrontQRValid = false;
-     let isBackQRValid = false;
+
       function previewImage(input, previewId,isUpdate= false) {
         const preview = document.getElementById(previewId);
         const file = input.files[0];

@@ -6,10 +6,10 @@ namespace wireless_changing_system.Pages.Wireless_charging.Auth
     public class Send_OTPModel : PageModel
     {
         [BindProperty(SupportsGet = true)]
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public void OnGet()
         {
         }

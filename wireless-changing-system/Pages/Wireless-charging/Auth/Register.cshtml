@@ -11,6 +11,52 @@
     .invalid-field {
         border: 1px solid #dc3545 !important;
     }
+    /* Thêm các style preview ảnh */
+    .image-preview {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 10px;
+        background-color: #f8f9fa;
+    }
+
+    .preview-image {
+        display: block !important;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 180px;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        background: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .preview-text {
+        color: #6c757d;
+        font-style: italic;
+    }
 </style>
 <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
     <img src="~/img/logo.png" alt="Logo" class="mb-4 hide-mobile" style="max-width: 120px" />
@@ -95,7 +141,9 @@
                                accept="image/*"
                                required
                                onchange="previewImage(this, 'cccdFrontPreview')">
-                        <img id="cccdFrontPreview" class="mt-2" style="max-width: 100%; max-height: 150px; display: none;" />
+                        <div class="image-preview mt-2" id="cccdFrontPreview">
+                            <div class="preview-text">Chưa có ảnh được chọn</div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -107,8 +155,10 @@
                                accept="image/*"
                                required
                                onchange="previewImage(this, 'cccdBackPreview')">
-                        <img id="cccdBackPreview" class="mt-2" style="max-width: 100%; max-height: 150px; display: none;" />
-                    </div>
+                        <div class="image-preview mt-2" id="cccdBackPreview">
+                            <div class="preview-text">Chưa có ảnh được chọn</div>
+                        </div>
+                    </div>  
                 </div>
 
                 <div class="col-md-6 ps-md-3">
@@ -232,38 +282,9 @@
         regisBtn.disabled = !(allValid && agreeCheckbox.checked);
     });
 
-    function updateRule(ruleId, isValid) {
-        const ruleElement = document.getElementById(ruleId);
-        const icon = ruleElement.querySelector('.rule-icon');
 
-        if (isValid) {
-            icon.classList.remove('bi-x-circle');
-            icon.classList.add('bi-check-circle');
-            ruleElement.classList.add('valid');
-        } else {
-            icon.classList.remove('bi-check-circle');
-            icon.classList.add('bi-x-circle');
-            ruleElement.classList.remove('valid');
-        }
-    }
 
-    // Hàm preview ảnh
-       function previewImage(input, previewId) {
-        const preview = document.getElementById(previewId);
-        const file = input.files[0];
 
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.style.display = 'block';
-                preview.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.style.display = 'none';
-            preview.src = '';
-        }
-    }
     // Khi chọn ảnh CCCD Front: preview và gọi API quét QR code
       document.getElementById("cccdFront").addEventListener("change", async function() {
           validCCCD = false;
@@ -351,53 +372,7 @@
             regisBtn.innerHTML = 'Đăng ký';
         }
     });
-
-    // Hàm validate tổng hợp
-     function validateForm() {
-        let isValid = true;
-        const requiredFields = [
-            {id: 'cccdFront', message: 'Vui lòng tải lên ảnh mặt trước CCCD'},
-            {id: 'cccdBack', message: 'Vui lòng tải lên ảnh mặt sau CCCD'},
-            {id: 'phone', message: 'Vui lòng nhập số điện thoại'},
-            {id: 'email', message: 'Vui lòng nhập địa chỉ email'},
-            {id: 'password', message: 'Vui lòng nhập mật khẩu'},
-            {id: 'dob', message: 'Vui lòng chọn ngày sinh'},
-            {id: 'fullname', message: 'Vui lòng kiểm tra lại thông tin từ CCCD'},
-            {id: 'address', message: 'Vui lòng nhập địa chỉ'}
-        ];
-
-        requiredFields.forEach(field => {
-            const element = document.getElementById(field.id);
-            if (field.id === 'cccdFront' || field.id === 'cccdBack') {
-                if (!element.files[0]) {
-                    showToast(field.message);
-                    element.classList.add('invalid-field');
-                    isValid = false;
-                }
-            } else if (!element.value.trim()) {
-                showToast(field.message);
-                element.classList.add('invalid-field');
-                isValid = false;
-            }
-        });
-
-        if (!validateEmail(document.getElementById('email').value)) {
-            showToast("Email không hợp lệ");
-            isValid = false;
-        }
-
-        if (!validateDOB(document.getElementById('dob').value)) {
-            showToast("Ngày sinh không hợp lệ");
-            isValid = false;
-        }
-        if (!validCCCD) {
-            showToast("Vui lòng kiểm tra lại thông tin từ CCCD");
-            isValid = false;
-        }
-        return isValid;
-    }
-
-    document.getElementById("dob").addEventListener("change", function(e) {
+      document.getElementById("dob").addEventListener("change", function(e) {
         const dobValue = e.target.value;
         validateDOB(dobValue);
     });
@@ -448,6 +423,106 @@
         }
     });
 
+     // Hàm preview ảnh
+         function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.innerHTML = '';
+
+                // Tạo wrapper
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+
+                // Tạo ảnh preview
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('preview-image');
+
+                // Tạo nút xóa
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'preview-remove';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => {
+                    input.value = '';
+                    preview.innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+                    validCCCD = false;
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
+            };
+
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+        }
+    }
+     function updateRule(ruleId, isValid) {
+        const ruleElement = document.getElementById(ruleId);
+        const icon = ruleElement.querySelector('.rule-icon');
+
+        if (isValid) {
+            icon.classList.remove('bi-x-circle');
+            icon.classList.add('bi-check-circle');
+            ruleElement.classList.add('valid');
+        } else {
+            icon.classList.remove('bi-check-circle');
+            icon.classList.add('bi-x-circle');
+            ruleElement.classList.remove('valid');
+        }
+    }
+    // Hàm validate tổng hợp
+     function validateForm() {
+        let isValid = true;
+        const requiredFields = [
+            {id: 'cccdFront', message: 'Vui lòng tải lên ảnh mặt trước CCCD'},
+            {id: 'cccdBack', message: 'Vui lòng tải lên ảnh mặt sau CCCD'},
+            {id: 'phone', message: 'Vui lòng nhập số điện thoại'},
+            {id: 'email', message: 'Vui lòng nhập địa chỉ email'},
+            {id: 'password', message: 'Vui lòng nhập mật khẩu'},
+            {id: 'dob', message: 'Vui lòng chọn ngày sinh'},
+            {id: 'fullname', message: 'Vui lòng kiểm tra lại thông tin từ CCCD'},
+            {id: 'address', message: 'Vui lòng nhập địa chỉ'}
+        ];
+
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (field.id === 'cccdFront' || field.id === 'cccdBack') {
+                if (!element.files[0]) {
+                    showToast(field.message);
+                    element.classList.add('invalid-field');
+                    isValid = false;
+                }
+            } else if (!element.value.trim()) {
+                showToast(field.message);
+                element.classList.add('invalid-field');
+                isValid = false;
+            }
+        });
+
+        if (!validateEmail(document.getElementById('email').value)) {
+            showToast("Email không hợp lệ");
+            isValid = false;
+        }
+
+        if (!validateDOB(document.getElementById('dob').value)) {
+            showToast("Ngày sinh không hợp lệ");
+            isValid = false;
+        }
+        if (!validCCCD) {
+            showToast("Vui lòng kiểm tra lại thông tin từ CCCD");
+            isValid = false;
+        }
+        return isValid;
+    }
+
+
     function validateEmail(email) {
         const re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
         return re.test(email);
@@ -473,7 +548,6 @@
         return true;
     }
 
-    // Hàm validate ngày sinh (DOB)
     function validateDOB(dobString) {
         const dob = new Date(dobString);
         const today = new Date();
@@ -484,7 +558,6 @@
             return false;
         }
 
-        // Nếu ngày sinh lớn hơn ngày tối thiểu cho 18 tuổi thì người dùng chưa đủ 18
         if (dob > minAgeDate) {
             showToast("Bạn phải đủ 18 tuổi để đăng ký");
             return false;

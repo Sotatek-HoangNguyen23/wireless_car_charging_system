@@ -596,6 +596,29 @@ namespace API.Services
                 throw;
             }
         }
+        public async Task ActiveDriverLicenseAsync(string licenseCode)
+        {
+            var license = await _licenseRepository.GetLicenseByCode(licenseCode);
+            if (license == null)
+            {
+                throw new ArgumentException("License not found");
+            }
+
+            license.Status = "Active";
+            license.UpdateAt = DateTime.UtcNow;
+
+            using var transaction = await _licenseRepository.BeginTransactionAsync();
+            try
+            {
+                await _licenseRepository.UpdateLicense(license);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
         public async Task<PagedResultD<DriverLicenseDTO>> GetLicenseList(int pageNumber, int pageSize, DriverLicenseFilter filter)
         {
             return await _licenseRepository.GetPagedLicensesAsync(pageNumber, pageSize, filter);

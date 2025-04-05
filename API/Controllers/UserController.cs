@@ -48,7 +48,7 @@ namespace API.Controllers
             }
         }
 
-        [Authorize("Driver")]
+        [Authorize("DriverOrOperator")]
         [HttpGet("driver-licenses/{licenseCode}")]
         public async Task<IActionResult> GetDriverLicense(string licenseCode)
         {
@@ -146,7 +146,7 @@ namespace API.Controllers
         }
 
         // DELETE: api/driver-licenses/{licenseCode}
-        [Authorize("Driver")]
+        [Authorize("DriverOrOperator")]
         [HttpDelete("driver-licenses/{licenseCode}")]
         public async Task<IActionResult> DeleteDriverLicense(string licenseCode)
         {
@@ -154,6 +154,34 @@ namespace API.Controllers
             {
                 await _userService.DeleteDriverLicenseAsync(licenseCode);
                 return Ok(new { result = "Driver license deactivated successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = ex.Message,
+                    Status = 404
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Status = 500
+                });
+            }
+        }
+        [Authorize("DriverOrOperator")]
+        [HttpPut("driver-licenses/{licenseCode}/activate")]
+        public async Task<IActionResult> ActiveDriverLicense(string licenseCode)
+        {
+            try
+            {
+                await _userService.ActiveDriverLicenseAsync(licenseCode);
+                return Ok(new { result = "Driver license activate successfully" });
             }
             catch (ArgumentException ex)
             {
@@ -260,7 +288,7 @@ namespace API.Controllers
         }
         [AllowAnonymous]
         [HttpGet("licenses")]
-        public async Task<ActionResult<PagedResultD<DriverLicense>>> GetPagedLicenses([FromQuery] DriverLicenseFilter filter, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResultD<DriverLicenseDTO>>> GetPagedLicenses([FromQuery] DriverLicenseFilter filter, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _userService.GetLicenseList( pageNumber, pageSize, filter);
             return Ok(result);
