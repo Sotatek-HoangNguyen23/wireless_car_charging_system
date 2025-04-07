@@ -102,5 +102,55 @@ namespace API.Services
         {
             return await _myCars.UpdateIsAllowedToChargeAsync(userId, carId, role);
         }
+
+        public async Task<ChargingSession> AddChargingSession(int carId, int pointId, string timeMoment, string chargingTime,string energy,string cost)
+        {
+            // Parse thời gian kết thúc (end time)
+            if (!DateTime.TryParse(timeMoment, out DateTime endTime))
+                throw new ArgumentException("Invalid timeMoment format");
+
+            // Parse thời gian sạc (charging time) thành TimeSpan
+            if (!TryParseChargingTime(chargingTime, out TimeSpan duration))
+                throw new ArgumentException("Invalid chargingTime format");
+
+            DateTime startTime = endTime - duration;
+
+            // Parse energy & cost
+            double.TryParse(energy, out double energyConsumed);
+            double.TryParse(cost, out double costValue);
+
+            int userId = (int)await _myCars.GetCurrentDriverByCarId(carId);
+
+            var session = new ChargingSession
+            {
+                CarId = carId,
+                ChargingPointId = pointId,
+                UserId = userId,
+                StartTime = startTime,
+                EndTime = endTime,
+                EnergyConsumed = energyConsumed,
+                Cost = costValue,
+                Status = "Completed"
+            };
+
+            return await _myCars.AddChargingSession(session);
+        }
+
+        private bool TryParseChargingTime(string? timeStr, out TimeSpan timeSpan)
+        {
+            timeSpan = TimeSpan.Zero;
+            if (string.IsNullOrEmpty(timeStr)) return false;
+
+            var match = Regex.Match(timeStr, @"(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?");
+            if (!match.Success) return false;
+
+            int h = int.TryParse(match.Groups[1].Value, out var hour) ? hour : 0;
+            int m = int.TryParse(match.Groups[2].Value, out var min) ? min : 0;
+            int s = int.TryParse(match.Groups[3].Value, out var sec) ? sec : 0;
+
+            timeSpan = new TimeSpan(h, m, s);
+            return true;
+        }
+
     }
 }

@@ -71,28 +71,32 @@ namespace DataAccess.Repositories.CarRepo
 
         public ChargingStatusDTO? GetChargingStatusById(int carId)
         {
-            var query = (from cs in _context.ChargingSessions
-                         join cp in _context.ChargingPoints on cs.ChargingPointId equals cp.ChargingPointId
+                    var latestTime = _context.RealTimeData
+            .Where(rtd =>  rtd.CarId == carId)
+            .Max(rtd => rtd.TimeMoment);
+
+            var query = (from cp in _context.ChargingPoints
                          join s in _context.ChargingStations on cp.StationId equals s.StationId
                          join sl in _context.StationLocations on s.StationLocationId equals sl.StationLocationId
-                         join rtd in _context.RealTimeData on cs.CarId equals rtd.CarId
-                         where cs.Status == "Charging" && cs.CarId == carId
-                         orderby EF.Functions.Collate(rtd.TimeMoment, "SQL_Latin1_General_CP1_CI_AS") descending
+                         join rtd in _context.RealTimeData on cp.ChargingPointId equals rtd.ChargingpointId
+                         where  rtd.CarId == carId && rtd.TimeMoment == latestTime
                          select new ChargingStatusDTO
                          {
-                             SessionId = cs.SessionId,
-                             CarId = cs.CarId,
-                             ChargingPointId = cs.ChargingPointId,
+                             CarId = rtd.CarId,
+                             ChargingPointId = rtd.ChargingpointId,
                              StationId = s.StationId,
                              StationLocationId = s.StationLocationId,
                              StationName = s.StationName,
                              Address = sl.Address,
-                             Status = cs.Status,
+                             Status = rtd.Status,
                              BatteryLevel = rtd.BatteryLevel,
                              ChargingPower = rtd.ChargingPower,
                              Temperature = rtd.Temperature,
                              Cost = rtd.Cost,
-                             Current = rtd.ChargingCurrent
+                             Current = rtd.ChargingCurrent,
+                             TimeMoment = rtd.TimeMoment,
+                             ChargingTime = rtd.ChargingTime,
+                             EnergyConsumed = rtd.EnergyConsumed
                          })
                          .FirstOrDefault();
 
@@ -297,6 +301,24 @@ namespace DataAccess.Repositories.CarRepo
             _context.UserCars.Update(userCar);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<ChargingSession> AddChargingSession(ChargingSession session)
+        {
+            _context.ChargingSessions.Add(session);
+            await _context.SaveChangesAsync();
+            return session;
+        }
+
+        public async Task<int?> GetCurrentDriverByCarId(int carId)
+        {
+            var result = await _context.UserCars
+           .Where(uc => uc.CarId == carId && uc.IsAllowedToCharge == true)
+           .OrderBy(uc => uc.Role == "Renter" ? 1 : uc.Role == "Owner" ? 2 : 3)
+           .Select(uc => (int?)uc.UserId)
+           .FirstOrDefaultAsync();
+
+            return result;
         }
     }
 }

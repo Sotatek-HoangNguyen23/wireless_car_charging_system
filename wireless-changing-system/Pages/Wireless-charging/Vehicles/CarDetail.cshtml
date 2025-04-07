@@ -156,7 +156,7 @@
         }
 
         function updateRealTimeStatus(data) {
-            if (data.message === "Not found") {
+            if (data.status === "Disconnected") {
                 document.getElementById("real-time-status").style.display = "none";
             } else {
                 document.getElementById("charging-status").textContent = `${data.batteryLevel}%`;

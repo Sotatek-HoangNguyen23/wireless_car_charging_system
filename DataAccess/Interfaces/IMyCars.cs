@@ -35,5 +35,9 @@ namespace DataAccess.Interfaces
 
         Task<UserCar?> GetUserCarAsync(int userId, int carId, string role);
         Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role);
+
+        Task<ChargingSession> AddChargingSession(ChargingSession session);
+
+        Task<int?> GetCurrentDriverByCarId( int carId);
     }
 }

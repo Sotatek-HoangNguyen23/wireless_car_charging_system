@@ -75,4 +75,14 @@ namespace DataAccess.DTOs
         public string Role { get; set; }
     }
 
+    public class ChargingSessionRequest
+    {
+        public int CarId { get; set; }
+        public int PointId { get; set; }
+        public string TimeMoment { get; set; } = string.Empty;
+        public string ChargingTime { get; set; } = string.Empty;
+        public string Energy { get; set; } = string.Empty;
+        public string Cost { get; set; } = string.Empty;
+    }
+
 }
