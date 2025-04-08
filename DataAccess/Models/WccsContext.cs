@@ -52,9 +52,7 @@ public partial class WccsContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
         if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
-
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
