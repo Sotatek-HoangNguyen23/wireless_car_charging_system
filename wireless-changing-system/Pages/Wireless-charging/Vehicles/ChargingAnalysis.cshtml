@@ -99,29 +99,6 @@
     </div>
 </div>
 
-<!-- Modal Hiển thị Thông tin Phiên Sạc -->
-<div class="modal fade" id="sessionModal" tabindex="-1" aria-labelledby="sessionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Phiên sạc đã hoàn tất</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Thời gian bắt đầu:</strong> <span id="modal-start-time"></span></p>
-                <p><strong>Thời gian kết thúc:</strong> <span id="modal-end-time"></span></p>
-                <p><strong>Năng lượng tiêu thụ:</strong> <span id="modal-energy"></span> kWh</p>
-                <p><strong>Chi phí:</strong> <span id="modal-cost"></span></p>
-            </div>
-            <div class="d-flex justify-content-center mb-3">
-                <button class="btn btn-primary mx-2">Xem lịch sử sạc</button>
-                <button class="btn btn-primary mx-2">Về trang chủ</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
@@ -145,8 +122,6 @@
 
     connection.on("ReceiveUpdate", () => updateChargingData());
 
-    let sessionAlreadySaved = false;
-
     async function updateChargingData() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
@@ -162,7 +137,6 @@
             const batteryProgress = document.getElementById('battery-progress');
 
             if (data.status === "Charging") {
-                sessionAlreadySaved = false;
                 statusElement.textContent = "Đang sạc";
                 statusElement.className = "badge bg-success ms-2";
 
@@ -181,67 +155,23 @@
                 if (batteryPercent <= 20) batteryProgress.classList.add("bg-danger");
                 else if (batteryPercent <= 40) batteryProgress.classList.add("bg-warning");
                 else batteryProgress.classList.add("bg-success");
+            } else if (data.status === "Disconnected") {
+                statusElement.textContent = "Mất kết nối";
+                statusElement.className = "badge bg-secondary ms-2";
+
+                batteryProgress.style.width = "0%";
+                batteryProgress.textContent = "Không có dữ liệu";
+                batteryProgress.className = "progress-bar bg-secondary";
+
+                document.getElementById('charging-power').textContent = "0W";
+                document.getElementById('temperature').textContent = "0°C";
+                document.getElementById('current').textContent = "0A";
+                document.getElementById('cost').textContent = "0 VND";
             }
-                else if (data.status === "Disconnected" && !sessionAlreadySaved) {
-        statusElement.textContent = "Mất kết nối";
-        statusElement.className = "badge bg-secondary ms-2";
-
-        batteryProgress.style.width = "0%";
-        batteryProgress.textContent = "Không có dữ liệu";
-        batteryProgress.className = "progress-bar bg-secondary";
-
-        document.getElementById('charging-power').textContent = "0W";
-        document.getElementById('temperature').textContent = "0°C";
-        document.getElementById('current').textContent = "0A";
-        document.getElementById('cost').textContent = "0 VND";
-
-        // Kiểm tra nếu session đã được lưu trong localStorage
-        const sessionKey = `sessionSaved_${data.carId}`;
-        if (localStorage.getItem(sessionKey)) {
-            // Nếu đã lưu session, không gửi lại yêu cầu API
-            console.log("Session đã được lưu trước đó.");
-            return;
-        }
-
-        // Gửi yêu cầu lưu session
-        const sessionResponse = await fetchWithAuth('https://localhost:7191/api/Car/add-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                carId: data.carId,
-                pointId: data.chargingPointId,
-                timeMoment: data.timeMoment,
-                chargingTime: data.chargingTime,
-                energy: data.energyConsumed,
-                cost: data.cost
-            })
-        });
-
-        if (!sessionResponse.ok) {
-            console.error("Lỗi khi gọi addSession:", await sessionResponse.text());
-            return;
-        }
-
-        const session = await sessionResponse.json();
-        sessionAlreadySaved = true;
-
-        // Lưu session vào localStorage
-        localStorage.setItem(sessionKey, JSON.stringify(session));
-
-        document.getElementById('modal-start-time').textContent = new Date(session.startTime).toLocaleString();
-        document.getElementById('modal-end-time').textContent = new Date(session.endTime).toLocaleString();
-        document.getElementById('modal-energy').textContent = session.energyConsumed;
-        document.getElementById('modal-cost').textContent = new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(session.cost * 1000);
-
-        new bootstrap.Modal(document.getElementById('sessionModal')).show();
-    }
-
 
             document.getElementById('station-name').textContent = data.stationName || "Chưa có dữ liệu";
             document.getElementById('station-address').textContent = data.address || "Chưa có dữ liệu";
+
         } catch (error) {
             console.error('Lỗi khi cập nhật dữ liệu:', error);
             document.getElementById('status').textContent = "OFFLINE!";
