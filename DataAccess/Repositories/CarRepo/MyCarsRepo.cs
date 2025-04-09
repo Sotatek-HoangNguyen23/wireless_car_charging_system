@@ -13,9 +13,9 @@ namespace DataAccess.Repositories.CarRepo
     public class MyCarsRepo : IMyCars
     {
         private WccsContext _context;
-        public MyCarsRepo()
+        public MyCarsRepo(WccsContext context)
         {
-            _context = new WccsContext();
+            _context = context;
         }
 
         public List<MyCarsDTO> getCarByOwner(int userId)
