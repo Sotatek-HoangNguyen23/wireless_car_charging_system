@@ -717,7 +717,6 @@
 
         if (file) {
             const reader = new FileReader();
-
             reader.onload = async (e) => {
                 console.log('File loaded successfully');
                 preview.innerHTML = '';
@@ -743,6 +742,12 @@
                 // Validate QR code
                 try {
                     const qrResult = await validateQRCode(file);
+                   if (previewId === 'backPreview' || previewId === 'updateBackPreview') {
+                        if (!qrResult.isValid) {
+                            showToast(qrResult.message || 'QR code không hợp lệ');
+                        }
+                    }
+
                     if (previewId === 'frontPreview') {
                         isFrontQRValid = qrResult.isValid;
                     } else {
@@ -758,6 +763,10 @@
                 } catch (error) {
                     if (previewId === 'frontPreview') isFrontQRValid = false;
                     else isBackQRValid = false;
+                    if (previewId === 'backPreview' || previewId === 'updateBackPreview') {
+                        showToast(error.message);
+                    }
+
                 }
 
                 const wrapper = document.createElement('div');
@@ -777,7 +786,7 @@
             else isBackQRValid = false;
         }
       }
-        async function validateQRCode(file) {
+    async function validateQRCode(file) {
         const formData = new FormData();
         formData.append('file', file);
 
