@@ -1,5 +1,5 @@
 ﻿@page
-@model wireless_changing_system.Pages.Wireless_charging.Operator.FeedbackListModel
+@model wireless_changing_system.Pages.Wireless_charging.Management.FeedbackListModel
 @{
 }
 
@@ -20,26 +20,26 @@
 <body>
 
     <div class="container mt-4">
-        <h2 class="mb-3">Feedback List</h2>
+        <h2 class="mb-3">Phản hồi của lái xe</h2>
 
         <!-- Thanh Search -->
         <div class="filter-section p-3  rounded">
             <div class="row g-2">
                 <!-- Ô nhập Search -->
                 <div class="col-md-4">
-                    <label for="searchName" class="form-label">Search</label>
-                    <input type="text" class="form-control" id="searchName" placeholder="Search by message" />
+                    <label for="searchName" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="searchName" placeholder="Nhập phản hồi" />
                 </div>
 
                 <!-- Ô chọn Start Date -->
                 <div class="col-md-4">
-                    <label for="searchStartDate" class="form-label d-block">Start Date</label>
+                    <label for="searchStartDate" class="form-label d-block">Từ</label>
                     <input type="date" class="form-control" id="searchStartDate">
                 </div>
 
                 <!-- Ô chọn End Date -->
                 <div class="col-md-4">
-                    <label for="searchEndDate" class="form-label d-block">End Date</label>
+                    <label for="searchEndDate" class="form-label d-block">Đến</label>
                     <input type="date" class="form-control" id="searchEndDate">
                 </div>
             </div>
@@ -52,9 +52,9 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>User</th>
-                                <th>Message</th>
-                                <th>Date</th>
+                                <th>Người dùng</th>
+                                <th>Phản hồi</th>
+                                <th>Ngày tạo</th>
                             </tr>
                         </thead>
                         <tbody id="userTableBody"></tbody>
@@ -123,7 +123,7 @@
 
                 let paginationHtml = `
                     <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+                        <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
                     </li>
                 `;
 
@@ -137,7 +137,7 @@
 
                 paginationHtml += `
                     <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+                        <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
                     </li>
                 `;
 
