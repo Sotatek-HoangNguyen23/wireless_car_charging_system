@@ -27,20 +27,46 @@ namespace DataAccess.Repositories
                 return await _context.RefreshTokens
                     .SingleOrDefaultAsync(rt=>rt.Token == token);
         }
-
         public async Task SaveRefreshToken(string token, User user)
         {
-            RefreshToken refreshToken = new RefreshToken();
-            refreshToken.Token = token;
-            refreshToken.UserId = user.UserId;
-            refreshToken.CreatedAt = DateTime.UtcNow;
-            refreshToken.ExpiresAt = DateTime.UtcNow.AddDays(7);
-             _context.RefreshTokens.Add(refreshToken);
+
+            if(user == null)
+            {
+                throw new ArgumentNullException(nameof(user), "Người dùng không thể null.");
+            }  
+            var dbUser = await _context.Users.FindAsync(user.UserId);
+            if (dbUser == null)
+            {
+                throw new InvalidOperationException($"Người dùng với UserId {user.UserId} không tồn tại.");
+            }
+
+            // Nếu tồn tại, tạo refresh token và lưu vào DB
+            RefreshToken refreshToken = new RefreshToken
+            {
+                Token = token,
+                UserId = user.UserId,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                // Thay đổi Revoked thành false khi tạo mới
+                 Revoked = false
+            };
+
+            _context.RefreshTokens.Add(refreshToken);
             await _context.SaveChangesAsync();
         }
 
+
         public async Task UpdateRefreshTokenAsync(RefreshToken refreshToken)
         {
+            if (refreshToken == null)
+            {
+                throw new ArgumentNullException(nameof(refreshToken), "Refresh token không thể null.");
+            }
+            var dbToken = await _context.RefreshTokens.FindAsync(refreshToken.TokenId);
+            if (dbToken == null)
+            {
+                throw new InvalidOperationException($"Refresh token với TokenId {refreshToken.TokenId} không tồn tại.");
+            }
             _context.RefreshTokens.Update(refreshToken);
             await _context.SaveChangesAsync();
         }
