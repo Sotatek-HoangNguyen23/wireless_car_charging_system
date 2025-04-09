@@ -254,7 +254,6 @@ namespace API.Controllers
             var result = _userService.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
             return Ok(result);
         }
-        [AllowAnonymous]
 
         [AllowAnonymous]
         [HttpPut("change-status/{userId}")]
@@ -287,6 +286,7 @@ namespace API.Controllers
 
             return Ok(feedbacks);
         }
+
         [AllowAnonymous]
         [HttpGet("licenses")]
         public async Task<ActionResult<PagedResultD<DriverLicenseDTO>>> GetPagedLicenses([FromQuery] DriverLicenseFilter filter, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)

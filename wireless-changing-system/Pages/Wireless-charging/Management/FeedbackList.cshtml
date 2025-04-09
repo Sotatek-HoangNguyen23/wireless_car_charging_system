@@ -117,33 +117,6 @@
                 });
             }
 
-            // Hiển thị phân trang
-            function renderPagination(totalPages, currentPage) {
-                const pagination = $(".pagination");
-
-                let paginationHtml = `
-                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
-                    </li>
-                `;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationHtml += `
-                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                        </li>
-                    `;
-                }
-
-                paginationHtml += `
-                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
-                    </li>
-                `;
-
-                pagination.append(paginationHtml);
-            }
-
             // Xử lý sự kiện khi click vào trang trong phân trang
             $(".pagination").on("click", ".page-link", function (e) {
                 e.preventDefault();
@@ -163,6 +136,34 @@
             // Gọi API lần đầu
             loadFeedbacks();
         });
+
+        // Hiển thị phân trang
+        function renderPagination(totalPages, currentPage) {
+            const pagination = $(".pagination");
+            pagination.empty();
+
+            let paginationHtml = `
+                            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
+                            </li>
+                        `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+            }
+
+            paginationHtml += `
+                            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
+                            </li>
+                        `;
+
+            pagination.append(paginationHtml);
+        }
 
     </script>
 </body>

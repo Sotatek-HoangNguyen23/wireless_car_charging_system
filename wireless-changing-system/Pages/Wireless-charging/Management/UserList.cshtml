@@ -158,6 +158,7 @@
         // Cập nhật phân trang
         function updatePagination(totalPages, currentPage) {
             let pagination = document.querySelector(".pagination");
+            pagination.empty();
             pagination.innerHTML = "";
 
             let prevClass = currentPage === 1 ? "disabled" : "";
