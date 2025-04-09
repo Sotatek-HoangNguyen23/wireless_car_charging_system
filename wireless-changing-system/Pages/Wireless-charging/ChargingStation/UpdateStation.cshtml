@@ -13,21 +13,18 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center my-4">Update Charging Stations</h1>
+        <h1 class="text-center my-4">Cập nhật trạm sạc</h1>
         <div class="form-container">
             <!-- Station Name và Owner -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="stationName" class="form-label fw-bolder">Station Name</label>
+                    <label for="stationName" class="form-label fw-bolder">Tên trạm sạc</label>
                     <input type="text" class="form-control" id="stationName">
                 </div>
                 <div class="col-md-6">
-                    <label for="owner" class="form-label fw-bolder">Owner</label>
+                    <label for="owner" class="form-label fw-bolder">Chủ sở hữu</label>
                     <select class="form-select" id="owner">
-                        <option selected>Select owner</option>
-                        <option value="1">Owner 1</option>
-                        <option value="2">Owner 2</option>
-                        <option value="3">Owner 3</option>
+                        <option selected disabled>Đang tải danh sách chủ sở hữu...</option>
                     </select>
                 </div>
             </div>
@@ -40,17 +37,28 @@
             <!-- Station Address -->
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <label for="stationAddress" class="form-label fw-bolder">Station Address</label>
-                    <input type="text" class="form-control" id="stationAddress" placeholder="Enter station address">
+                    <label for="stationAddress" class="form-label fw-bolder">Địa chỉ</label>
+                    <div class="d-flex">
+                        <input type="text" class="form-control mr-3" id="stationAddress" placeholder="Nhập địa chỉ">
+                        <button class="btn btn-primary mt-2" style="white-space: nowrap;" id="searchAddress">Tìm địa chỉ</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Map -->
-            <div class="map-container">
-                <div id="map"></div>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+            <div id="map" style="height: 500px;"></div>
+            <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="longitude" class="form-label mb-0">Kinh độ:</label>
+                    <input type="text" id="longitude" class="form-control" placeholder="Longitude" style="width: 150px;" />
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <label for="latitude" class="form-label mb-0">Vĩ độ:</label>
+                    <input type="text" id="latitude" class="form-control" placeholder="Latitude" style="width: 150px;" />
+                </div>
             </div>
-            <input type="hidden" id="latitude">
-            <input type="hidden" id="longitude">
 
             <div class="row mb-3">
                 <div class="col-md-12">
@@ -68,45 +76,76 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5Kd1wScRd-mvy6Xrt231J8sc7ekpt0dE&callback=initMap" async defer></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>        
-        function initMap() {
-            const defaultLocation = { lat: 10.7769, lng: 106.7009 };
+        const defaultLat = 10.7769;
+        const defaultLng = 106.7009;
 
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: defaultLocation,
-                zoom: 14
-            });
+        const map = L.map('map').setView([defaultLat, defaultLng], 14);
 
-            let marker = new google.maps.Marker({
-                position: defaultLocation,
-                map: map,
-                draggable: true
-            });
+        // Sử dụng bản đồ từ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-            // Cập nhật tọa độ khi kéo marker
-            marker.addListener("dragend", function (event) {
-                document.getElementById("latitude").value = event.latLng.lat();
-                document.getElementById("longitude").value = event.latLng.lng();
-            });
+        // Thêm marker kéo được
+        const marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
 
-            // Click vào bản đồ để đặt marker mới
-            map.addListener("click", function (event) {
-                marker.setPosition(event.latLng);
-                document.getElementById("latitude").value = event.latLng.lat();
-                document.getElementById("longitude").value = event.latLng.lng();
-            });
-        }
+        // Cập nhật tọa độ vào input khi kéo marker
+        marker.on('dragend', function (e) {
+            const { lat, lng } = e.target.getLatLng();
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+        });
+
+        // Cho phép click vào bản đồ để đặt lại marker
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+        });
+
+        // Xử lý khi nhấn nút Tìm địa chỉ
+        document.getElementById('searchAddress').addEventListener('click', function () {
+            const address = document.getElementById('stationAddress').value;
+            if (!address) return;
+
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+
+                        map.setView([lat, lon], 16); // Zoom tới địa chỉ
+                        marker.setLatLng([lat, lon]);
+
+                        // Gán vào input
+                        document.getElementById('latitude').value = lat.toFixed(6);
+                        document.getElementById('longitude').value = lon.toFixed(6);
+                    } else {
+                        showToast("Không tìm thấy địa chỉ.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Có lỗi xảy ra khi tìm địa chỉ.");
+                });
+        });
 
         $(document).ready(function () {
             const urlParams = new URLSearchParams(window.location.search);
             stationId = urlParams.get('stationId');
 
             if (!stationId) {
-                alert("Không tìm thấy ID trạm sạc.");
-                window.location.href = "/ChargingStation/List";
+                showToast("Không tìm thấy ID trạm sạc.");
+                window.location.href = "wireless-charging/chargingstation/stationlist";
                 return;
             }
+
+            let currentOwnerId = null; // Biến tạm để lưu ownerId
 
             // Gọi API để lấy dữ liệu hiện có
             $.ajax({
@@ -116,28 +155,39 @@
                 success: function (data) {
                     console.log(data);
                     if (data) {
-                        $("#stationName").val(data.station.stationName || '');
-                        $("#owner").val(data.station.ownerId || '');
-                        $("#stationAddress").val(data.station.address || '');
-                        $("#latitude").val(data.station.latitude || '');
-                        $("#longitude").val(data.station.longtitude || '');
-                        $("#description").val(data.station.locationDescription || '');
+                        const lat = parseFloat(data.station.latitude);
+                        const lng = parseFloat(data.station.longitude);
+
+                    // Nếu lat và lng hợp lệ, cập nhật marker và map
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        marker.setLatLng([lat, lng]);
+                        map.setView([lat, lng], 16); // Zoom tới vị trí trạm
+                    }
+
+                    $("#stationName").val(data.station.stationName || '');
+                    $("#owner").val(data.station.ownerId || '');
+                    $("#stationAddress").val(data.station.address || '');
+                    $("#latitude").val(lat || '');
+                    $("#longitude").val(lng || '');
+                    $("#description").val(data.station.locationDescription || '');
+
+                    currentOwnerId = data.station.ownerId; // Gán ownerId
                     }
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi tải dữ liệu trạm sạc:", error);
-                    alert("Lỗi khi tải dữ liệu trạm sạc.");
+                    showToast("Lỗi khi tải dữ liệu trạm sạc.");
                 }
             });
 
             // Khi nhấn Update
             $("#btn-update").click(function () {
-                const updatedStation = {
+                const updateChargingStationDto = {
                     stationName: $("#stationName").val(),
                     ownerId: parseInt($("#owner").val()),
                     address: $("#stationAddress").val(),
-                    // latitude: parseFloat($("#latitude").val()),
-                    // longtitude: parseFloat($("#longitude").val()),
+                    latitude: parseFloat($("#latitude").val()),
+                    Longitude: parseFloat($("#longitude").val()),
                     maxConsumPower: parseFloat($("#maxPower").val()) || 0
                 };
 
@@ -145,29 +195,40 @@
                     url: `https://localhost:7191/api/ChargingStation/${stationId}`,
                     type: "PUT",
                     contentType: "application/json",
-                    data: JSON.stringify(updatedStation),
+                    data: JSON.stringify(updateChargingStationDto),
                     success: function () {
-                        alert("Cập nhật thành công!");
-                        window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
+                        showSuccessToast("Cập nhật thành công!");
+                        setTimeout(function () {
+                            window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
+                        }, 1000);
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi cập nhật:", xhr.responseText);
-                        alert("Cập nhật thất bại!");
+                        showToast("Cập nhật thất bại!");
                     }
                 });
             });
+
+            $.ajax({
+                url: "https://localhost:7191/api/User?roleId=2&pageNumber=1&pageSize=10",
+                type: "GET",
+                success: function (data) {
+                    const ownerSelect = $("#owner");
+                    ownerSelect.empty(); // Xoá các option cũ
+                    ownerSelect.append(`<option disabled ${!currentOwnerId ? "selected" : ""}>Chọn chủ sở hữu</option>`);
+
+                    data.data.forEach(user => {
+                        ownerSelect.append(`
+                            <option value="${user.userId}">${user.fullname}</option>
+                        `);
+                    });
+                },
+                error: function (xhr) {
+                    console.error("Lỗi khi lấy danh sách user:", xhr.responseText);
+                    $("#owner").html(`<option disabled selected>Không thể tải danh sách chủ sở hữu</option>`);
+                }
+            });
         });
-
-        // Hàm cập nhật bản đồ
-        // function updateMap(lat, lng) {
-        //     const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
-        //     map.setCenter(position);
-        //     marker.setPosition(position);
-        //     document.getElementById("latitude").value = lat;
-        //     document.getElementById("longitude").value = lng;
-        // }
-
-
     </script>
 
 

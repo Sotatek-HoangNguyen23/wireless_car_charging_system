@@ -256,14 +256,15 @@ namespace API.Controllers
         }
         [AllowAnonymous]
 
+        [AllowAnonymous]
         [HttpPut("change-status/{userId}")]
         public async Task<IActionResult> ChangeUserStatus(int userId, [FromBody] string newStatus)
         {
             await _userService.ChangeUserStatusAsync(userId, newStatus);
             return Ok(new { message = "User status updated successfully." });
         }
-        [AllowAnonymous]
 
+        [AllowAnonymous]
         [HttpGet("Feedback")]
         public IActionResult GetFeedbacks(
             [FromQuery] string? search,
@@ -275,8 +276,8 @@ namespace API.Controllers
             var result = _userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
             return Ok(result);
         }
-        [AllowAnonymous]
 
+        [AllowAnonymous]
         [HttpGet("Feedback/{userId}")]
         public async Task<IActionResult> GetFeedback(int userId)
         {

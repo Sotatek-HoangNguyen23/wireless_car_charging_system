@@ -5,11 +5,12 @@ namespace DataAccess.DTOs.ChargingStation
     public class ChargingStationDto
     {
         public int StationId { get; set; }
+        public int OwnerId { get; set; }
         public string? Owner { get; set; }
         public string? StationName { get; set; }
         public string? Status { get; set; }
         public string? Address { get; set; }
-        public decimal Longtitude { get; set; }
+        public decimal Longitude { get; set; }
         public decimal Latitude { get; set; }
         public double? Distance { get; set; }
         public int TotalPoint { get; set; }
@@ -31,7 +32,7 @@ namespace DataAccess.DTOs.ChargingStation
         public int OwnerId { get; set; }
         public string? StationName { get; set; }
         public string? Address { get; set; }
-        public decimal Longtitude { get; set; }
+        public decimal Longitude { get; set; }
         public decimal Latitude { get; set; }
         public int TotalPoint { get; set; }
         public string? PointDescription { get; set; }
@@ -45,7 +46,7 @@ namespace DataAccess.DTOs.ChargingStation
         public int OwnerId { get; set; }
         public string? StationName { get; set; }
         public string? Address { get; set; }
-        public decimal Longtitude { get; set; }
+        public decimal Longitude { get; set; }
         public decimal Latitude { get; set; }
         public string? Status { get; set; }
         public double? MaxConsumPower { get; set; }

@@ -1,9 +1,11 @@
 ﻿using API.Services;
 using DataAccess.DTOs.ChargingStation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class ChargingStationController : ControllerBase
@@ -36,6 +38,7 @@ namespace API.Controllers
             return Ok(stationDetails);
         }
 
+
         [HttpPost("Add")]
         public async Task<IActionResult> AddStation([FromBody] NewChargingStationDto stationDto)
         {
@@ -44,6 +47,7 @@ namespace API.Controllers
                 return Ok(new { message = "Add Station Successfully!" });
             return BadRequest(new { message = "Error." });
         }
+
 
         [HttpDelete("{stationId}")]
         public async Task<IActionResult> DeleteChargingStation(int stationId)
@@ -65,6 +69,7 @@ namespace API.Controllers
 
             return Ok(updatedStation);
         }
+
 
         [HttpGet("{stationId}/stats")]
         public IActionResult GetStationStats(int stationId, int? year, int? month)

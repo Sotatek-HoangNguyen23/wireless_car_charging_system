@@ -1,5 +1,5 @@
 ﻿@page
-@model wireless_changing_system.Pages.Wireless_charging.User.UserListModel
+@model wireless_changing_system.Pages.Wireless_charging.Management.UserListModel
 @{
 }
 
@@ -27,19 +27,19 @@
 <body>
 
     <div class="container mt-4">
-        <h2 class="mb-3">User List</h2>
+        <h2 class="mb-3">Danh sách người dùng</h2>
 
         <!-- Thanh Search -->
         <div class="filter-section">
             <div class="row">
                 <div class="col-md-8">
-                    <input type="text" class="form-control" id="searchName" placeholder="Search by Name or Email or Phone Number" />
+                    <input type="text" class="form-control" id="searchName" placeholder="Nhập tên hoặc email hoặc số điện thoại" />
                 </div>
                 <div class="col-md-4">
                     <select class="form-select" id="searchStatus">
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="">Tất cả</option>
+                        <option value="Active">Đang hoạt động</option>
+                        <option value="Blocked">Bị chặn</option>
                     </select>
                 </div>
             </div>
@@ -48,13 +48,13 @@
         <!-- Role Selection -->
         <ul class="nav nav-pills role-tabs">
             <li class="nav-item">
-                <a class="nav-link" data-role="3">Operator</a>
+                <a class="nav-link" data-role="3" id="operator-btn">Người điều hành</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-role="2">Station Owner</a>
+                <a class="nav-link active" data-role="2">Chủ trạm sạc</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" data-role="1">Driver</a>
+                <a class="nav-link" data-role="1">Lái xe</a>
             </li>
         </ul>
 
@@ -64,18 +64,18 @@
                     <table class="table table-bordered mt-3">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Full Name</th>
+                                <th>Mã</th>
+                                <th>Họ tên</th>
                                 <th>Email</th>
-                                <th>Phone</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>Số điện thoại</th>
+                                <th>Tráng thái</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="userTableBody"></tbody>
                     </table>
                 </div>
-            </div>        
+            </div>
         </div>
 
         <!-- Phân trang -->
@@ -90,32 +90,24 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">User Feedback</h5>
+                    <h5 class="modal-title">Phản hồi của lái xe</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>User:</strong> <span id="feedbackUser"></span></p>
+                    <p><strong>Lái xe:</strong> <span id="feedbackUser"></span></p>
                     <div id="feedbackList"></div> <!-- Chứa danh sách feedback -->
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="error-toast" class="custom-toast">
-    <div class="toast-progress"></div>
-    <i class="bi bi-exclamation-circle-fill"></i>  
-    <div class="toast-content">
-        <strong>Lỗi!</strong>
-        <p class="mb-0">Đã xảy ra lỗi khi gửi mã OTP</p>
-    </div>
-</div>
-
     <script>
         let currentPage = 1;
         let pageSize = 5;
-        let currentRoleId = 1; // Mặc định Station Owner
+        let currentRoleId = 2; // Mặc định Station Owner
         let currentStatus = "";
         let searchQuery = "";
+        const role = sessionStorage.getItem("role");
 
         // Gọi API để lấy danh sách user
         function fetchUsers(page = 1) {
@@ -137,8 +129,8 @@
 
             users.forEach(user => {
                 let statusBadge = user.status === "Active"
-                    ? '<span class="badge bg-success">Active</span>'
-                    : '<span class="badge bg-danger">Inactive</span>';
+                    ? '<span class="badge bg-success">Hoạt động</span>'
+                    : '<span class="badge bg-danger">Bị chặn</span>';
 
                 let row = `
                     <tr>
@@ -150,11 +142,11 @@
                         <td>
                             <button class="btn btn-warning btn-sm change-status-btn"
                                     data-id="${user.userId}" data-status="${user.status}">
-                                Change Status
+                                Chuyển trạng thái
                             </button>
                             <button class="btn btn-info btn-sm view-feedback-btn"
                                     data-id="${user.userId}">
-                                View Feedback
+                                Xem góp ý
                             </button>
                         </td>
                     </tr>
@@ -170,7 +162,7 @@
 
             let prevClass = currentPage === 1 ? "disabled" : "";
             pagination.innerHTML += `<li class="page-item ${prevClass}">
-                <a class="page-link" href="#" onclick="fetchUsers(${currentPage - 1})">Previous</a>
+                <a class="page-link" href="#" onclick="fetchUsers(${currentPage - 1})">Trước</a>
             </li>`;
 
             for (let i = 1; i <= totalPages; i++) {
@@ -182,7 +174,7 @@
 
             let nextClass = currentPage === totalPages ? "disabled" : "";
             pagination.innerHTML += `<li class="page-item ${nextClass}">
-                <a class="page-link" href="#" onclick="fetchUsers(${currentPage + 1})">Next</a>
+                <a class="page-link" href="#" onclick="fetchUsers(${currentPage + 1})">Sau</a>
             </li>`;
         }
 
@@ -213,7 +205,7 @@
         document.addEventListener("click", function (e) {
             if (e.target.classList.contains("change-status-btn")) {
                 let userId = e.target.getAttribute("data-id");
-                let newStatus = e.target.getAttribute("data-status") === "Active" ? "Inactive" : "Active";
+                let newStatus = e.target.getAttribute("data-status") === "Active" ? "Blocked" : "Active";
 
                 fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
                     method: "PUT",
@@ -222,7 +214,10 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    fetchUsers(); // Reload danh sách user
+                    showToast("Đã cập nhật trạng thái")
+                    setTimeout(function () {
+                        fetchUsers(); // Reload danh sách user
+                    }, 1000)
                 });
             }
         });
@@ -255,11 +250,19 @@
             });
         });
 
+        document.addEventListener("DOMContentLoaded", function () {
+            const role = sessionStorage.getItem("role");
+            if (role === "Operator") {
+                const addButton = document.getElementById("operator-btn");
+                    addButton.style.display = "none";
+            }
+        });
+
 
         // Khởi động lần đầu
         document.addEventListener("DOMContentLoaded", () => {
             fetchUsers();
-        });       
+        });
     </script>
 
 </body>

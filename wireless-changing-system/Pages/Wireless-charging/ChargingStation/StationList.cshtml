@@ -14,17 +14,16 @@
 <body>
     <div class="container">
         <div class="row">
-            <h1 class="col-md-6">Charging Stations</h1>
+            <h1 class="col-md-6">Trạm sạc</h1>
             <div class="station-actions col-md-6 ">
-                <a href="addstation" class="btn btn-primary btn-sm">Add Station</a>
-            </div>
-            
+                <a id="add-station-btn" href="addstation" class="btn btn-primary btn-sm">Thêm trạm sạc</a>
+            </div>         
         </div>
 
         <!-- Ô nhập từ khóa tìm kiếm -->
-        <div class="mb-3 d-flex">
-            <input type="text" id="search-input" class="form-control" placeholder="Search by location or station name">
-            <button id="search-btn" class="btn btn-primary ms-2">Search</button>
+        <div class="mb-3 d-flex align-items-center">
+            <input type="text" id="search-input" class="form-control me-2" placeholder="Nhập tên trạm sạc hoặc vị trí">
+            <button id="search-btn" class="btn btn-primary" style="white-space: nowrap;">Tìm kiếm</button>
         </div>
 
         <!-- Danh sách trạm sạc -->
@@ -55,8 +54,7 @@
         </div>
     </div>
 
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         let currentPage = 1;
         const pageSize = 2;
@@ -72,6 +70,7 @@
                     loadStations(userLat, userLng, keyword);
                 }, error => {
                     console.error("Không thể lấy vị trí hiện tại!", error);
+                    showToast("Không thể lấy vị trí hiện tại!");
                     loadStations(null, null, $("#search-input").val());
                 });
             } else {
@@ -100,26 +99,30 @@
             const stationList = $("#station-list");
             stationList.empty();
 
+            const role = sessionStorage.getItem("role");
+
             stations.forEach(station => {
                 stationList.append(`
                     <div class="station-card">
                         <img src="https://img.canarymedia.com/content/uploads/witricity3.png?auto=compress%2Cformat&crop=focalpoint&fit=crop&fp-x=0.5&fp-y=0.5&h=501&q=80&w=864&s=8fb2e832892760cff6912e6683a67514" alt="Station Image">
                         <div class="station-info">
                             <h3>${station.stationName}</h3>
-                            <p><strong>Owner:</strong> ${station.owner}</p>
-                            <p><strong>Total Charging Point:</strong> ${station.totalPoint}</p>
-                            <p><strong>Empty Charging Point:</strong> ${station.availablePoint}</p>
-                            <p><strong>Address:</strong> ${station.address}</p>
-                            <p><strong>Distance:</strong> ${station.distance ? station.distance.toFixed(2) + " km" : "N/A"}</p>
-                            <p><strong>Status:</strong> ${station.status}</p>
+                            <p><strong>Chủ sở hữu:</strong> ${station.owner}</p>
+                            <p><strong>Tổng số điểm sạc:</strong> ${station.totalPoint}</p>
+                            <p><strong>Số điểm sạc còn trống:</strong> ${station.availablePoint}</p>
+                            <p><strong>Địa chỉ:</strong> ${station.address}</p>
+                            <p><strong>Khoảng cách đến bạn:</strong> ${station.distance ? station.distance.toFixed(2) + " km" : "N/A"}</p>
+                            <p><strong>Trạng thái:</strong> ${station.status}</p>
                         </div>
                         <div class="station-actions">
-                            <a href="stationdetail?stationId=${station.stationId}" class="btn btn-primary btn-sm">Detail</a>
-                            <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longtitude}">
-                            Show on Map
+                            <a href="stationdetail?stationId=${station.stationId}" class="btn btn-primary btn-sm">Thông tin chi tiết</a>
+                            <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longitude}">
+                                Xem trên Google Map
                             </button>
-                            <a href="updatestation?stationId=${station.stationId}" class="btn btn-info btn-sm">Update</a>
-                            <a href="#" class="btn btn-danger btn-sm btn-delete" data-id="${station.stationId}"">Delete</a>
+                            ${role !== "Driver" ? `
+                                <a href="updatestation?stationId=${station.stationId}" class="btn btn-info btn-sm">Cập nhật</a>
+                                <a href="#" class="btn btn-danger btn-sm btn-delete" data-id="${station.stationId}">Xóa trạm</a>
+                            ` : ""}
                         </div>
                     </div>
                 `);
@@ -132,7 +135,8 @@
                 openGoogleMaps(lat, lng);
             });
         }
-
+        
+        // Mở GG Maps
         function openGoogleMaps(lat, lng) {
             const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
             window.open(googleMapsUrl, "_blank"); // Mở Google Maps trong tab mới
@@ -144,7 +148,7 @@
             pagination.empty();
 
             pagination.append(`<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Trước</a>
             </li>`);
 
             for (let i = 1; i <= totalPages; i++) {
@@ -154,7 +158,7 @@
             }
 
             pagination.append(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Sau</a>
             </li>`);
         }
 
@@ -184,6 +188,7 @@
             getLocationAndLoadStations();
         });
 
+        // Xóa trạm
         $(document).ready(function () {
             let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
 
@@ -197,7 +202,7 @@
             // Khi nhấn xác nhận xóa
             $("#confirmDeleteBtn").click(function () {
                 if (!stationIdToDelete) {
-                    alert("Không tìm thấy trạm sạc để xóa!");
+                    showToast("Không tìm thấy trạm sạc để xóa!");
                     return;
                 }
 
@@ -206,17 +211,27 @@
                     type: "DELETE",
                     success: function () {
                         $("#deleteConfirmModal").modal("hide"); // Đóng modal
-                        location.reload(); // Làm mới danh sách
+                        showSuccessToast("Xóa trạm sạc thành công!");
+                        setTimeout(function () {
+                            location.reload(); // Làm mới danh sách
+                        }, 1000);                       
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi xóa:", xhr.responseText);
-                        alert("Xóa trạm sạc thất bại!");
+                        showToast("Xóa không thành công!");
                     }
                 });
             });
         });
 
-
+        // Phân quyền theo role
+        document.addEventListener("DOMContentLoaded", function () {
+            const role = sessionStorage.getItem("role");
+            if (role === "Driver") {
+                const addButton = document.getElementById("add-station-btn");
+                    addButton.style.display = "none";
+            }
+        });
     </script>
 </body>
 </html>

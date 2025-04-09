@@ -85,7 +85,6 @@ builder.Services.AddScoped<IChargingStationRepository, ChargingStationRepository
 builder.Services.AddScoped<ChargingStationService>();
 builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
 builder.Services.AddScoped<IMyCars, MyCarsRepo>();
-builder.Services.AddScoped<IChargingLocationRepository, StationLocationRepository>();
 builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
 
 //=======================================
