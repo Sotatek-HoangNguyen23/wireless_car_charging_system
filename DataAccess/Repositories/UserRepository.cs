@@ -57,7 +57,8 @@ namespace DataAccess.Repositories
                 throw new ArgumentException("Email không thể trống hoặc khoảng trắng", nameof(email));
             }
 
-            return await _context.Users.Include(u => u.Role)
+            return await _context.Users
+                .Include(u => u.Role)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
         } 
@@ -65,7 +66,7 @@ namespace DataAccess.Repositories
         {
             if (String.IsNullOrWhiteSpace(phone))
             {
-                throw new ArgumentException("Phone không thể trống hoặc khoảng trắng", nameof(phone));
+                throw new ArgumentException("Số điện thoại không thể trống hoặc khoảng trắng", nameof(phone));
             }
 
             return await _context.Users.Include(u => u.Role)
@@ -110,12 +111,28 @@ namespace DataAccess.Repositories
             {
                 throw new ArgumentException("User không được null", nameof(user));
             }
-            _context.Users.Update(user);
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == user.UserId);
+
+            if (existingUser != null)
+            {
+                _context.Entry(existingUser).CurrentValues.SetValues(user);
+            }
+            else
+            {
+                // Nếu không tồn tại trong DB, thêm mới
+                _context.Users.Update(user);
+            }
+
             await _context.SaveChangesAsync();
         }
 
         public async Task<List<User>> GetUserByEmailOrPhone(string search)
         {
+            if (search==null)
+            {
+                throw new ArgumentNullException("Tìm kiếm không thể trống hoặc khoảng trắng", nameof(search));
+            }
             return await _context.Users
         .Where(u => u.Email.Contains(search) || u.PhoneNumber.Contains(search))
         .ToListAsync();

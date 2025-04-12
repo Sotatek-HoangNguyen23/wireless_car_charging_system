@@ -36,7 +36,8 @@ namespace DataAccess.Repositories
             if (!string.IsNullOrEmpty(filter.Code))
                 query = query.Where(dl => dl.Code != null && dl.Code.Contains(filter.Code));
             if (!string.IsNullOrEmpty(filter.Fullname))
-                query = query.Where(dl => dl.User != null && EF.Functions.Collate(dl.User.Fullname ?? string.Empty, "Vietnamese_CI_AI").Contains(filter.Fullname)); if (!string.IsNullOrEmpty(filter.Status))
+                query = query.Where(dl => dl.User != null && dl.User.Fullname!.Contains(filter.Fullname));
+            if (!string.IsNullOrEmpty(filter.Status))
                 query = query.Where(dl => dl.Status == filter.Status);
             if (!string.IsNullOrEmpty(filter.Class))
                 query = query.Where(dl => dl.Class == filter.Class);
@@ -91,19 +92,23 @@ namespace DataAccess.Repositories
                 throw new ArgumentException("LicenseId không hợp lệ", nameof(licenseId));
             }
 
-            var license = await _context.DriverLicenses
-                .FirstOrDefaultAsync(dl => dl.DriverLicenseId == int.Parse(licenseId));
+            if (!int.TryParse(licenseId, out int id))
+            {
+                throw new ArgumentException("LicenseId phải là số nguyên", nameof(licenseId));
+            }
+
+            var license = await _context.DriverLicenses.FindAsync(id);
 
             if (license == null)
             {
-                throw new KeyNotFoundException("Không tìm thấy bằng lái với ID đã cho");
+                throw new ArgumentException("Không tìm thấy bằng lái với ID đã cho");
             }
 
             _context.DriverLicenses.Remove(license);
             await _context.SaveChangesAsync();
         }
 
-   
+
         public async Task<DriverLicense?> GetLicenseByCode(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -120,8 +125,13 @@ namespace DataAccess.Repositories
             {
                 throw new ArgumentNullException(nameof(liscense));
             }
-
-            await _context.DriverLicenses.AddAsync(liscense);
+            var existingLicense = await _context.DriverLicenses
+                .FirstOrDefaultAsync(dl => dl.Code == liscense.Code);
+            if (existingLicense != null)
+            {
+                throw new ArgumentException("Mã số bằng lái đã tồn tại", nameof(liscense.Code));
+            }
+                await _context.DriverLicenses.AddAsync(liscense);
             await _context.SaveChangesAsync();
         }
 

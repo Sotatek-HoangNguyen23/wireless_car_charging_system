@@ -77,6 +77,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryWrapper>();
 builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

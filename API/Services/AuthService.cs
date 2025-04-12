@@ -22,12 +22,20 @@ namespace API.Services
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest request)
         {
-            if (request.Password == null || request.Email == null)
+            if (request.Password.IsNullOrEmpty())
             {
-                throw new Exception("Email and Password cannot be null");
+                throw new ArgumentException("Password không thể trống hoặc khoảng trắng",nameof(request.Password));
             }
-            var user = await _userRepository.GetUserByEmail(request.Email);
 
+            var user = await _userRepository.GetUserByEmail(request.Email);
+            if (request.Email.Length > 225) 
+            {
+                throw new ArgumentException("Email không được vượt quá 225 ký tự.", nameof(request.Email));
+            }
+            if (request.Password.Length > 100) 
+            {
+                throw new ArgumentException("Password không được vượt quá 100 ký tự.", nameof(request.Password));
+            }
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
                 return null; // Authentication failed
@@ -43,6 +51,10 @@ namespace API.Services
 
         public async Task<AuthenticateResponse> RefreshToken(string oldRefreshToken)
         {
+            if (string.IsNullOrEmpty(oldRefreshToken))
+            {
+                throw new ArgumentException("Refresh token không thể trống hoặc khoảng trắng", nameof(oldRefreshToken));
+            }
             var oldTokenHash = HashToken(oldRefreshToken);
             var refreshToken = await _authRepository.FindRefreshToken(oldTokenHash);
 
@@ -52,17 +64,17 @@ namespace API.Services
             }
             if (refreshToken.Revoked == true)
             {
-                throw new ArgumentException("Refresh token has been revoked");
+                throw new ArgumentException("Refresh token da bi thu hoi");
             }
             if (refreshToken.ExpiresAt < DateTime.UtcNow)
             {
-                throw new ArgumentException("Refresh token has expired");
+                throw new ArgumentException("Refresh token da het han");
             }
             await RevokeRefreshToken(oldRefreshToken);
             var user = await _userRepository.GetUserById(refreshToken.UserId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("User khong ton tai");
             }
 
             var newAccessToken = GenerateAccessToken(user);
