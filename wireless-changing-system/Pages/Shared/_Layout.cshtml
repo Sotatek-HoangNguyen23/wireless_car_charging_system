@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - Hệ Thống Sạc Không Dây</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/bootstrap-icons/font/bootstrap-icons.css" />
 </head>
 <body>
     <header>
@@ -38,10 +38,23 @@
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Admin">
                             <a class="nav-link" href="/wireless-charging/management">Bảng Quản Lý</a>
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Admin">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Quản Lý
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/wireless-charging/chargingstation/stationlist">Quản lý trạm sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Danh sách người dùng</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Danh sách phản hồi</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/station">Thống kê</a></li>
+                            </ul>
                         </li>
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
+                            <a class="nav-link" href="https://localhost:5216/wireless-charging/vehicles/mycars">Xe của tôi</a>
                         </li>
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/payment/depositmoney">Nạp tiền</a>
@@ -156,6 +169,18 @@
         // Lắng nghe các sự kiện cần cập nhật UI
         document.addEventListener("DOMContentLoaded", updateUserInterface);
         window.addEventListener('userDataUpdated', updateUserInterface); 
+        function showSuccessToast(message) {
+            const toast = document.getElementById('success-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+        function showToast(message) {
+            const toast = document.getElementById('error-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
     </script>
     <script type="module">
         import { logout } from '/js/apiClient.js';

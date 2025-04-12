@@ -9,13 +9,11 @@ namespace API.Services
     {
         private readonly IChargingStationRepository _stationRepository;
         private readonly IChargingPointRepository _pointRepository;
-        private readonly IChargingLocationRepository _locationRepository;
 
-        public ChargingStationService(IChargingStationRepository stationRepository, IChargingPointRepository pointRepository, IChargingLocationRepository locationRepository)
+        public ChargingStationService(IChargingStationRepository stationRepository, IChargingPointRepository pointRepository)
         {
             _pointRepository = pointRepository;
             _stationRepository = stationRepository;
-            _locationRepository = locationRepository;
         }
 
         public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal userLat, decimal userLng, int page, int pageSize)
@@ -48,13 +46,13 @@ namespace API.Services
             {
                 Address = stationDto.Address,
                 Latitude = stationDto.Latitude,
-                Longitude = stationDto.Longtitude,
+                Longitude = stationDto.Longitude,
                 Description = stationDto.LocationDescription,
                 CreateAt = DateTime.Now,
                 UpdateAt = DateTime.Now
             };
 
-            var savedLocation = await _locationRepository.AddStationLocation(location);
+            var savedLocation = await _stationRepository.AddStationLocation(location);
 
             var station = new ChargingStation
             {

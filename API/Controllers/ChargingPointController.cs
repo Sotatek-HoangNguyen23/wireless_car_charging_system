@@ -1,5 +1,6 @@
 ﻿using API.Services;
 using DataAccess.DTOs.ChargingStation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -45,7 +46,6 @@ namespace API.Controllers
 
             return Ok(new { Message = "Thêm điểm sạc thành công!", Points = points });
         }
-
 
         [HttpDelete("{pointId}")]
         public async Task<IActionResult> DeleteChargingPoint(int pointId)

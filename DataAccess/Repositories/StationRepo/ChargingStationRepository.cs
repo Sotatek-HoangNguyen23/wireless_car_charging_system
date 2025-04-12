@@ -50,11 +50,12 @@ namespace DataAccess.Repositories.StationRepo
                             .Select(cs => new ChargingStationDto
                             {
                                 StationId = cs.StationId,
+                                OwnerId = cs.OwnerId,
                                 Owner = cs.Owner.Fullname,
                                 StationName = cs.StationName,
                                 Status = cs.Status,
                                 Address = cs.StationLocation.Address,
-                                Longtitude = cs.StationLocation.Longitude,
+                                Longitude = cs.StationLocation.Longitude,
                                 Latitude = cs.StationLocation.Latitude,
                                 TotalPoint = cs.ChargingPoints.Count(),
                                 AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
@@ -69,7 +70,7 @@ namespace DataAccess.Repositories.StationRepo
             {
                 foreach (var station in stationList)
                 {
-                    station.Distance = GetDistance(userLat.Value, userLng.Value, station.Latitude, station.Longtitude);
+                    station.Distance = GetDistance(userLat.Value, userLng.Value, station.Latitude, station.Longitude);
                 }
 
                 // Sắp xếp theo khoảng cách (gần nhất trước)
@@ -89,7 +90,7 @@ namespace DataAccess.Repositories.StationRepo
         }
 
         // Hàm tính khoảng cách giữa hai điểm theo công thức Haversine
-        private double GetDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
+        public double GetDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
         {
             const double R = 6371; // Bán kính Trái Đất (km)
             double dLat = (double)(lat2 - lat1) * Math.PI / 180;
@@ -113,11 +114,12 @@ namespace DataAccess.Repositories.StationRepo
                 .Select(cs => new ChargingStationDto
                 {
                     StationId = cs.StationId,
+                    OwnerId = cs.OwnerId,
                     Owner = cs.Owner.Fullname,
                     StationName = cs.StationName,
                     Status = cs.Status,
                     Address = cs.StationLocation.Address,
-                    Longtitude = cs.StationLocation.Longitude,
+                    Longitude = cs.StationLocation.Longitude,
                     Latitude = cs.StationLocation.Latitude,
                     TotalPoint = cs.ChargingPoints.Count(),
                     AvailablePoint = cs.ChargingPoints.Count(cp => cp.Status == "Available"),
@@ -145,7 +147,11 @@ namespace DataAccess.Repositories.StationRepo
 
         public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
         {
-            var station = await _context.ChargingStations.FirstOrDefaultAsync(s => s.StationId == stationId);
+            var station = await _context.ChargingStations
+                .Include(cs => cs.Owner)
+                .Include(cs => cs.StationLocation)
+                .Include(cs => cs.ChargingPoints)
+                .FirstOrDefaultAsync(s => s.StationId == stationId);
 
             if (station == null)
                 return null;
@@ -154,17 +160,12 @@ namespace DataAccess.Repositories.StationRepo
             if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
             if (stationDto.OwnerId != 0)
             {
-                if (station.Owner != null)
-                {
-                    station.Owner = new User();
-                }
-
                 station.OwnerId = stationDto.OwnerId;
             }
             if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
             if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
 
-            if (stationDto.Latitude != 0 || stationDto.Longtitude != 0 || !stationDto.Address.IsNullOrEmpty())
+            if (stationDto.Latitude != 0 || stationDto.Longitude != 0 || !stationDto.Address.IsNullOrEmpty())
             {
                 if (station.StationLocation == null)
                 {
@@ -172,18 +173,19 @@ namespace DataAccess.Repositories.StationRepo
                 }
 
                 if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
-                if (stationDto.Longtitude != 0) station.StationLocation.Longitude = stationDto.Longtitude;
+                if (stationDto.Longitude != 0) station.StationLocation.Longitude = stationDto.Longitude;
                 if (!string.IsNullOrEmpty(stationDto.Address)) station.StationLocation.Address = stationDto.Address;
             }
 
             station.UpdateAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
+
             return await _context.ChargingStations
                 .Include(cs => cs.Owner)
                 .Include(cs => cs.StationLocation)
                 .Include(cs => cs.ChargingPoints)
-                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId); ;
+                .FirstOrDefaultAsync(cs => cs.StationId == station.StationId);
         }
 
 
@@ -209,6 +211,13 @@ namespace DataAccess.Repositories.StationRepo
             return _context.ChargingSessions
                 .Where(s => s.ChargingPoint.StationId == stationId)
                 .ToList();
+        }
+
+        public async Task<StationLocation> AddStationLocation(StationLocation location)
+        {
+            _context.StationLocations.Add(location);
+            await _context.SaveChangesAsync();
+            return location;
         }
     }
 }

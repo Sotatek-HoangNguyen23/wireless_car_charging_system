@@ -345,7 +345,7 @@ namespace TestProject.ChargingStationTest
                 Status = "In Used",
                 MaxConsumPower = 70,
                 Latitude = 100,
-                Longtitude = 100,
+                Longitude = 100,
                 Address = "New Address"
             };
 
@@ -411,6 +411,29 @@ namespace TestProject.ChargingStationTest
             var result = _repository.GetSessionByStation(999);
 
             Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public async Task AddStationLocation_ShouldSaveAndReturnLocation()
+        {
+            // Arrange
+            var location = new StationLocation
+            {
+                Address = "123 ABC Street",
+                Latitude = 10.123m,
+                Longitude = 106.456m,
+                Description = "Near park",
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
+            };
+
+            // Act
+            var result = await _repository.AddStationLocation(location);
+
+            // Assert
+            Assert.That(result.StationLocationId, Is.EqualTo(10)); // Được gán ID sau khi Save
+            Assert.That(_context.StationLocations.CountAsync().Result, Is.EqualTo(10));
+            Assert.That(result.Address, Is.EqualTo("123 ABC Street"));
         }
     }
 }

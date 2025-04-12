@@ -13,120 +13,157 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center my-4">Add Charging Stations</h1>
+        <h1 class="text-center my-4">Thêm trạm sạc</h1>
         <div class="form-container">
             <!-- Station Name và Owner -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="stationName" class="form-label fw-bolder">Station Name</label>
-                    <input type="text" class="form-control" id="stationName" placeholder="Enter station name">
+                    <label for="stationName" class="form-label fw-bolder">Tên trạm sạc</label>
+                    <input type="text" class="form-control" id="stationName" placeholder="Nhập tên trạm sạc">
                 </div>
                 <div class="col-md-6">
-                    <label for="owner" class="form-label fw-bolder">Owner</label>
+                    <label for="owner" class="form-label fw-bolder">Chủ sở hữu</label>
                     <select class="form-select" id="owner">
-                        <option selected>Select owner</option>
-                        <option value="1">Owner 1</option>
-                        <option value="2">Owner 2</option>
-                        <option value="3">Owner 3</option>
+                        <option selected disabled>Đang tải danh sách chủ sở hữu...</option>
                     </select>
                 </div>
             </div>
 
             <!--Charging Location -->
             <div class="row">
-                <h3 class="my-2">Charging location</h3>
+                <h3 class="my-2">Vị trí trạm sạc</h3>
             </div>
 
             <!-- Station Address -->
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <label for="stationAddress" class="form-label fw-bolder">Station Address</label>
-                    <input type="text" class="form-control" id="stationAddress" placeholder="Enter station address">
+                    <label for="stationAddress" class="form-label fw-bolder">Địa chỉ</label>
+                    <div class="d-flex">
+                        <input type="text" class="form-control mr-3" id="stationAddress" placeholder="Nhập địa chỉ">
+                        <button class="btn btn-primary mt-2" style="white-space: nowrap;" id="searchAddress">Tìm địa chỉ</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Map -->
-            <div class="map-container">
-                <div id="map"></div>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+            <div id="map" style="height: 500px;"></div>
+            <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="longitude" class="form-label mb-0">Kinh độ:</label>
+                    <input type="text" id="longitude" class="form-control" placeholder="Longitude" style="width: 150px;" />
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <label for="latitude" class="form-label mb-0">Vĩ độ:</label>
+                    <input type="text" id="latitude" class="form-control" placeholder="Latitude" style="width: 150px;" />
+                </div>
             </div>
-            <input type="hidden" id="latitude">
-            <input type="hidden" id="longitude">
 
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <label for="description" class="form-label fw-bolder">Description</label>
-                    <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                    <label for="description" class="form-label fw-bolder">Mô tả</label>
+                    <textarea class="form-control" id="description" rows="3" placeholder="Nhập mô tả"></textarea>
                 </div>
             </div>
 
             <!--Charging Point -->
             <div class="row">
-                <h3 class="my-2">Charging point</h3>
+                <h3 class="my-2">Điểm sạc</h3>
             </div>
 
             <!-- Total Points và Point Name -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="totalPoints" class="form-label fw-bolder">Total Points</label>
-                    <input type="number" class="form-control" id="totalPoints" placeholder="Enter total points">
+                    <label for="totalPoints" class="form-label fw-bolder">Tổng số điểm sạc</label>
+                    <input type="number" class="form-control" id="totalPoints" placeholder="Nhập tổng số điểm sạc">
                 </div>
                 <div class="col-md-6 row">
-                    <label for="pointName" class="form-label fw-bolder">Point Code</label>
-                    <input type="text" class="form-control" id="pointName" placeholder="Codename as HCM, HN, P,...">
-                    <p class="form-note">Charging point name will be like HCM-1, HCM-2,... or P-1, P-2,...</p>
+                    <label for="pointName" class="form-label fw-bolder">Mã điểm sạc</label>
+                    <input type="text" class="form-control" id="pointName" placeholder="VD: HCM, HN, P,...">
+                    <p class="form-note">Tên điểm sạc sẽ có dạng: Mã điểm sạc + số thứ tự (VD: P-1, P2,...)</p>
                 </div>
             </div>
 
             <!-- Description và Max Power -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="description" class="form-label fw-bolder">Description</label>
-                    <textarea class="form-control" id="pointDescription" rows="3" placeholder="Enter description"></textarea>
+                    <label for="description" class="form-label fw-bolder">Mô tả điểm sạc sạc</label>
+                    <textarea class="form-control" id="pointDescription" rows="3" placeholder="Mô tả"></textarea>
                 </div>
                 <div class="col-md-6">
-                    <label for="maxPower" class="form-label fw-bolder">Max Power</label>
-                    <input type="number" class="form-control" id="maxPower" placeholder="Enter max power">
+                    <label for="maxPower" class="form-label fw-bolder">Công suất tối đa</label>
+                    <input type="number" class="form-control" id="maxPower" placeholder="Nhập công suất tối đa">
                 </div>
             </div>
 
             <!-- Nút Submit -->
             <div class="text-center">
-                <button id="btn-submit" type="submit" class="btn btn-primary">Submit</button>
-                <button class="btn btn-danger">Cancel</button>
+                <button id="btn-submit" type="submit" class="btn btn-primary">Thêm điểm sạc</button>
+                <button class="btn btn-danger">Hủy</button>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhG6HTetiI9PBAwIrCLDVkcqy_n9hkLtg&callback=initMap" defer></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
-        function initMap() {
-            const defaultLocation = { lat: 10.7769, lng: 106.7009 }; // Tọa độ mặc định (TP.HCM)
+        const defaultLat = 10.7769;
+        const defaultLng = 106.7009;
 
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: defaultLocation,
-                zoom: 14
-            });
+        const map = L.map('map').setView([defaultLat, defaultLng], 14);
 
-            let marker = new google.maps.Marker({
-                position: defaultLocation,
-                map: map,
-                draggable: true
-            });
+        // Sử dụng bản đồ từ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-            // Cập nhật tọa độ khi kéo marker
-            marker.addListener("dragend", function (event) {
-                document.getElementById("latitude").value = event.latLng.lat();
-                document.getElementById("longitude").value = event.latLng.lng();
-            });
+        // Thêm marker kéo được
+        const marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
 
-            // Click vào bản đồ để đặt marker mới
-            map.addListener("click", function (event) {
-                marker.setPosition(event.latLng);
-                document.getElementById("latitude").value = event.latLng.lat();
-                document.getElementById("longitude").value = event.latLng.lng();
-            });
-        }
+        // Cập nhật tọa độ vào input khi kéo marker
+        marker.on('dragend', function (e) {
+            const { lat, lng } = e.target.getLatLng();
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+        });
+
+        // Cho phép click vào bản đồ để đặt lại marker
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
+        });
+
+        // Xử lý khi nhấn nút Tìm địa chỉ
+        document.getElementById('searchAddress').addEventListener('click', function () {
+            const address = document.getElementById('stationAddress').value;
+            if (!address) return;
+
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+
+                        map.setView([lat, lon], 16); // Zoom tới địa chỉ
+                        marker.setLatLng([lat, lon]);
+
+                        // Gán vào input
+                        document.getElementById('latitude').value = lat.toFixed(6);
+                        document.getElementById('longitude').value = lon.toFixed(6);
+                    } else {
+                        showToast("Không tìm thấy địa chỉ.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Có lỗi xảy ra khi tìm địa chỉ.");
+                });
+        });
 
         $(document).ready(function () {
             $("#btn-submit").click(function () {
@@ -134,10 +171,8 @@
                     stationName: $("#stationName").val(),
                     ownerId: parseInt($("#owner").val()),  // Ép kiểu về số
                     address: $("#stationAddress").val(),
-                    // latitude: parseFloat($("#latitude").val()),  Ép kiểu về số
-                    // longitude: parseFloat($("#longitude").val()),  Ép kiểu về số
-                    latitude: 100,  
-                    longitude: 100, 
+                    longitude: parseFloat($("#longitude").val()),  // Ép kiểu về số
+                    latitude: parseFloat($("#latitude").val()),  // Ép kiểu về số
                     description: $("#description").val(),
                     totalPoint: parseInt($("#totalPoints").val()),  // Ép kiểu về số
                     pointCode: $("#pointName").eq(0).val(),
@@ -153,8 +188,10 @@
                     contentType: "application/json",
                     data: JSON.stringify(stationDto),
                     success: function (response) {
-                        alert("Thêm trạm sạc thành công!");
-                        window.location.href = "/wireless-charging/chargingstation/stationlist";
+                        showSuccessToast("Thêm trạm sạc thành công!");
+                        setTimeout(function () {
+                            window.location.href = "/wireless-charging/chargingstation/stationlist";
+                        }, 1000);
                     },
                     error: function (xhr) {
                         console.error("Lỗi khi thêm trạm sạc:", xhr.responseText);
@@ -162,10 +199,27 @@
                     }
                 });
             });
+
+            $.ajax({
+                url: "https://localhost:7191/api/User?roleId=2&pageNumber=1&pageSize=10",
+                type: "GET",
+                success: function (data) {
+                    const ownerSelect = $("#owner");
+                    ownerSelect.empty(); // Xoá các option cũ
+                    ownerSelect.append(`<option selected disabled>Chọn chủ sở hữu</option>`);
+
+                    data.data.forEach(user => {
+                        ownerSelect.append(`
+                            <option value="${user.userId}">${user.fullname}</option>
+                        `);
+                    });
+                },
+                error: function (xhr) {
+                    console.error("Lỗi khi lấy danh sách user:", xhr.responseText);
+                    $("#owner").html(`<option disabled selected>Không thể tải danh sách chủ sở hữu</option>`);
+                }
+            });
         });
-
-
-        
 
     </script>
 

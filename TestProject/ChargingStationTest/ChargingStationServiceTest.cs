@@ -12,7 +12,6 @@ namespace TestProject.ChargingStationTest
         private ChargingStationService _service;
         private IChargingStationRepository _stationRepository;
         private IChargingPointRepository _pointRepository;
-        private IChargingLocationRepository _locationRepository;
 
         private const decimal latitude = 10;
         private const decimal longitude = 10;
@@ -22,8 +21,7 @@ namespace TestProject.ChargingStationTest
         {
             _stationRepository = new ChargingStationRepository(_context);
             _pointRepository = new ChargingPointRepository(_context);
-            _locationRepository = new StationLocationRepository(_context);
-            _service = new ChargingStationService(_stationRepository, _pointRepository, _locationRepository);
+            _service = new ChargingStationService(_stationRepository, _pointRepository);
         }
 
         [Test]
@@ -72,7 +70,7 @@ namespace TestProject.ChargingStationTest
                 OwnerId = 2,
                 Address = "456 XYZ Street",
                 Latitude = latitude,
-                Longtitude = longitude,
+                Longitude = longitude,
                 LocationDescription = "Near the mall",
                 TotalPoint = 5,
                 PointCode = "P",
