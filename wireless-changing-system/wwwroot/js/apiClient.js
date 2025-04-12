@@ -29,7 +29,7 @@ async function performTokenRefresh() {
 
 export async function requestAccessToken() {
     if (isRefreshing) {
-        return refreshPromise; 
+        return refreshPromise;
     }
 
     isRefreshing = true;
@@ -52,28 +52,38 @@ export async function fetchWithAuth(url, options = {}) {
     if (currentToken) {
         authOptions.headers.Authorization = `Bearer ${currentToken}`;
     }
+    try {
+        let response = await fetch(url, authOptions);
+        console.log("response", response);
 
-    let response = await fetch(url, authOptions);
+        if (response.status === 401) {
+            try {
+                const newToken = await requestAccessToken();
 
-    if (response.status === 401) {
-        try {
-            const newToken = await requestAccessToken(); 
+                const retryOptions = {
+                    ...authOptions,
+                    headers: {
+                        ...authOptions.headers,
+                        Authorization: `Bearer ${newToken}`
+                    }
+                };
 
-            const retryOptions = {
-                ...authOptions,
-                headers: {
-                    ...authOptions.headers,
-                    Authorization: `Bearer ${newToken}`
-                }
-            };
-
-            return fetch(url, retryOptions);
-        } catch (error) {
-            return Promise.reject(error);
+                return fetch(url, retryOptions);
+            } catch (error) {
+                return Promise.reject(error);
+            }
         }
-    }
+        if (response.status === 403) {
+            alert("Bạn không có quyền truy cập tính năng này!");
+            window.location.href = '/wireless-charging/auth';
+            logout();
+            return Promise.reject(new Error('Access denied'));
+        }
 
-    return response;
+        return response;
+    } catch (error) {
+        console.error('Error in fetchWithAuth:', error);
+    }
 }
 
 export async function logout() {
