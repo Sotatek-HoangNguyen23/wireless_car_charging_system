@@ -3,18 +3,10 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Moq.Protected;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using ZXing.QrCode.Internal;
-using ZXing.QrCode;
-using ZXing;
+using SixLabors.ImageSharp.Processing;
+using System.Reflection;
 
 namespace TestProject.ThirdParty
 {
@@ -37,7 +29,18 @@ namespace TestProject.ThirdParty
             _imageService = new ImageService(_mockCloudinary.Object);
             _mockHttpClient = new Mock<HttpClient>();
         }
+        [Test]
+        public void UploadImageAsync_CloudinaryError_ThrowsException()
+        {
+            // Arrange
+            var file = CreateTestFormFile("test.jpg", 1024, "image/jpeg");
+            _mockCloudinary.Setup(c => c.UploadAsync(It.IsAny<ImageUploadParams>()))
+                .ThrowsAsync(new Exception("Cloudinary error"));
 
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<Exception>(() => _imageService.UploadImagetAsync(file));
+            Assert.That(ex.Message, Does.Contain("Image upload failed"));
+        }
         [Test]
         public async Task UploadImageAsync_ValidFile_ReturnsUploadResult()
         {
@@ -56,6 +59,18 @@ namespace TestProject.ThirdParty
             // Assert
             Assert.That(result.PublicId, Is.EqualTo(expectedResult.PublicId));
         }
+        [Test]
+        public void UploadImageAsync_InvalidFileType_ThrowsInvalidImageException()
+        {
+            // Arrange
+            var file = CreateTestFormFile("invalid.txt", 1024, "text/plain");
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<InvalidImageException>(() =>
+                _imageService.UploadImagetAsync(file)
+            );
+            Assert.That(ex.Message, Does.Contain("định dạng file ảnh"));
+        }
         // Helper Methods
         private IFormFile CreateTestFormFile(string fileName, long fileSize, string contentType)
         {
@@ -69,51 +84,160 @@ namespace TestProject.ThirdParty
 
             return fileMock.Object;
         }
-
-        private IFormFile GenerateQrCodeFile(string text)
+        [Test]
+        public void DeleteImageAsync_CloudinaryError_ThrowsException()
         {
-            var writer = new BarcodeWriter<Image<Rgba32>>
+            // Arrange
+            var publicId = "valid_id";
+            var expectedResult = new DeletionResult { Result = "error", Error = new Error { Message = "Failed" } };
+            _mockCloudinary.Setup(c => c.DestroyAsync(It.IsAny<DeletionParams>())).ReturnsAsync(expectedResult);
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<Exception>(() => _imageService.DeleteImageAsync(publicId));
+            Assert.That(ex.Message, Does.Contain("Cloudinary error: Failed"));
+        }
+        [Test]
+        public async Task DeleteImageAsync_ValidPublicId_ReturnsOk()
+        {
+            // Arrange
+            var publicId = "valid_id";
+            var expectedResult = new DeletionResult { Result = "ok" };
+
+            _mockCloudinary.Setup(c =>
+                c.DestroyAsync(It.IsAny<DeletionParams>())
+            ).ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _imageService.DeleteImageAsync(publicId);
+
+            // Assert
+            Assert.That(result.Result, Is.EqualTo("ok"));
+        }
+        [Test]
+        public void DeleteImageAsync_EmptyPublicId_ThrowsArgumentException()
+        {
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<Exception>(() =>
+                _imageService.DeleteImageAsync("")
+            );
+            Assert.That(ex.Message, Does.Contain("không hợp lệ"));
+        }
+        [Test]
+        public async Task ReadSmallQrCode_ValidQrImage_ReturnsCorrectText()
+        {
+            // Arrange
+            var expectedText = "test example";
+            var qrFile =GetRealQrCodeFile();
+
+            // Act
+            var result = await _imageService.ReadSmallQrCode(qrFile);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expectedText));
+        }
+
+        [Test]
+        public void ReadQrCodeUrl_InvalidUrl_ThrowsArgumentException()
+        {
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(() =>
+                _imageService.ReadQrCodeUrl("invalid-url")
+            );
+            Assert.That(ex.Message, Does.Contain("không đúng định dạng"));
+        }
+        [Test]
+        public void ValidateImage_ValidFile_DoesNotThrow()
+        {
+            // Arrange
+            var file = CreateTestFormFile("valid.png", 4 * 1024 * 1024, "image/png");
+
+            // Act & Assert
+            Assert.DoesNotThrow(() => _imageService.ValidateImage(file));
+        }
+
+        [Test]
+        public void ValidateImage_OverSizeFile_ThrowsException()
+        {
+            // Arrange
+            var file = CreateTestFormFile("large.jpg", 6 * 1024 * 1024, "image/jpeg");
+
+            // Act & Assert
+            var ex = Assert.Throws<InvalidImageException>(() =>
+                _imageService.ValidateImage(file)
+            );
+            Assert.That(ex.Message, Does.Contain("5MB"));
+        }
+        [Test]
+        public void ValidateImage_NullFile_ThrowsException()
+        {
+            // Act & Assert
+            var ex = Assert.Throws<InvalidImageException>(() => _imageService.ValidateImage(null));
+            Assert.That(ex.Message, Does.Contain("No file provided"));
+        }
+        [Test]
+        public void ReadSmallQrCode_NoQrCode_ThrowsException()
+        {
+            // Arrange
+            var file = CreateTestImageFile("no_qr.png", "image/png"); // Tạo ảnh trắng
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<Exception>(() => _imageService.ReadSmallQrCode(file));
+            Assert.That(ex.Message, Does.Contain("Không tìm thấy QR code"));
+        }
+
+        private IFormFile CreateTestImageFile(string fileName, string contentType)
+        {
+            using var image = new Image<Rgba32>(100, 100); // Ảnh trắng 100x100
+            var memoryStream = new MemoryStream();
+            image.SaveAsPng(memoryStream);
+            memoryStream.Position = 0;
+
+            return new FormFile(memoryStream, 0, memoryStream.Length, fileName, fileName)
             {
-                Format = BarcodeFormat.QR_CODE,
-                Options = new QrCodeEncodingOptions
-                {
-                    Width = 200,
-                    Height = 200,
-                    Margin = 1,
-                    ErrorCorrection = ErrorCorrectionLevel.H
-                }
+                Headers = new HeaderDictionary(),
+                ContentType = contentType
+            };
+        }
+        private IFormFile GetRealQrCodeFile()
+        {
+            // Lấy thư mục gốc của ứng dụng
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            // Quay lại 3 cấp thư mục
+            var threeLevelsUp = Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", ".."));
+
+            // Sử dụng đường dẫn tương đối đến file PNG trong thư mục Resources
+            var relativePath = @"Resources\qrcode.png";
+            var filePath = Path.Combine(threeLevelsUp, relativePath);
+
+            // Đọc nội dung file
+            byte[] fileBytes;
+            using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                fileBytes = new byte[fileStream.Length];
+                fileStream.Read(fileBytes, 0, (int)fileStream.Length);
+            }
+
+            // Tạo MemoryStream từ byte array
+            var memoryStream = new MemoryStream(fileBytes);
+
+            // Tạo đối tượng IFormFile
+            var file = new FormFile(
+                baseStream: memoryStream,
+                baseStreamOffset: 0,
+                length: fileBytes.Length,
+                name: "qrFile",
+                fileName: "test_qr.png")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/png"
             };
 
-            using var image = writer.Write(text);
-            var ms = new MemoryStream();
-            image.SaveAsPng(ms);
-            ms.Position = 0;
+            // Thiết lập Content-Type
+            file.Headers["Content-Type"] = "image/png";
 
-            var fileMock = new Mock<IFormFile>();
-            fileMock.Setup(f => f.FileName).Returns("qrcode.png");
-            fileMock.Setup(f => f.Length).Returns(ms.Length);
-            fileMock.Setup(f => f.OpenReadStream()).Returns(ms);
-
-            return fileMock.Object;
+            return file;
         }
 
-        private HttpClient CreateMockHttpClient(byte[] content)
-        {
-            var handler = new Mock<HttpMessageHandler>();
-            handler.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new ByteArrayContent(content)
-                });
-
-            return new HttpClient(handler.Object);
-        }
     }
 
 }

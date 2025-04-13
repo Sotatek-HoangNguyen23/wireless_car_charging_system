@@ -65,7 +65,7 @@ namespace TestProject.UserTest
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.Not.Null);
-                Assert.That(result.Code, Is.EqualTo("123456789"));
+                Assert.That(result!.Code, Is.EqualTo("123456789"));
                 Assert.That(result.User.Email, Is.EqualTo("test@example.com"));
             });
         }
@@ -85,7 +85,7 @@ namespace TestProject.UserTest
         {
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(() =>
-                _repository.GetCccdByCode(null));
+                _repository.GetCccdByCode(null!));
             Assert.That(ex.Message, Does.Contain("Code không thể trống"));
         }
 
@@ -119,7 +119,7 @@ namespace TestProject.UserTest
             Assert.Multiple(() =>
             {
                 Assert.That(savedCccd, Is.Not.Null);
-                Assert.That(savedCccd.ImgFront, Is.EqualTo("new_front.jpg"));
+                Assert.That(savedCccd!.ImgFront, Is.EqualTo("new_front.jpg"));
             });
         }
 
@@ -128,7 +128,7 @@ namespace TestProject.UserTest
         {
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(() =>
-                _repository.SaveCccd(null));
+                _repository.SaveCccd(null!));
             Assert.That(ex.Message, Does.Contain("Cccd không được null"));
         }
 

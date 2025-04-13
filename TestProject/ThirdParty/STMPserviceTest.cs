@@ -1,6 +1,7 @@
 ﻿using API.Services;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
+using NUnit.Framework; // Add this import
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,15 @@ namespace TestProject.ThirdParty
     [TestFixture]
     public class STMPserviceTest
     {
-        private IConfiguration _configuration = null!;
         private EmailService _emailService = null!;
+
         [SetUp]
         public void Setup()
         {
-            Environment.SetEnvironmentVariable("SMTP_EMAIL", null);
-            Environment.SetEnvironmentVariable("SMTP_PASSWORD", null);
+            Environment.SetEnvironmentVariable("SMTP_EMAIL", "dummy@example.com");
+            Environment.SetEnvironmentVariable("SMTP_PASSWORD", "dummy_password");
         }
+
         [TearDown]
         public void Cleanup()
         {
@@ -28,18 +30,16 @@ namespace TestProject.ThirdParty
             Environment.SetEnvironmentVariable("SMTP_EMAIL", null);
             Environment.SetEnvironmentVariable("SMTP_PASSWORD", null);
         }
+
         [Test]
         public void SendEmailAsync_MissingSmtpConfig_ThrowsException()
         {
             // Arrange
-            // Thêm 2 dòng này để set biến môi trường giả
-            Environment.SetEnvironmentVariable("SMTP_EMAIL", "dummy@example.com");
-            Environment.SetEnvironmentVariable("SMTP_PASSWORD", "dummy_password");
 
             var invalidConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    {"SmtpSettings:Server", ""}, 
+                    {"SmtpSettings:Server", ""},
                     {"SmtpSettings:Port", "587"}
                 }).Build();
 
@@ -52,9 +52,12 @@ namespace TestProject.ThirdParty
             // Kiểm tra message về SMTP server
             Assert.That(ex.Message, Does.Contain("SMTP Server is required"));
         }
+
         [Test]
         public void SendEmailAsync_MissingEnvVariables_ThrowsAuthException()
         {
+            Environment.SetEnvironmentVariable("SMTP_EMAIL", null);
+            Environment.SetEnvironmentVariable("SMTP_PASSWORD", null);
             // Arrange
             var validConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
@@ -73,20 +76,16 @@ namespace TestProject.ThirdParty
             Assert.That(ex.Message, Does.Contain("SMTP_EMAIL environment variable is missing"));
         }
 
-
         [Test]
         public void SendEmailAsync_InvalidPort_ThrowsException()
         {
             // Arrange
-            // Thêm 2 dòng này để set biến môi trường giả
-            Environment.SetEnvironmentVariable("SMTP_EMAIL", "dummy@example.com");
-            Environment.SetEnvironmentVariable("SMTP_PASSWORD", "dummy_password");
 
             var invalidConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     {"SmtpSettings:Server", "smtp.example.com"},
-                    {"SmtpSettings:Port", "invalid_port"} 
+                    {"SmtpSettings:Port", "invalid_port"}
                 }).Build();
 
             _emailService = new EmailService(invalidConfig);
@@ -120,12 +119,11 @@ namespace TestProject.ThirdParty
             Assert.ThrowsAsync<MailKit.Security.AuthenticationException>(() =>
                 _emailService.SendEmailAsync("test@example.com", "Subject", "Content"));
         }
+
         [Test]
         public void SendEmailAsync_MissingSenderName_ThrowsException()
         {
             // Arrange
-            Environment.SetEnvironmentVariable("SMTP_EMAIL", "dummy@example.com");
-            Environment.SetEnvironmentVariable("SMTP_PASSWORD", "dummy_password");
 
             var invalidConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
@@ -145,4 +143,3 @@ namespace TestProject.ThirdParty
         }
     }
 }
-

@@ -98,6 +98,8 @@ namespace API.Services
                 using var transaction = await _userRepository.BeginTransactionAsync();
                 try
                 {
+                    if (transaction == null)
+                        throw new InvalidOperationException("Không thể bắt đầu transaction");
                     // Lưu thông tin người dùng
                     await _userRepository.SaveUser(user);
 
@@ -118,7 +120,7 @@ namespace API.Services
                     var balance = new Balance
                     {
                         UserId = user.UserId,
-                        Balance1 = 0,  
+                        Balance1 = 0,
                         CreateAt = DateTime.UtcNow,
                         UpdateAt = DateTime.UtcNow
                     };
@@ -128,7 +130,17 @@ namespace API.Services
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    if (transaction != null)
+                    {
+                        try
+                        {
+                            await transaction.RollbackAsync();
+                        }
+                        catch (Exception rollbackEx)
+                        {
+                            Console.WriteLine($"Lỗi rollback: {rollbackEx.Message}");
+                        }
+                    }
                     Console.WriteLine($"Lỗi: {ex.InnerException?.Message}");
 
                     throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu", ex);
@@ -397,8 +409,8 @@ namespace API.Services
                             license.Status = "Active";
                             license.Class = request.Class;
                             license.UpdateAt = DateTime.UtcNow;
-                            
-                           
+
+
                             await _licenseRepository.UpdateLicense(license);
                             return;
                         }
