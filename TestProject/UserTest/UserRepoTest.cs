@@ -323,14 +323,12 @@ namespace TestProject.UserTest
             Assert.DoesNotThrowAsync(() => _repository.ChangeUserStatusAsync(999, "Inactive"));
         }
         [Test]
-        public async Task ChangeUserStatus_EmptyStatus_UpdatesToNull()
+        public void ChangeUserStatus_EmptyStatus_UpdatesToNull()
         {
-            // Act
-            await _repository.ChangeUserStatusAsync(1, "");
-
-            // Assert
-            var user = await _repository.GetUserById(1);
-            Assert.That(user!.Status, Is.Null.Or.Empty);
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _repository.ChangeUserStatusAsync(1, ""));
+            Assert.That(ex.Message, Does.Contain("Trạng thái không thể trống"));
         }
         //----------------------
         [Test]
@@ -407,7 +405,7 @@ namespace TestProject.UserTest
         public void GetUserByEmailOrPhone_NullSearch_ThrowsArgumentNullException()
         {
             // Arrange
-            string search = null;
+            string search = null!;
 
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentNullException>(() =>

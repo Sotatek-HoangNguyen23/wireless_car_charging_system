@@ -3,12 +3,14 @@ using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace TestProject.ChargingStationTest
 {
     public class ChargingStationServiceTest
     {
-        private WccsContext _context = new();
+        private WccsContext _context;
         private ChargingStationService _service;
         private IChargingStationRepository _stationRepository;
         private IChargingPointRepository _pointRepository;
@@ -19,9 +21,119 @@ namespace TestProject.ChargingStationTest
         [SetUp]
         public void Setup()
         {
+            var options = new DbContextOptionsBuilder<WccsContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .Options;
+            _context = new WccsContext(options);
             _stationRepository = new ChargingStationRepository(_context);
             _pointRepository = new ChargingPointRepository(_context);
+
             _service = new ChargingStationService(_stationRepository, _pointRepository);
+            // Add mock data
+            var stationLocations = new List<StationLocation>
+            {
+                new StationLocation
+                {
+                    StationLocationId = 1,
+                    Address = "123 ABC Street",
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    Description = "Near the park",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                },
+                new StationLocation
+                {
+                    StationLocationId = 2,
+                    Address = "456 XYZ Street",
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    Description = "Near the mall",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                }
+            };
+
+            var stations = new List<ChargingStation>
+            {
+                new ChargingStation
+                {
+                    StationId = 1,
+                    StationName = "Station Test",
+                    OwnerId = 1,
+                    Status = "Active",
+                    StationLocationId = 1,
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    ChargingPoints = new List<ChargingPoint>
+                    {
+                        new ChargingPoint
+                        {
+                            ChargingPointId = 1,
+                            ChargingPointName = "Point 1",
+                            Description = "Fast charger",
+                            Status = "Available",
+                            MaxPower = 100,
+                            CreateAt = DateTime.UtcNow,
+                            UpdateAt = DateTime.UtcNow
+                        },
+                        new ChargingPoint
+                        {
+                            ChargingPointId = 2,
+                            ChargingPointName = "Point 2",
+                            Description = "Fast charger",
+                            Status = "Available",
+                            MaxPower = 100,
+                            CreateAt = DateTime.UtcNow,
+                            UpdateAt = DateTime.UtcNow
+                        }
+                    }
+                },
+                new ChargingStation
+                {
+                    StationId = 2,
+                    StationName = "Ho Chi Minh Station",
+                    OwnerId = 2,
+                    Status = "Active",
+                    StationLocationId = 2,
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    ChargingPoints = new List<ChargingPoint>
+                    {
+                        new ChargingPoint
+                        {
+                            ChargingPointId = 3,
+                            ChargingPointName = "HCM-1",
+                            Description = "Fast charger",
+                            Status = "Available",
+                            MaxPower = 100,
+                            CreateAt = DateTime.UtcNow,
+                            UpdateAt = DateTime.UtcNow
+                        },
+                        new ChargingPoint
+                        {
+                            ChargingPointId = 4,
+                            ChargingPointName = "HCM-2",
+                            Description = "Fast charger",
+                            Status = "Available",
+                            MaxPower = 100,
+                            CreateAt = DateTime.UtcNow,
+                            UpdateAt = DateTime.UtcNow
+                        }
+                    }
+                }
+            };
+
+            _context.StationLocations.AddRange(stationLocations);
+            _context.ChargingStations.AddRange(stations);
+            _context.SaveChanges();
+        }
+        [TearDown]
+        public void TearDown()
+        {
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
         }
 
         [Test]
@@ -83,19 +195,22 @@ namespace TestProject.ChargingStationTest
             Assert.That(result, Is.True);
             Assert.That(_context.ChargingStations.Count(), Is.EqualTo(12));
         }
-
         [Test]
         public async Task UpdateChargingStation_ShouldUpdateStation_WhenIdExists()
         {
+            // Ensure the station exists before updating
+            var existingStation = _context.ChargingStations.Find(1);
+            Assert.That(existingStation, Is.Not.Null, "The station with ID 1 should exist.");
+
             var updateDto = new UpdateChargingStationDto
             {
                 StationName = "New Name",
                 Status = "Inactive"
             };
 
-            var result = await _service.UpdateChargingStation(2024, updateDto);
+            var result = await _service.UpdateChargingStation(1, updateDto); // Use an existing station ID
 
-            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.Not.Null, "The update operation should return a non-null result.");
             Assert.That(result.StationName, Is.EqualTo("New Name"));
             Assert.That(result.Status, Is.EqualTo("Inactive"));
         }
@@ -111,10 +226,10 @@ namespace TestProject.ChargingStationTest
         [Test]
         public async Task DeleteChargingStation_ShouldDeleteStation_WhenIdExists()
         {
-            var result = await _service.DeleteChargingStation(2017);
+            var result = await _service.DeleteChargingStation(1);
 
             Assert.That(result, Is.True);
-            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(11));
+            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(1));
         }
 
         // Test GetPointById

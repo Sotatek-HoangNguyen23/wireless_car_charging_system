@@ -5,7 +5,14 @@ using System.Text;
 
 namespace API.Services
 {
-    public class OtpServices
+    public interface IOtpServices
+    {
+        Task<string> GenerateOtpAsync(OtpRequest request);
+        Task<bool> VerifyOtpAsync(string identifier, string inputOtp);
+        Task<string> genResetPasswordToken(string email);
+        Task<bool> verifyResetPasswordToken(string token, string email);
+    }
+    public class OtpServices : IOtpServices
     {
         private readonly IConnectionMultiplexer _redis;
         private const int OTP_EXPIRY_MINUTES = 5;

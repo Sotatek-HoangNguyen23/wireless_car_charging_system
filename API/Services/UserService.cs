@@ -19,8 +19,8 @@ namespace API.Services
         private readonly IDriverLicenseRepository _licenseRepository;
         private readonly IBalancement _balanceRepository;
         private readonly ImageService _imageService;
-        private readonly OtpServices _otpServices;
-        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices, IDriverLicenseRepository licenseRepository, IBalancement balanceRepository)
+        private readonly IOtpServices _otpServices;
+        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, IOtpServices otpServices, IDriverLicenseRepository licenseRepository, IBalancement balanceRepository)
         {
             _userRepository = userRepository;
             _cccdRepository = cccdRepository;
@@ -36,6 +36,7 @@ namespace API.Services
             {
                 throw new ArgumentException("Request không được null");
             }
+            ValidateRegisterRequest(request);
 
             var existingEmail = await _userRepository.GetUserByEmail(request.Email);
             if (existingEmail != null)
@@ -51,6 +52,14 @@ namespace API.Services
             if (existingPhone != null)
             {
                 throw new InvalidOperationException("Số điện thoại đã tồn tại");
+            }
+            if(!IsEmailCorrect(request.Email))
+            {
+                throw new ArgumentException("Email không hợp lệ");
+            }
+            if (!IsPhoneCorrect(request.PhoneNumber))
+            {
+                throw new ArgumentException("Số điện thoại không hợp lệ");
             }
 
             // Kiểm tra độ mạnh của mật khẩu
@@ -161,12 +170,30 @@ namespace API.Services
             }
         }
 
+        private void ValidateRegisterRequest(RegisterRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Fullname) || request.Fullname.Length > 100)
+                throw new ArgumentException("Họ và tên tối đa 100 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 256)
+                throw new ArgumentException("Email tối đa 256 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 15)
+                throw new ArgumentException("Số điện thoại tối đa 15 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.Address) || request.Address.Length > 250)
+                throw new ArgumentException("Địa chỉ tối đa 250 ký tự");
+
+            var cccdCode = request.CccdCode?.Trim();
+            if (string.IsNullOrWhiteSpace(cccdCode) || cccdCode.Length < 9 || cccdCode.Length > 12)
+                throw new ArgumentException("CCCD phải có từ 9 đến 12 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.PasswordHash) || request.PasswordHash.Length < 8 || request.PasswordHash.Length > 128)
+                throw new ArgumentException("Mật khẩu phải có từ 8 đến 128 ký tự");
+        }
+
         public async Task<UserDto> GetUserByEmail(string email)
         {
-            if (string.IsNullOrEmpty(email))
-            {
-                throw new ArgumentException("Email không thể trống");
-            }
             var user = await _userRepository.GetUserByEmail(email);
             if (user == null)
             {
@@ -184,10 +211,6 @@ namespace API.Services
         }
         public async Task<UserDto> GetUserByCccd(string cccd)
         {
-            if (string.IsNullOrEmpty(cccd))
-            {
-                throw new ArgumentException("Cccd không thể trống");
-            }
             var user = await _userRepository.GetUserByCccd(cccd);
             if (user == null)
             {
@@ -205,10 +228,6 @@ namespace API.Services
         }
         public async Task<UserDto> GetUserByPhone(string phone)
         {
-            if (string.IsNullOrEmpty(phone))
-            {
-                throw new ArgumentException("Phone không thể trống");
-            }
             var user = await _userRepository.GetUserByPhone(phone);
             if (user == null)
             {
@@ -258,7 +277,7 @@ namespace API.Services
                 throw new Exception("Reset password failed", ex);
             }
         }
-
+  
         public async Task<ProfileDTO?> GetProfileByUserId(int userId)
         {
             if (userId <= 0)
@@ -269,7 +288,7 @@ namespace API.Services
             var profile = await _userRepository.GetProfileByUserId(userId);
             if (profile == null)
             {
-                throw new Exception("User profile not found.");
+                throw new Exception("Người dùng không tồn tại.");
             }
 
             return profile;
@@ -277,15 +296,27 @@ namespace API.Services
 
         public async Task UpdateUserProfileAsync(int userId, RequestProfile request)
         {
+            if (request == null)
+            {
+                throw new ArgumentException("Request không được null");
+            }
             if (userId <= 0)
             {
                 throw new ArgumentException("Invalid user ID.");
             }
-
+            ValidateUpdateProfileRequest(request);
+            if (!string.IsNullOrEmpty(request.Email) && !IsEmailCorrect(request.Email))
+            {
+                throw new ArgumentException("Email không hợp lệ");
+            }
+            if (!string.IsNullOrEmpty(request.PhoneNumber) && !IsPhoneCorrect(request.PhoneNumber))
+            {
+                throw new ArgumentException("Số điện thoại không hợp lệ");
+            }
             var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
-                throw new Exception("User not found.");
+                throw new Exception("Người dùng không tồn tại.");
             }
 
             // Update user properties
@@ -300,13 +331,28 @@ namespace API.Services
             await _userRepository.UpdateUser(user);
         }
 
+        private void ValidateUpdateProfileRequest(RequestProfile request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Fullname) || request.Fullname.Length > 100)
+                throw new ArgumentException("Họ và tên tối đa 100 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 256)
+                throw new ArgumentException("Email tối đa 256 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 15)
+                throw new ArgumentException("Số điện thoại tối đa 15 ký tự");
+
+            if (string.IsNullOrWhiteSpace(request.Address) || request.Address.Length > 250)
+                throw new ArgumentException("Địa chỉ tối đa 250 ký tự");
+        }
+
         public async Task ChangePasswordAsync(ChangePassDTO passDTO)
         {
             if (string.IsNullOrWhiteSpace(passDTO.Password) ||
                 string.IsNullOrWhiteSpace(passDTO.NewPassword) ||
                 string.IsNullOrWhiteSpace(passDTO.ConfirmNewPassword))
             {
-                throw new ArgumentException("Passwords cannot be empty.");
+                throw new ArgumentException("Passwords khong the trong.");
             }
             if (!IsPasswordCorrect(passDTO.NewPassword))
             {
@@ -338,6 +384,11 @@ namespace API.Services
         }
         public async Task<DriverLicenseDTO> GetLicenseByCode(string code)
         {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                throw new ArgumentException("Mã số bằng lái không hợp lệ", nameof(code));
+            }
+
             var existingLicense = await _licenseRepository.GetLicenseByCode(code);
             if (existingLicense == null)
             {
@@ -369,6 +420,7 @@ namespace API.Services
             };
             return licenseDTO;
         }
+
         public async Task AddDriverLicenseAsync(int userId, DriverLicenseRequest request)
         {
             if (request == null)
@@ -645,10 +697,28 @@ namespace API.Services
         }
         public async Task<PagedResultD<DriverLicenseDTO>> GetLicenseList(int pageNumber, int pageSize, DriverLicenseFilter filter)
         {
+            if (pageNumber <= 0)
+            {
+                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+            }
+
+            if (pageSize <= 0)
+            {
+                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+            }
             return await _licenseRepository.GetPagedLicensesAsync(pageNumber, pageSize, filter);
         }
         public PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize)
         {
+            if (pageNumber <= 0)
+            {
+                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+            }
+
+            if (pageSize <= 0)
+            {
+                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+            }
             return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
         }
 
@@ -659,26 +729,38 @@ namespace API.Services
 
         public PagedResult<FeedbackDto> GetFeedbacks(string? search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
         {
+            if (page <= 0)
+            {
+                throw new ArgumentException("Page number must be greater than zero", nameof(page));
+            }
+            if (pageSize <= 0)
+            {
+                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+            }
             return _userRepository.GetFeedbacks(search, startDate, endDate, page, pageSize);
         }
 
         public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
         {
+            if (userId <= 0)
+            {
+                throw new ArgumentException("Invalid user ID.");
+            }
             return await _userRepository.GetFeedbackByUserId(userId);
         }
 
-        public bool IsEmailCorrect(string email)
+        private bool IsEmailCorrect(string email)
         {
             string regex = @"^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$";
             return Regex.IsMatch(email, regex, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
         }
 
-        public bool IsPhoneCorrect(string phone)
+        private bool IsPhoneCorrect(string phone)
         {
             string regex = @"^(0)(3[2-9]|5[2689]|7[06789]|8[1-9]|9[0-9]|2[0-9])\d{7}$";
             return Regex.IsMatch(phone, regex, RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
         }
-        public bool IsPasswordCorrect(string password)
+        private bool IsPasswordCorrect(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
                 return false;

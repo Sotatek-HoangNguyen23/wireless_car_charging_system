@@ -181,6 +181,14 @@ namespace DataAccess.Repositories
 
         public async Task ChangeUserStatusAsync(int userId, string newStatus)
         {
+            if (string.IsNullOrEmpty(newStatus))
+            {
+                throw new ArgumentException("Trạng thái không thể trống", nameof(newStatus));
+            }
+            if (userId <= 0)
+            {
+                throw new ArgumentException("ID người dùng không hợp lệ", nameof(userId));
+            }
             var user = await _context.Users.FindAsync(userId);
             if (user != null)
             {

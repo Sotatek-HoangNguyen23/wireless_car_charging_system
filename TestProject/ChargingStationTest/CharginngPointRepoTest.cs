@@ -2,18 +2,80 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace TestProject.ChargingStationTest
 { 
     public class CharginngPointRepoTest
     {
         private IChargingPointRepository _repository;
-        private WccsContext _context = new();
+        private WccsContext _context;
 
         [SetUp]
         public void Setup()
         {
+            var options = new DbContextOptionsBuilder<WccsContext>()
+                  .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                  .Options;
+            _context = new WccsContext(options);
             _repository = new ChargingPointRepository(_context);
+            // Add initial data
+            var station = new ChargingStation
+            {
+                StationId = 2,
+                StationName = "Test Station",
+                Status = "Active",
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow,
+                ChargingPoints = new List<ChargingPoint>
+                {
+                    new ChargingPoint
+                    {
+                        ChargingPointId = 4,
+                        ChargingPointName = "HCM-1",
+                        Description = "Fast charger",
+                        Status = "Available",
+                        MaxPower = 100,
+                        MaxConsumPower = 90,
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow,
+                        StationId = 2
+                    },
+                    new ChargingPoint
+                    {
+                        ChargingPointId = 5,
+                        ChargingPointName = "HCM-2",
+                        Description = "Fast charger",
+                        Status = "Available",
+                        MaxPower = 100,
+                        MaxConsumPower = 90,
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow,
+                        StationId = 2
+                    },
+                    new ChargingPoint
+                    {
+                        ChargingPointId = 6,
+                        ChargingPointName = "HCM-3",
+                        Description = "Fast charger",
+                        Status = "Available",
+                        MaxPower = 100,
+                        MaxConsumPower = 90,
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow,
+                        StationId = 2
+                    }
+                }
+            };
+
+            _context.ChargingStations.Add(station);
+            _context.SaveChanges();
+        }
+        [TearDown]
+        public void TearDown()
+        {
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
         }
 
         // Test GetAllPointsByStation
