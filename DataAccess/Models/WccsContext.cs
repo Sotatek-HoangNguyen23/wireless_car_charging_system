@@ -395,12 +395,13 @@ public partial class WccsContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("charging_power");
             entity.Property(e => e.ChargingTime)
-                .HasMaxLength(50)
+                .HasDefaultValueSql("(getdate())")
                 .HasColumnName("charging_time");
             entity.Property(e => e.ChargingpointId).HasColumnName("chargingpoint_id");
             entity.Property(e => e.Cost)
                 .HasMaxLength(50)
                 .HasColumnName("cost");
+            entity.Property(e => e.EndTime).HasColumnName("end_time");
             entity.Property(e => e.EnergyConsumed)
                 .HasMaxLength(50)
                 .HasColumnName("energy_consumed");
@@ -412,6 +413,7 @@ public partial class WccsContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("powerpoint");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .IsUnicode(false)

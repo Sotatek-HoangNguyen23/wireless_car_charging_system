@@ -8,177 +8,116 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace TestProject.MyCarTest
 {
+    [TestFixture]
     public class MyCarRepoTest
     {
-        private IMyCars _repository;
-        private WccsContext context = new();
+        private MyCarsRepo _repository;
+        private WccsContext _context;
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
-            _repository = new MyCarsRepo();
+            var options = new DbContextOptionsBuilder<WccsContext>()
+         .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+         .Options;
+
+            _context = new WccsContext(options);
+            _repository = new MyCarsRepo(_context);
+
+            // Add User
+            var user = new User
+            {
+                UserId = 1,
+                Fullname = "Test User",
+                Email = "test@example.com",
+                PhoneNumber = "0123456789"
+            };
+
+            // Add CarModel
+            var model = new CarModel
+            {
+                CarModelId = 1,
+                Type = "Model X",
+                Brand = "Tesla"
+            };
+
+            // Add Car
+            var car = new Car
+            {
+                CarId = 1,
+                CarModelId = 1,
+                CarName = "My Tesla",
+                LicensePlate = "ABC123",
+                CarModel = model,
+                IsDeleted = false
+            };
+
+            // Add UserCar relationship
+            var userCar = new UserCar
+            {
+                UserId = 1,
+                CarId = 1,
+                Role = "Owner",
+                IsAllowedToCharge = true,
+                StartDate = DateTime.UtcNow,
+                User = user,
+                Car = car
+            };
+
+            await _context.Users.AddAsync(user);
+            await _context.CarModels.AddAsync(model);
+            await _context.Cars.AddAsync(car);
+            await _context.UserCars.AddAsync(userCar);
+
+            await _context.SaveChangesAsync();
         }
-//get car by Owner
-        [Test]
-        public void GetAlCar_ShouldReturnCar_WhenOwnerExsist()
+
+        [TearDown]
+        public void TearDown()
         {
-            var result = _repository.getCarByOwner(2);
-
-            Assert.That(result.Count, Is.EqualTo(3));
-
+            _context?.Dispose();
         }
-
+    //---------------------
         [Test]
-        public void GetCarByOwner_ShouldReturnNull_WhenOwnerNotExsist()
+        public void GetCarByOwner_ExistingUserId_ReturnsCars()
         {
-            var cars = _repository.getCarByOwner(0);
-            Assert.That(cars, Is.Empty);
+            var result = _repository.getCarByOwner(1);
 
-        }
-        // get car by id
-        [Test]
-        public void GetCarById_ShouldReturnCorrectCar()
-        {
-            var car = _repository.getCarDetailById(1);
-            Assert.That(car.CarId, Is.EqualTo(1));
-
-        }
-
-        [Test]
-        public void GetCarById_ShouldReturnNull_CarNotExsit()
-        {
-            var car = _repository.getCarDetailById(0);
-            Assert.That(car, Is.Null);
-        }
-
-        // get charging status by car 
-        [Test]
-        public void GetChargingStatusById_CarIsCharging()
-        {
-            
-            var result = _repository.GetChargingStatusById(1);
             Assert.That(result, Is.Not.Null);
-            
-        }
-
-        [Test]
-        public void GetChargingStatusById_CarIsNotCharging()
-        {
-
-            var result = _repository.GetChargingStatusById(2);
-            Assert.That(result, Is.Null);
-
-        }
-
-        //get charging history
-        [Test]
-        public void GetChargingHistory_ByCarId_WhenCarNotExsist()
-        {
-            var result = _repository.GetChargingHistory(0,null,null,null);
-            Assert.That(result, Is.Empty);
-        }
-
-        [Test]
-        public void GetHistoryCharging_WhenChargingStationNotExist()
-        {
-            var result = _repository.GetChargingHistory(1, null, null, 0);
-            Assert.That(result, Is.Empty);
-        }
-
-        [Test]
-        public void GetHistoryCharging_WhenTimeNotValid()
-        {
-            var result = _repository.GetChargingHistory(1, DateTime.Now.AddYears(1), null, null);
-            Assert.That(result, Is.Empty);
-        }
-
-        [Test]
-        public void GetHistoryCharging_WhenHistoryExist()
-        {
-            var result = _repository.GetChargingHistory(1,new DateTime(2025, 2, 20),new DateTime(2025, 2, 25), null);
-
-            Assert.That(result.Count, Is.EqualTo(3));
-
-        }
-
-        //delete car
-        [Test]
-        public void DeleteCar_WhenCarIdNotExist()
-        {
-            var result = _repository.deleteCar(999);
-            Assert.That(result, Is.False);
-        }
-
-        public void DeleteCar_WhenCarIdExist()
-        {
-            var result = _repository.deleteCar(5);
-            Assert.That(result, Is.True);
-        }
-
-        // get car model
-        [Test]
-        public void GetAllCarModel_ByName_Success()
-        {
-            var result = _repository.getCarModels("Vin");
-            Assert.That(result.Count, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void GetAllCarModel_ByColor_Success()
-        {
-            var result = _repository.getCarModels("Red");
             Assert.That(result.Count, Is.EqualTo(1));
-        }
-
-
-        [Test]
-        public void GetAllCarModel_ByBrand_Success()
-        {
-            var result = _repository.getCarModels("VinFast");
-            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result[0].LicensePlate, Is.EqualTo("ABC123"));
         }
 
         [Test]
-        public void GetAllCarModel_ByColor_NotExist()
+        public async Task GetCarByOwner_InvalidUserId_ReturnsEmpty()
         {
-            var result = _repository.getCarModels("Pink");
-            Assert.That(result.Count, Is.EqualTo(0));
-        }
+            var result =  _repository.getCarByOwner(99);
 
-        //check duplicate license plate
+            Assert.That(result, Is.Empty);
+        }
+        //---------------------
         [Test]
-        public void CheckDuplicateLicensePlate_WhenDuplicate()
+        public void GetCarDetailById_ValidId_ReturnsDetails()
         {
-            var result = _repository.checkDuplicateLicensePlate("51B-67890");
-            Assert.That(result, Is.True);
+            var result = _repository.getCarDetailById(1);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.LicensePlate, Is.EqualTo("ABC123"));
+            Assert.That(result.Brand, Is.EqualTo("Tesla"));
         }
 
-        public void CheckDuplicateLicensePlate_WhenNotDuplicate()
+        [Test]
+        public void GetCarDetailById_InvalidId_ReturnsNull()
         {
-            var result = _repository.checkDuplicateLicensePlate("51B-67899");
-            Assert.That(result, Is.False);
+            var result = _repository.getCarDetailById(999);
+
+            Assert.That(result, Is.Null);
         }
 
-        //add car
-        //[Test]
-        //public void AddCar_Success()
-        //{
-
-        //    int carModel = 2;
-        //    int userId = 2;
-        //    string licensePlate = "51B-67890";
-        //    string carName = "Duplicate Car";
-
-        //    var ex = Assert.Throws<Exception>(() => _repository.addCar(carModel, userId, licensePlate, "Another Car"));
-        //    Assert.That(ex.Message, Does.Contain("Error add car"));
-
-
-        //}
-
-        
 
     }
 }

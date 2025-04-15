@@ -48,8 +48,7 @@
         await loadRentRequests();
     });
 
-           async function loadRentRequests() {
-       
+        async function loadRentRequests() {
         const apiUrl = `https://localhost:7191/api/Car/rent-requests`;
         const container = document.getElementById("rentConfirmContainer");
 
@@ -72,7 +71,7 @@
                 return;
             }
 
-            container.innerHTML = ""; // Xóa dữ liệu cũ
+            container.innerHTML = ""; // Clear old data
 
             data.forEach(item => {
                 const isAllowedToCharge = item.isAllowedToCharge ?? false;
@@ -106,6 +105,7 @@
 
 
 
+
     let selectedCar = null;
 
     function showRentModal(item) {
@@ -123,6 +123,7 @@
         var myModal = new bootstrap.Modal(document.getElementById('rentConfirmModal'));
         myModal.show();
     }
+    window.showRentModal = showRentModal;
 
     document.getElementById("confirmRentButton").addEventListener("click", async function () {
         if (!selectedCar) return;

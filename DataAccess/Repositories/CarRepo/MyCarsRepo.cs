@@ -13,9 +13,9 @@ namespace DataAccess.Repositories.CarRepo
     public class MyCarsRepo : IMyCars
     {
         private WccsContext _context;
-        public MyCarsRepo()
+        public MyCarsRepo(WccsContext context)
         {
-            _context = new WccsContext();
+            _context = context;
         }
 
         public List<MyCarsDTO> getCarByOwner(int userId)
@@ -104,7 +104,7 @@ namespace DataAccess.Repositories.CarRepo
         }
 
 
-        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId)
+        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10)
         {
             var query = from cs in _context.ChargingSessions
                         join c in _context.Cars on cs.CarId equals c.CarId
@@ -128,32 +128,33 @@ namespace DataAccess.Repositories.CarRepo
                             Status = cs.Status
                         };
 
-
             if (start.HasValue && end.HasValue)
             {
-                query = query.Where(cs => cs.StartTime >= start.Value && (cs.EndTime <= end.Value ));
+                query = query.Where(cs => cs.StartTime >= start.Value && cs.EndTime <= end.Value);
             }
-            else
+            else if (start.HasValue)
             {
-                if (start.HasValue && !end.HasValue)
-                {
-                    query = query.Where(cs => cs.StartTime >= start.Value);
-                }
-
-                if (end.HasValue && !start.HasValue)
-                {
-                    query = query.Where(cs => cs.EndTime <= end.Value );
-                }
+                query = query.Where(cs => cs.StartTime >= start.Value);
             }
-
+            else if (end.HasValue)
+            {
+                query = query.Where(cs => cs.EndTime <= end.Value);
+            }
 
             if (chargingStationId.HasValue)
             {
                 query = query.Where(cs => cs.StationId == chargingStationId.Value);
             }
 
-            return query.OrderByDescending(cs => cs.StartTime).ToList();
+            return query
+                .OrderByDescending(cs => cs.StartTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
         }
+
+
+
 
         public bool deleteCar(int carId)
         {
@@ -256,6 +257,7 @@ namespace DataAccess.Repositories.CarRepo
 
         public async Task<List<RentConfirmDto>> GetRentRequest(int driverId)
         {
+            var currentDate = DateTime.Now;
 
             var rentRequests = await (from uc in _context.UserCars
                                       join c in _context.Cars on uc.CarId equals c.CarId
@@ -264,6 +266,7 @@ namespace DataAccess.Repositories.CarRepo
                                       join ownerUser in _context.Users on owner.UserId equals ownerUser.UserId
                                       where uc.UserId == driverId && uc.Role == "Renter" // Lọc người thuê
                                             && owner.Role == "Owner" // Lọc đúng chủ xe
+                                            && uc.StartDate <= currentDate && uc.EndDate >= currentDate // Lọc yêu cầu trong khoảng thời gian hiện tại
                                       select new RentConfirmDto
                                       {
                                           DriverId = uc.UserId,
@@ -281,10 +284,8 @@ namespace DataAccess.Repositories.CarRepo
                                       }).Distinct().ToListAsync();
 
             return rentRequests;
-
-
-
         }
+
 
         public async Task<UserCar?> GetUserCarAsync(int userId, int carId, string role)
         {
@@ -320,5 +321,44 @@ namespace DataAccess.Repositories.CarRepo
 
             return result;
         }
+
+        //public  List<ChargingSession> GetChargingHistoryByCarId(int carId)
+        //{
+        //            return  _context.ChargingSessions
+        //        .Where(cs => cs.CarId == carId)
+        //        .OrderByDescending(cs => cs.StartTime)
+        //        .ToList();
+        //}
+
+        public List<CarMonthlyStatDTO> GetCarStats(int carId, int year)
+        {
+            var sessions = _context.ChargingSessions
+                .Where(x => x.CarId == carId
+                            && x.StartTime.HasValue
+                            && x.StartTime.Value.Year == year)
+                .ToList();
+
+            var monthlyStats = Enumerable.Range(1, 12).Select(month =>
+            {
+                var monthSessions = sessions.Where(s => s.StartTime!.Value.Month == month).ToList();
+
+                double totalTimeMinutes = monthSessions
+                    .Where(s => s.EndTime.HasValue)
+                    .Sum(s => (s.EndTime.Value - s.StartTime!.Value).TotalMinutes);
+
+                return new CarMonthlyStatDTO
+                {
+                    Month = month,
+                    SessionCount = monthSessions.Count,
+                    TotalCost = monthSessions.Sum(s => s.Cost ?? 0),
+                    TotalEnergy = monthSessions.Sum(s => s.EnergyConsumed ?? 0),
+                    TotalTime = totalTimeMinutes,
+                    AverageTime = monthSessions.Count == 0 ? 0 : totalTimeMinutes / monthSessions.Count
+                };
+            }).ToList();
+
+            return monthlyStats;
+        }
+
     }
 }
