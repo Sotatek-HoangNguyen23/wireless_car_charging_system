@@ -395,7 +395,8 @@ public partial class WccsContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("charging_power");
             entity.Property(e => e.ChargingTime)
-                .HasDefaultValueSql("(getdate())")
+                .HasMaxLength(50)
+                .IsUnicode(false)
                 .HasColumnName("charging_time");
             entity.Property(e => e.ChargingpointId).HasColumnName("chargingpoint_id");
             entity.Property(e => e.Cost)
@@ -423,8 +424,7 @@ public partial class WccsContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("temperature");
             entity.Property(e => e.TimeMoment)
-                .HasMaxLength(50)
-                .IsUnicode(false)
+                .HasDefaultValueSql("(getdate())")
                 .HasColumnName("time_moment");
 
             entity.HasOne(d => d.Car).WithMany(p => p.RealTimeData)
