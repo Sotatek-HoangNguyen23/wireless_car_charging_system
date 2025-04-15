@@ -23,7 +23,7 @@ public partial class RealTimeDatum
 
     public string? ChargingCurrent { get; set; }
 
-    public string? ChargingTime { get; set; }
+    public DateTime? ChargingTime { get; set; }
 
     public string? EnergyConsumed { get; set; }
 
@@ -34,6 +34,10 @@ public partial class RealTimeDatum
     public string? Status { get; set; }
 
     public string? LicensePlate { get; set; }
+
+    public DateTime? StartTime { get; set; }
+
+    public DateTime? EndTime { get; set; }
 
     public virtual Car Car { get; set; } = null!;
 

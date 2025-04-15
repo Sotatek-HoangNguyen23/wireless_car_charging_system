@@ -1,4 +1,5 @@
 ﻿using DataAccess.DTOs;
+using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using System.Text.RegularExpressions;
@@ -28,9 +29,56 @@ namespace API.Services
             return _myCars.GetChargingStatusById(carId);
         }
 
-        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId)
+        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10)
         {
-            return _myCars.GetChargingHistory(carId, start, end, chargingStationId);
+            return _myCars.GetChargingHistory(carId, start, end, chargingStationId, page, pageSize);
+        }
+
+
+        //public ChargingCarStatsDto GetCarStats(int carId, int? year, int? month)
+        //{
+        //    var sessions = _myCars.GetChargingHistoryByCarId(carId);
+
+        //    if (year.HasValue)
+        //        sessions = sessions.Where(s => s.StartTime.Value.Year == year.Value).ToList();
+
+        //    if (month.HasValue)
+        //        sessions = sessions.Where(s => s.StartTime.Value.Month == month.Value).ToList();
+
+        //    double totalEnergy = sessions.Sum(s => s.EnergyConsumed) ?? 0;
+        //    double totalRevenue = sessions.Sum(s => s.Cost) ?? 0;
+        //    int totalSessions = sessions.Count;
+        //    double avgTime = sessions.Average(s => (s.EndTime - s.StartTime)?.TotalMinutes) ?? 0;
+
+        //    var chartData = month.HasValue
+        //        ? sessions.GroupBy(s => s.StartTime.Value.Day)
+        //                  .Select(g => new ChartDataDto
+        //                  {
+        //                      Label = $"Ngày {g.Key}",
+        //                      Revenue = Math.Round(g.Sum(s => s.Cost) ?? 0, 2),
+        //                      SessionCount = g.Count()
+        //                  }).ToList()
+        //        : sessions.GroupBy(s => s.StartTime.Value.Month)
+        //                  .Select(g => new ChartDataDto
+        //                  {
+        //                      Label = $"Tháng {g.Key}",
+        //                      Revenue = Math.Round(g.Sum(s => s.Cost) ?? 0, 2),
+        //                      SessionCount = g.Count()
+        //                  }).ToList();
+
+        //    return new ChargingCarStatsDto
+        //    {
+        //        TotalEnergyConsumed = Math.Round(totalEnergy, 2),
+        //        TotalRevenue = Math.Round(totalRevenue, 2),
+        //        TotalChargingSessions = totalSessions,
+        //        AverageChargingTime = Math.Round(avgTime, 2),
+        //        ChartData = chartData
+        //    };
+        //}
+
+        public List<CarMonthlyStatDTO> GetCarStats(int carId, int? year)
+        {
+            return _myCars.GetCarStats(carId, year ?? DateTime.Now.Year);
         }
 
         public void deleteCar(int carId)

@@ -17,8 +17,9 @@ namespace DataAccess.Interfaces
         ChargingStatusDTO GetChargingStatusById(int carId);
 
 
-        List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId);
-
+        List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10);
+        //List<ChargingSession> GetChargingHistoryByCarId(int carId);
+        List<CarMonthlyStatDTO> GetCarStats(int carId, int year);
         bool deleteCar(int carId);
 
         List<CarModel> getCarModels(string? search);
@@ -39,5 +40,7 @@ namespace DataAccess.Interfaces
         Task<ChargingSession> AddChargingSession(ChargingSession session);
 
         Task<int?> GetCurrentDriverByCarId( int carId);
+
+
     }
 }

@@ -34,7 +34,7 @@ namespace DataAccess.DTOs
         public string? Current { get; set; }
 
         public string? TimeMoment { get; set; }
-        public string? ChargingTime { get; set; }
+        public DateTime? ChargingTime { get; set; }
         public string? EnergyConsumed { get; set; }
 
     }

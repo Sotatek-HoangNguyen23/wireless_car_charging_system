@@ -86,9 +86,11 @@ namespace API.Controllers
             [FromQuery] int carId,
             [FromQuery] DateTime? start,
             [FromQuery] DateTime? end,
-            [FromQuery] int? chargingStationId)
+            [FromQuery] int? chargingStationId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var result = _carService.GetChargingHistory(carId, start, end, chargingStationId);
+            var result = _carService.GetChargingHistory(carId, start, end, chargingStationId, page, pageSize);
             if (result == null || result.Count == 0)
             {
                 return NotFound(new { message = "Not found" });
@@ -96,6 +98,7 @@ namespace API.Controllers
 
             return Ok(result);
         }
+
 
         [Authorize("Driver")]
         [HttpDelete("Delete/{carId}")]
@@ -262,6 +265,13 @@ namespace API.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}"); // Trả về lỗi server nếu có vấn đề
             }
+        }
+
+        [HttpGet("{carId}/stats")]
+        public IActionResult GetCarStats(int carId, int? year)
+        {
+            var stats = _carService.GetCarStats(carId, year);
+            return Ok(stats);
         }
     }
 }

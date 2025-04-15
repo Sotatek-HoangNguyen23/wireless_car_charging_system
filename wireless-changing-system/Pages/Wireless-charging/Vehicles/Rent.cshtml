@@ -57,7 +57,8 @@
 }
 
 <script type="module">
-        import { fetchWithAuth } from '/js/apiClient.js';
+    import { fetchWithAuth } from '/js/apiClient.js';
+
     async function searchUsers() {
         let searchValue = document.getElementById("search-input").value.trim();
         if (!searchValue) {
@@ -80,6 +81,7 @@
             document.getElementById("user-list").innerHTML = "";
         }
     }
+
     window.searchUsers = searchUsers;
 
     function displayUserList(users) {
@@ -103,16 +105,24 @@
     }
 
     async function showRentPopup(userId) {
+        let startDate = document.getElementById("startDate").value;
+        let endDate = document.getElementById("endDate").value;
+
+        if (!startDate || !endDate) {
+            showPopup("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.", "warning");
+            return;
+        }
+
         let carId = new URLSearchParams(window.location.search).get('carId');
         let response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
         let car = await response.json();
-         let selectedUserId = document.getElementById(`user-id-${userId}`).value;
-         document.getElementById("confirmRentBtn").dataset.userId = selectedUserId;
-        document.getElementById("confirmFullname").textContent = document.getElementById(`user-fullname-${userId}`).textContent;
-           document.getElementById("confirmEmail").textContent = document.getElementById(`user-email-${userId}`).innerText.trim();
-    document.getElementById("confirmPhone").textContent = document.getElementById(`user-phone-${userId}`).innerText.trim();
 
-        document.getElementById("confirmDate").textContent = `${document.getElementById("startDate").value} đến ${document.getElementById("endDate").value}`;
+        let selectedUserId = document.getElementById(`user-id-${userId}`).value;
+        document.getElementById("confirmRentBtn").dataset.userId = selectedUserId;
+        document.getElementById("confirmFullname").textContent = document.getElementById(`user-fullname-${userId}`).textContent;
+        document.getElementById("confirmEmail").textContent = document.getElementById(`user-email-${userId}`).innerText.trim();
+        document.getElementById("confirmPhone").textContent = document.getElementById(`user-phone-${userId}`).innerText.trim();
+        document.getElementById("confirmDate").textContent = `${startDate} đến ${endDate}`;
         document.getElementById("confirmLicensePlate").textContent = car.licensePlate;
         document.getElementById("confirmType").textContent = car.type;
         document.getElementById("confirmColor").textContent = car.color;
@@ -121,7 +131,8 @@
         let modal = new bootstrap.Modal(document.getElementById("rentConfirmModal"));
         modal.show();
     }
-        function showPopup(message, type) {
+
+    function showPopup(message, type) {
         let popup = document.createElement("div");
         popup.className = `alert alert-${type} fixed-top text-center`;
         popup.style.zIndex = "1050";
@@ -133,7 +144,7 @@
         }, 3000);
     }
 
-    window.showRentPopup=showRentPopup;
+    window.showRentPopup = showRentPopup;
 
     async function confirmRent() {
         let userId = document.getElementById("confirmRentBtn").dataset.userId;
@@ -148,21 +159,15 @@
         });
 
         if (response.ok) {
-        showPopup("Đã cấp quyền cho mượn xe. Chờ bên phía người thuê xác nhận!", "success");
+            showPopup("Đã cấp quyền cho mượn xe. Chờ bên phía người thuê xác nhận!", "success");
             let rentModal = bootstrap.Modal.getInstance(document.getElementById("rentConfirmModal"));
-    if (rentModal) {
-        rentModal.hide();
+            if (rentModal) {
+                rentModal.hide();
+            }
+        } else {
+            showPopup("Lỗi khi thuê xe!", "danger");
+        }
     }
 
-        // Đóng modal sau 1 giây và chuyển về trang detail
-        // setTimeout(() => {
-        //     let detailUrl = `https:localhost:5216/wireless-charging/vehicles/mycars`;
-        //     window.location.href = detailUrl;
-        // }, 5000);
-    } else {
-        showPopup("Lỗi khi thuê xe!", "danger");
-    }
-    }
-
-    window.confirmRent=confirmRent;
+    window.confirmRent = confirmRent;
 </script>
