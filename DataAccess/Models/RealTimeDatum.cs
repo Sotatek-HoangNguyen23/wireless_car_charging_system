@@ -17,13 +17,13 @@ public partial class RealTimeDatum
 
     public string? Temperature { get; set; }
 
-    public string? TimeMoment { get; set; }
+    public DateTime? TimeMoment { get; set; }
 
     public string? BatteryVoltage { get; set; }
 
     public string? ChargingCurrent { get; set; }
 
-    public DateTime? ChargingTime { get; set; }
+    public string? ChargingTime { get; set; }
 
     public string? EnergyConsumed { get; set; }
 
