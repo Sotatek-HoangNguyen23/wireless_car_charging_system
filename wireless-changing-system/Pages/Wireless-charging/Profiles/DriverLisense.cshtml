@@ -452,7 +452,7 @@
             // Tạo thẻ license-card
             const card = document.createElement('div');
             card.className = 'license-card';
-
+            console.log(license);
             // Ví dụ: Thêm header card
             card.innerHTML = `
                 <div class="license-card-header">
@@ -649,7 +649,14 @@
         const btnAdd = document.getElementById('btnAddLisense');
         btnAdd.addEventListener('click', () => openLicenseModal());
     }
-
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('frontImageInput').addEventListener('change', (e) => {
+            previewImage(e.target, 'frontPreview');
+        });
+        document.getElementById('backImageInput').addEventListener('change', (e) => {
+            previewImage(e.target, 'backPreview');
+        });
+    });
     function openLicenseModal() {
             isFrontQRValid = false;
             isBackQRValid = false;
@@ -657,16 +664,11 @@
             const form = document.getElementById('licenseForm');
 
             // Reset form khi mở modal
-            form.reset();
-        document.getElementById('frontPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
-        document.getElementById('backPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
-        document.getElementById('frontImageInput').addEventListener('change', (e) => {
-            previewImage(e.target, 'frontPreview');
-        });
 
-        document.getElementById('backImageInput').addEventListener('change', (e) => {
-            previewImage(e.target, 'backPreview');
-        });
+            form.reset();
+            document.getElementById('frontPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+            document.getElementById('backPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+
             modal.show();
         form.onsubmit = async (e) => {
             e.preventDefault();

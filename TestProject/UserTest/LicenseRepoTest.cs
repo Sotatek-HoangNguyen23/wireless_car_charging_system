@@ -255,7 +255,7 @@ namespace TestProject.UserTest
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.Not.Null);
-                Assert.That(result.Code, Is.EqualTo("LICENSE001"));
+                Assert.That(result!.Code, Is.EqualTo("LICENSE001"));
             });
         }
 
@@ -294,21 +294,21 @@ namespace TestProject.UserTest
         {
             // Arrange
             var license = await _context.DriverLicenses.FindAsync(1);
-            license.Status = "Suspended";
+            license!.Status = "Suspended";
 
             // Act
             await _repository.UpdateLicense(license);
 
             // Assert
             var updatedLicense = await _context.DriverLicenses.FindAsync(1);
-            Assert.That(updatedLicense.Status, Is.EqualTo("Suspended"));
+            Assert.That(updatedLicense!.Status, Is.EqualTo("Suspended"));
         }
         [Test]
         public async Task UpdateLicense_UpdatesMultipleFields_Correctly()
         {
             // Arrange
             var license = await _context.DriverLicenses.FindAsync(1);
-            license.Class = "NewClass";
+            license!.Class = "NewClass";
             license.Code = "UPDATED123";
 
             // Act
@@ -318,10 +318,46 @@ namespace TestProject.UserTest
             var updated = await _context.DriverLicenses.FindAsync(1);
             Assert.Multiple(() =>
             {
-                Assert.That(updated.Class, Is.EqualTo("NewClass"));
+                Assert.That(updated!.Class, Is.EqualTo("NewClass"));
                 Assert.That(updated.Code, Is.EqualTo("UPDATED123"));
             });
         }
+        [Test]
+        public async Task UpdateLicense_ChangeCodeToUnique_UpdatesSuccessfully()
+        {
+            // Arrange
+            var license = await _context.DriverLicenses.FindAsync(1);
+            license!.Code = "UNIQUECODE123";
+
+            // Act
+            await _repository.UpdateLicense(license);
+
+            // Assert
+            var updatedLicense = await _context.DriverLicenses.FindAsync(1);
+            Assert.Multiple(() =>
+            {
+                Assert.That(updatedLicense, Is.Not.Null);
+                Assert.That(updatedLicense!.Code, Is.EqualTo("UNIQUECODE123"));
+            });
+        }
+        [Test]
+        public void UpdateLicense_DuplicateCode_ThrowsArgumentException()
+        {
+            // Arrange
+            var license = new DriverLicense
+            {
+                DriverLicenseId = 1,
+                Code = "LICENSE002", // This code already exists in the setup data
+                Class = "B2",
+                Status = "Active",
+                UserId = 1
+            };
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _repository.UpdateLicense(license));
+            Assert.That(ex!.Message, Does.Contain("Mã số bằng lái đã tồn tại"));
+        }
+
         [Test]
         public async Task GetLicensesByUserId_ValidUserId_ReturnsMatchingRecords()
         {
@@ -331,8 +367,8 @@ namespace TestProject.UserTest
             // Assert
             Assert.Multiple(() =>
             {
-                Assert.That(result.Count(), Is.EqualTo(2));
-                Assert.That(result.All(l => l.UserId == 1));
+                Assert.That(result!.Count(), Is.EqualTo(2));
+                Assert.That(result!.All(l => l.UserId == 1));
             });
         }
         [Test]

@@ -294,5 +294,35 @@ namespace API.Controllers
             var result = await _userService.GetLicenseList( pageNumber, pageSize, filter);
             return Ok(result);
         }
+
+        //[Authorize("Operator")]
+        [AllowAnonymous]
+        [HttpPut("driver-licenses/{licenseCode}/update-operator")]
+        public async Task<IActionResult> UpdateDriverLicenseOperator(string licenseCode, [FromBody] UpdateDriverLicenseOperatorRequest request)
+        {
+            try
+            {
+                await _userService.UpdateDriverlicenseOperator(licenseCode, request.NewCode, request.Fullname, request.Level);
+                return Ok(new { result = "Driver license updated successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = ex.Message,
+                    Status = 404
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Status = 500
+                });
+            }
+        }
     }
 }

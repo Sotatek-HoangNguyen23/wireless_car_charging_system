@@ -136,6 +136,42 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật thông tin bằng lái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm">
+                    <div class="mb-3">
+                        <label for="updateFullname" class="form-label">Họ tên</label>
+                        <input type="text" class="form-control" id="updateFullname" required>
+                    </div> 
+                    <div class="mb-3">
+                        <label for="updateCode" class="form-label">Ma so bang lai</label>
+                        <input type="text" class="form-control" id="updateCode" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="updateLevel" class="form-label">Hạng bằng</label>
+                        <select class="form-select" id="updateLevel" required>
+                            <option value="A1">A1</option>
+                            <option value="B1">B1</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="updateLicenseCode">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="submitUpdate()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="error-toast" class="custom-toast">
     <div class="toast-progress"></div>
     <i class="bi bi-exclamation-circle-fill toast-icon"></i>
@@ -239,6 +275,9 @@
                             <i class="fas fa-eye me-1"></i>Chi tiết
                         </button>
                         ${actionButton}
+                        <button class="btn btn-sm btn-warning" onclick="openUpdateModal('${license.licenseNumber}', '${license.user.fullname}', '${license.class}')">
+                            <i class="fas fa-edit me-1"></i>Cập nhật
+                        </button>
                     </td>
                 </tr>
             `;
@@ -250,6 +289,68 @@
         document.getElementById('licenseTable').style.display = 'block';
         document.getElementById('emptyMessage').style.display = 'none';
     }
+    function openUpdateModal(licenseCode, fullname, level) {
+        const updateLicenseCodeElement = document.getElementById('updateLicenseCode');
+        const updateCodeElement = document.getElementById('updateCode');
+        const updateFullnameElement = document.getElementById('updateFullname');
+        const updateLevelElement = document.getElementById('updateLevel');
+
+        updateLicenseCodeElement.value = licenseCode;
+        updateCodeElement.value = licenseCode;
+        updateFullnameElement.value = fullname;
+        updateLevelElement.value = level;
+
+        // Store the original values in data attributes
+        updateLicenseCodeElement.dataset.originalValue = licenseCode;
+        updateFullnameElement.dataset.originalValue = fullname;
+        updateLevelElement.dataset.originalValue = level;
+
+        new bootstrap.Modal(document.getElementById('updateModal')).show();
+    }
+
+    async function submitUpdate() {
+        const licenseCode = document.getElementById('updateLicenseCode').value;
+        const licenseCodeupdate = document.getElementById('updateCode').value;
+        const fullname = document.getElementById('updateFullname').value;
+        const level = document.getElementById('updateLevel').value;
+
+        // Get the original values from the modal's data attributes
+        const originalLicenseCode = document.getElementById('updateLicenseCode').dataset.originalValue;
+        const originalFullname = document.getElementById('updateFullname').dataset.originalValue;
+        const originalLevel = document.getElementById('updateLevel').dataset.originalValue;
+
+        // Check if the data has changed
+        if (licenseCodeupdate === originalLicenseCode && fullname === originalFullname && level === originalLevel) {
+            const updateModal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+            updateModal.hide();
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}/update-operator`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ newCode: licenseCodeupdate, Fullname: fullname, Level: level })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            showSuccessToast("Cập nhật thành công!");
+            const updateModal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+            updateModal.hide();
+            await loadLicenses(currentPage);
+        } catch (error) {
+            showToast(error.message);
+            console.error('Error updating license:', error);
+        }
+    }
+
+
 
     function renderPagination(totalPages) {
         const pagination = document.getElementById('pagination');
@@ -437,4 +538,6 @@
     window.viewDetail = viewDetail;
     window.deactivateLicense = deactivateLicense;
     window.loadLicenses = loadLicenses;
+    window.openUpdateModal = openUpdateModal;
+    window.submitUpdate = submitUpdate;
 </script>

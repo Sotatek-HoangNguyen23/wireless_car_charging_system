@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace DataAccess.DTOs.UserDTO
 {
+    public class UpdateDriverLicenseOperatorRequest
+    {
+        public required string NewCode { get; set; }
+        public required string Fullname { get; set; }
+        public required string Level { get; set; }
+    }
+
     public class DriverLicenseRequest
     {
         public required string LicenseNumber { get; set; }

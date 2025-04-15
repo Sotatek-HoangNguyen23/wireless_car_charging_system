@@ -72,7 +72,7 @@ builder.Services.AddDbContext<WccsContext>(options =>
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<OtpServices>();
+builder.Services.AddScoped<IOtpServices, OtpServices>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();

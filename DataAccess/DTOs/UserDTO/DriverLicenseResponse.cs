@@ -1,4 +1,5 @@
 ﻿using DataAccess.Models;
+using System;
 
 public class DriverLicenseResponse
 {
@@ -15,28 +16,25 @@ public class DriverLicenseResponse
 
     public DriverLicenseResponse(DriverLicense license, string qrResult)
     {
+        if (license == null) throw new ArgumentNullException(nameof(license));
+        if (license.User == null) throw new ArgumentNullException(nameof(license.User));
         try
         {
             var lines = qrResult.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            LicenseNumber = lines.Length > 0 && !string.IsNullOrEmpty(lines[0]) ? lines[0] : license.Code;
-            FullName = lines.Length > 1 ? lines[1] : "N/A";
+            LicenseNumber = license.Code ?? throw new ArgumentNullException(nameof(license.Code));
+            Class = license.Class ?? throw new ArgumentNullException(nameof(license.Class));
             DateOfBirth = lines.Length > 2 ? lines[2] : "N/A";
-            Class = lines.Length > 3 && !string.IsNullOrEmpty(lines[3]) ? lines[3] : license.Class;
+            FullName = license.User.Fullname ?? throw new ArgumentNullException(nameof(license.User.Fullname));
             Address = lines.Length > 4 ? lines[4] : "N/A";
+            FrontImageUrl = license.ImgFront ?? throw new ArgumentNullException(nameof(license.ImgFront));
+            BackImageUrl = license.ImgBack ?? throw new ArgumentNullException(nameof(license.ImgBack));
+            Status = license.Status ?? throw new ArgumentNullException(nameof(license.Status));
+            CreatedAt = license.CreateAt;
+            UpdatedAt = license.UpdateAt;
         }
-        catch
+        catch (Exception ex)
         {
-            LicenseNumber = license.Code;
-            Class = license.Class;
-            FullName = "N/A";
-            DateOfBirth = "N/A";
-            Address = "N/A";
+            throw new Exception("Error processing license data", ex);
         }
-
-        FrontImageUrl = license.ImgFront;
-        BackImageUrl = license.ImgBack;
-        Status = license.Status;
-        CreatedAt = license.CreateAt;
-        UpdatedAt = license.UpdateAt;
     }
 }

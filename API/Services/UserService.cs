@@ -621,32 +621,33 @@ namespace API.Services
         public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userId)
         {
             var licenses = await _licenseRepository.GetLicensesByUserId(userId);
-            if (licenses == null)
+            if (licenses == null || !licenses.Any())
             {
                 return Enumerable.Empty<DriverLicenseResponse>();
             }
 
-            var result = new List<DriverLicenseResponse>();
+            var activeLicenses = licenses.Where(l => l.Status == "Active").ToList();
+            var responses = new List<DriverLicenseResponse>();
 
-            foreach (var license in licenses.Where(l => l.Status == "Active"))
+            foreach (var license in activeLicenses)
             {
                 try
                 {
                     if (string.IsNullOrEmpty(license.ImgBack))
                     {
-                        throw new ArgumentException("Image back URL is null or empty");
+                        throw new ArgumentNullException(nameof(license.ImgBack), "Image back URL is null or empty");
                     }
-                    var qrContent = await _imageService.ReadQrCodeUrl(license.ImgBack);
-                    result.Add(new DriverLicenseResponse(license, qrContent));
+
+                    var qrResult = await _imageService.ReadQrCodeUrl(license.ImgBack);
+                    responses.Add(new DriverLicenseResponse(license, qrResult));
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error processing license {license.Code}: {ex.Message}");
-                    result.Add(new DriverLicenseResponse(license, ""));
                 }
             }
 
-            return result;
+            return responses;
         }
 
         public async Task DeleteDriverLicenseAsync(string licenseCode)
@@ -695,6 +696,49 @@ namespace API.Services
                 throw;
             }
         }
+
+        public async Task UpdateDriverlicenseOperator(string licenseCode, string newCode, string fullname, string level)
+        {
+            var license = await _licenseRepository.GetLicenseByCode(licenseCode);
+            if (license == null)
+            {
+                throw new ArgumentException("License not found");
+            }
+
+            var user = await _userRepository.GetUserById(license.UserId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            if (!string.IsNullOrEmpty(fullname))
+            {
+                user.Fullname = fullname;
+            }
+            if (!string.IsNullOrEmpty(level))
+            {
+                license.Class = level;
+            }
+            if (!string.IsNullOrEmpty(newCode))
+            {
+                license.Code = newCode;
+            }
+            license.UpdateAt = DateTime.UtcNow;
+
+            using var transaction = await _licenseRepository.BeginTransactionAsync();
+            try
+            {
+                await _userRepository.UpdateUser(user);
+                await _licenseRepository.UpdateLicense(license);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<PagedResultD<DriverLicenseDTO>> GetLicenseList(int pageNumber, int pageSize, DriverLicenseFilter filter)
         {
             if (pageNumber <= 0)

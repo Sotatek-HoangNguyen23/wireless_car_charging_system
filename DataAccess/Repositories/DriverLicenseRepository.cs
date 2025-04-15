@@ -149,6 +149,15 @@ namespace DataAccess.Repositories
             {
                 throw new KeyNotFoundException("Không tìm thấy bằng lái để cập nhật");
             }
+            if (existingLicense.Code != license.Code)
+            {
+                var existingCode = await _context.DriverLicenses
+                    .FirstOrDefaultAsync(dl => dl.Code == license.Code);
+                if (existingCode != null)
+                {
+                    throw new ArgumentException("Mã số bằng lái đã tồn tại", nameof(license.Code));
+                }
+            }
 
             _context.Entry(existingLicense).CurrentValues.SetValues(license);
             await _context.SaveChangesAsync();
@@ -157,6 +166,7 @@ namespace DataAccess.Repositories
         public async Task<IEnumerable<DriverLicense>?> GetLicensesByUserId(int userId)
         {
             return await _context.DriverLicenses
+                .Include(dl => dl.User)
                 .AsNoTracking()
                 .Where(dl => dl.UserId == userId)
                 .ToListAsync();
