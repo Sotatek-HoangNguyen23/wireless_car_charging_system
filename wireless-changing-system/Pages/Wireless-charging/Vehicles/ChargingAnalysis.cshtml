@@ -27,13 +27,13 @@
                         </h2>
                         <div class="license-plate px-3 py-1 rounded fs-5">
                             Biển số xe: <br />
-                            <span class="fw-bold">301 - 567.89</span>
+                            <span class="fw-bold" id="license-plate">Đang cập nhật...</span>
                         </div>
                     </div>
 
                     <div class="battery-status mb-4 d-flex flex-column">
                         <div class="d-flex align-items-center mb-2 text-black">
-                            <i class="bi bi-battery-charging me-2 fs-1"></i>
+                            <i id="battery-icon" class="bi bi-battery-charging me-2 fs-1"></i>
                             <span>% Pin hiện tại</span>
                         </div>
                         <div class="progress" style="height: 25px; width: 80%;">
@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="station-info">
+                    <div class="station-info" style="display: none;">
                         <h3 class="text-black mb-3">
                             <i class="bi bi-ev-station me-2 text-primary"></i>
                             <span id="station-name">Đang cập nhật...</span>
@@ -63,43 +63,91 @@
             <!-- Metrics Grid -->
             <div class="row g-4">
                 <div class="col-lg-3 col-md-6">
-                    <div class="metric-card p-3 bg-light rounded">
+                    <div class="metric-card p-3 bg-light rounded h-100">
                         <i class="bi bi-lightning-charge fs-1 text-warning mb-2"></i>
                         <h5 class="text-muted">Công suất</h5>
-                        <h2 class="text-black" id="charging-power">Đang cập nhật...</h2>
+                        <h2 class="text-black" id="charging-power">--</h2>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="metric-card p-3 bg-light rounded">
+                    <div class="metric-card p-3 bg-light rounded h-100">
                         <i class="bi bi-thermometer-sun fs-1 text-danger mb-2"></i>
                         <h5 class="text-muted">Nhiệt độ</h5>
-                        <h2 class="text-black" id="temperature">Đang cập nhật...</h2>
+                        <h2 class="text-black" id="temperature">--</h2>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="metric-card p-3 bg-light rounded">
+                    <div class="metric-card p-3 bg-light rounded h-100">
                         <i class="bi bi-speedometer2 fs-1 text-primary mb-2"></i>
                         <h5 class="text-muted">Dòng điện</h5>
-                        <h2 class="text-black" id="current">Đang cập nhật...</h2>
+                        <h2 class="text-black" id="current">--</h2>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="metric-card p-3 bg-light rounded">
+                    <div class="metric-card p-3 bg-light rounded h-100">
                         <i class="bi bi-cash-coin fs-1 text-success mb-2"></i>
                         <h5 class="text-muted">Thành tiền</h5>
-                        <h2 class="text-black" id="cost">Đang cập nhật...</h2>
+                        <h2 class="text-black" id="cost">--</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extra Detail Section -->
+            <div id="extra-details" class="row g-4 mt-3 d-none">
+                <div class="col-lg-3 col-md-6">
+                    <div class="metric-card p-3 bg-light rounded h-100">
+                        <i class="bi bi-lightning-fill fs-1 text-primary mb-2"></i>
+                        <h5 class="text-muted">Hiệu điện thế</h5>
+                        <h2 class="text-black" id="voltage">--</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="metric-card p-3 bg-light rounded h-100">
+                        <i class="bi bi-bar-chart-line fs-1 text-info mb-2"></i>
+                        <h5 class="text-muted">Hiệu suất</h5>
+                        <h2 class="text-black" id="efficiency">--</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="metric-card p-3 bg-light rounded h-100">
+                        <i class="bi bi-clock fs-1 text-primary mb-2"></i>
+                        <h5 class="text-muted">Thời gian sạc</h5>
+                        <h2 class="text-black" id="charging-time">--</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="metric-card p-3 bg-light rounded h-100">
+                        <i class="bi bi-lightbulb fs-1 text-warning mb-2"></i>
+                        <h5 class="text-muted">Năng lượng tiêu thụ</h5>
+                        <h2 class="text-black" id="energy-consumed">--</h2>
                     </div>
                 </div>
             </div>
 
             <div class="d-flex justify-content-center mt-3">
-                <button class="btn btn-primary">Xem chi tiết</button>
+                <button id="toggle-detail-btn" class="btn btn-primary">Xem chi tiết</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
+<!-- Modal -->
+<div class="modal fade" id="chargingEndModal" tabindex="-1" aria-labelledby="chargingEndModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header">
+                <h3 class="modal-title" id="chargingEndModalLabel">Quá trình sạc đã kết thúc</h3>
+            </div>
+            <div class="modal-body">
+                Bạn muốn làm gì tiếp theo?
+            </div>
+            <div class="modal-footer">
+                <a href="/wireless-charging/vehicles/charginghistory" class="btn btn-primary">Xem lịch sử sạc</a>
+                <a href="/wireless-charging/vehicles/mycars" class="btn btn-secondary">Quay lại danh sách xe</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
@@ -108,68 +156,111 @@
         .withUrl("https://localhost:7191/realtimeHub")
         .build();
 
-    connection.start().then(() => {
-        console.log("Connected to SignalR hub");
-    }).catch(err => console.error("SignalR error:", err));
+    let previousStatus = null;
+
+    connection.start().then(() => console.log("Connected to SignalR hub"))
+        .catch(err => console.error("SignalR error:", err));
 
     connection.onclose(async () => {
         console.warn("SignalR mất kết nối. Thử lại sau 5s...");
-        setTimeout(() => {
-            connection.start().catch(err => console.error("Kết nối lại thất bại:", err));
-        }, 5000);
+        setTimeout(() => connection.start().catch(err => console.error("Kết nối lại thất bại:", err)), 5000);
     });
 
     connection.on("ReceiveUpdate", () => updateChargingData());
 
     async function updateChargingData() {
         try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const carId = urlParams.get('carId');
+            const carId = new URLSearchParams(window.location.search).get('carId');
             if (!carId) return;
 
             const res = await fetchWithAuth(`https://localhost:7191/api/Car/real-time-status/${carId}`);
             if (!res.ok) throw new Error("Lỗi API trạng thái");
 
             const data = await res.json();
+            const isCharging = data.status === "Charging";
 
+            // Cập nhật trạng thái
             const statusElement = document.getElementById('status');
-            const batteryProgress = document.getElementById('battery-progress');
+            statusElement.textContent = isCharging ? "Đang sạc" : "Mất kết nối";
+            statusElement.className = isCharging ? "badge bg-success ms-2" : "badge bg-secondary ms-2";
 
-            if (data.status === "Charging") {
-                statusElement.textContent = "Đang sạc";
-                statusElement.className = "badge bg-success ms-2";
+            // Xử lý thông tin trạm sạc
+            const stationInfo = document.querySelector('.station-info');
+            stationInfo.style.display = isCharging ? 'block' : 'none';
 
-                document.getElementById('charging-power').textContent = `${data.chargingPower}W`;
-                document.getElementById('temperature').textContent = `${data.temperature}°C`;
-                document.getElementById('current').textContent = `${data.current}A`;
-                document.getElementById('cost').textContent = new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND'
-                }).format(data.cost * 1000);
+            // Xử lý các thông số
+            const elementsToUpdate = {
+                batteryProgress: document.getElementById('battery-progress'),
+                chargingPower: document.getElementById('charging-power'),
+                temperature: document.getElementById('temperature'),
+                current: document.getElementById('current'),
+                cost: document.getElementById('cost'),
+                voltage: document.getElementById('voltage'),
+                efficiency: document.getElementById('efficiency'),
+                chargingTime: document.getElementById('charging-time'),
+                energyConsumed: document.getElementById('energy-consumed'),
+                batteryIcon: document.getElementById('battery-icon'),
+                licensePlate: document.getElementById('license-plate'),
+                stationName: document.getElementById('station-name'),
+                stationAddress: document.getElementById('station-address')
+            };
 
+            if (isCharging) {
+                // Cập nhật giá trị khi đang sạc
                 const batteryPercent = Math.round(data.batteryLevel);
-                batteryProgress.style.width = `${batteryPercent}%`;
-                batteryProgress.textContent = `${batteryPercent}%`;
-                batteryProgress.className = "progress-bar";
-                if (batteryPercent <= 20) batteryProgress.classList.add("bg-danger");
-                else if (batteryPercent <= 40) batteryProgress.classList.add("bg-warning");
-                else batteryProgress.classList.add("bg-success");
-            } else if (data.status === "Disconnected") {
-                statusElement.textContent = "Mất kết nối";
-                statusElement.className = "badge bg-secondary ms-2";
+                elementsToUpdate.batteryProgress.style.width = `${batteryPercent}%`;
+                elementsToUpdate.batteryProgress.textContent = `${batteryPercent}%`;
+                elementsToUpdate.batteryProgress.className = "progress-bar " + (
+                    batteryPercent <= 20 ? "bg-danger" :
+                    batteryPercent <= 40 ? "bg-warning" : "bg-success"
+                );
 
-                batteryProgress.style.width = "0%";
-                batteryProgress.textContent = "Không có dữ liệu";
-                batteryProgress.className = "progress-bar bg-secondary";
+                elementsToUpdate.chargingPower.textContent = `${data.chargingPower}W`;
+                elementsToUpdate.temperature.textContent = `${data.temperature}°C`;
+                elementsToUpdate.current.textContent = `${data.current}A`;
+                elementsToUpdate.cost.textContent = new Intl.NumberFormat('vi-VN', {
+                    style: 'currency', currency: 'VND'
+                }).format(data.cost);
 
-                document.getElementById('charging-power').textContent = "0W";
-                document.getElementById('temperature').textContent = "0°C";
-                document.getElementById('current').textContent = "0A";
-                document.getElementById('cost').textContent = "0 VND";
+                elementsToUpdate.voltage.textContent = `${data.batteryVoltage}V`;
+                const efficiency = data.powerpoint > 0 ? ((data.chargingPower / data.powerpoint) * 100).toFixed(2) : 0;
+                elementsToUpdate.efficiency.textContent = `${efficiency}%`;
+
+                const timeFormatted = (data.chargingTime || "0h 0m 0s")
+                    .replace(/(\d+)h/, '$1 giờ')
+                    .replace(/(\d+)m/, '$1 phút')
+                    .replace(/(\d+)s/, '$1 giây');
+                elementsToUpdate.chargingTime.textContent = timeFormatted;
+                elementsToUpdate.energyConsumed.textContent = `${data.energyConsumed}Wh`;
+                elementsToUpdate.batteryIcon.className = "bi bi-battery-charging me-2 fs-1";
+
+                elementsToUpdate.licensePlate.textContent = data.licensePlate || "--";
+                elementsToUpdate.stationName.textContent = data.stationName || "--";
+                elementsToUpdate.stationAddress.textContent = data.address || "--";
+            } else {
+                // Reset giá trị khi ngắt kết nối
+                elementsToUpdate.batteryProgress.style.width = "0%";
+                elementsToUpdate.batteryProgress.textContent = "--";
+                elementsToUpdate.batteryProgress.className = "progress-bar bg-secondary";
+
+                elementsToUpdate.chargingPower.textContent = "--";
+                elementsToUpdate.temperature.textContent = "--";
+                elementsToUpdate.current.textContent = "--";
+                elementsToUpdate.cost.textContent = "--";
+                elementsToUpdate.voltage.textContent = "--";
+                elementsToUpdate.efficiency.textContent = "--";
+                elementsToUpdate.chargingTime.textContent = "--";
+                elementsToUpdate.energyConsumed.textContent = "--";
+                elementsToUpdate.batteryIcon.className = "bi bi-battery me-2 fs-1";
+                elementsToUpdate.licensePlate.textContent = "--";
             }
 
-            document.getElementById('station-name').textContent = data.stationName || "Chưa có dữ liệu";
-            document.getElementById('station-address').textContent = data.address || "Chưa có dữ liệu";
+            // Xử lý modal khi ngắt kết nối
+            if (previousStatus === "Charging" && !isCharging) {
+                const modal = new bootstrap.Modal(document.getElementById('chargingEndModal'));
+                modal.show();
+            }
+            previousStatus = data.status;
 
         } catch (error) {
             console.error('Lỗi khi cập nhật dữ liệu:', error);
@@ -179,6 +270,19 @@
     }
 
     updateChargingData();
+
+    // Toggle Detail Button
+    document.getElementById('toggle-detail-btn').addEventListener('click', () => {
+        const detailSection = document.getElementById('extra-details');
+        const btn = document.getElementById('toggle-detail-btn');
+        if (detailSection.classList.contains('d-none')) {
+            detailSection.classList.remove('d-none');
+            btn.textContent = "Rút gọn";
+        } else {
+            detailSection.classList.add('d-none');
+            btn.textContent = "Xem chi tiết";
+        }
+    });
 </script>
 
 <style>

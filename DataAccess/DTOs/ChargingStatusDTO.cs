@@ -21,6 +21,8 @@ namespace DataAccess.DTOs
 
         public string Address { get; set; } = null!;
 
+        public string LicensePlate { get; set; }
+
         public string? Status { get; set; }
 
         public string? BatteryLevel { get; set; }
@@ -32,6 +34,10 @@ namespace DataAccess.DTOs
 
 
         public string? Current { get; set; }
+        //more info
+        public string? Powerpoint { get; set; }
+        public string? BatteryVoltage { get; set; }
+
 
         public DateTime? TimeMoment { get; set; }
         public string? ChargingTime { get; set; }
