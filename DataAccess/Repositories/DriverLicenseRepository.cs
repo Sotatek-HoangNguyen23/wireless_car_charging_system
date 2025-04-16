@@ -52,6 +52,8 @@ namespace DataAccess.Repositories
 
             var totalCount = await query.CountAsync();
             var items = await query
+                    .Include(c=>c.User.Role)
+                    .Where(c => c.User.Role.RoleName == "Driver" || c.User.Role.RoleName == "Station Owner")
                    .OrderByDescending(dl => dl.CreateAt)
                    .Skip((pageNumber - 1) * pageSize)
                    .Take(pageSize)

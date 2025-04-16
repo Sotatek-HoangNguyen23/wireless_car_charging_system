@@ -20,6 +20,11 @@ namespace API.Services
         private readonly IBalancement _balanceRepository;
         private readonly ImageService _imageService;
         private readonly IOtpServices _otpServices;
+        private readonly Random _random = new Random();
+        private readonly string[] _streets = { "Nguyễn Huệ", "Lê Lợi", "Hai Bà Trưng", "Trần Hưng Đạo" };
+        private readonly string[] _cities = { "Hà Nội", "TP.HCM", "Đà Nẵng", "Cần Thơ" };
+        private readonly string[] _firstNames = { "An", "Bình", "Chi", "Dũng", "Giang" };
+        private readonly string[] _lastNames = { "Nguyễn", "Trần", "Lê", "Phạm", "Hoàng" };
         public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, IOtpServices otpServices, IDriverLicenseRepository licenseRepository, IBalancement balanceRepository)
         {
             _userRepository = userRepository;
@@ -169,7 +174,78 @@ namespace API.Services
                 throw new Exception("Đăng ký thất bại", ex);
             }
         }
+        public async Task CreateTestAccount(string email, string password, int roleId)
+        {
+            // Validation logic giữ nguyên
+            if (string.IsNullOrWhiteSpace(email) || email.Length > 256)
+                throw new ArgumentException("Email tối đa 256 ký tự");
 
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8 || password.Length > 128)
+                throw new ArgumentException("Mật khẩu phải có từ 8 đến 128 ký tự");
+
+            var existingEmail = await _userRepository.GetUserByEmail(email);
+            if (existingEmail != null)
+            {
+                throw new InvalidOperationException("Email đã tồn tại");
+            }
+
+            // Tạo thông tin ngẫu nhiên
+            var user = new User
+            {
+                Fullname = $"{_lastNames[_random.Next(_lastNames.Length)]} {_firstNames[_random.Next(_firstNames.Length)]}",
+                PhoneNumber = GenerateRandomPhoneNumber(),
+                Dob = GenerateRandomBirthDate(),
+                Gender = _random.Next(2) == 0,
+                Address = $"{_random.Next(1, 999)} {_streets[_random.Next(_streets.Length)]}, {_cities[_random.Next(_cities.Length)]}",
+                Status = "Active",
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                RoleId = roleId,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow
+            };
+
+            await _userRepository.SaveUser(user);
+            var cccd = new Cccd
+            {
+                UserId = user.UserId,
+                Code = GenerateRandomCccd(),
+                ImgFront = "https://example.com/front.jpg",
+                ImgBack = "https://example.com/back.jpg",
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow
+            };
+            await _cccdRepository.SaveCccd(cccd);
+            var balance = new Balance
+            {
+                UserId = user.UserId,
+                Balance1 = 0,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow
+            };
+            await _balanceRepository.AddBalance(balance);
+        }
+
+        private string GenerateRandomCccd()
+        {
+            return _random.Next(100000000, 999999999).ToString();
+        }
+
+        private string GenerateRandomPhoneNumber()
+        {
+            return "0" + _random.Next(100000000, 999999999).ToString();
+        }
+
+        private DateTime GenerateRandomBirthDate()
+        {
+            int startYear = DateTime.Now.Year - 80;
+            int endYear = DateTime.Now.Year - 18;
+            int year = _random.Next(startYear, endYear);
+            int month = _random.Next(1, 13);
+            int day = _random.Next(1, DateTime.DaysInMonth(year, month) + 1);
+
+            return new DateTime(year, month, day);
+        }
         private void ValidateRegisterRequest(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Fullname) || request.Fullname.Length > 100)
@@ -792,7 +868,10 @@ namespace API.Services
             }
             return await _userRepository.GetFeedbackByUserId(userId);
         }
-
+        public async Task DeleteUserReal(int userId)
+        {
+            await _userRepository.DeleteUserReal(userId);
+        }
         private bool IsEmailCorrect(string email)
         {
             string regex = @"^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$";

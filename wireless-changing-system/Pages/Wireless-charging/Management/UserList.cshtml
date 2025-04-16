@@ -46,17 +46,24 @@
         </div>
 
         <!-- Role Selection -->
-        <ul class="nav nav-pills role-tabs">
-            <li class="nav-item">
-                <a class="nav-link" data-role="3" id="operator-btn">Người điều hành</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" data-role="2">Chủ trạm sạc</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-role="1">Lái xe</a>
-            </li>
-        </ul>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <ul class="nav nav-pills role-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" data-role="3" id="operator-btn">Người điều hành</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" data-role="2">Chủ trạm sạc</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-role="1">Lái xe</a>
+                </li>
+            </ul>
+
+            <!-- Nút tạo tài khoản -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+                Tạo tài khoản
+            </button>
+        </div>
 
         <div class="tab-content">
             <div class="tab-pane fade show active" id="stationOwner">
@@ -100,170 +107,254 @@
             </div>
         </div>
     </div>
+    <!-- Modal tạo tài khoản -->
+    <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAccountModalLabel">Tạo tài khoản mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="accountForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Vai trò</label>
+                            <select class="form-select" id="role" required>
+                                <option value="5">Lái xe</option>
+                                <option value="6">Chủ trạm sạc</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" form="accountForm" id="btncreatetest" class="btn btn-primary">Tạo tài khoản</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        let currentPage = 1;
-        let pageSize = 5;
-        let currentRoleId = 2; // Mặc định Station Owner
-        let currentStatus = "";
-        let searchQuery = "";
-        const role = sessionStorage.getItem("role");
+                let currentPage = 1;
+                let pageSize = 5;
+                let currentRoleId = 2; // Mặc định Station Owner
+                let currentStatus = "";
+                let searchQuery = "";
+                const role = sessionStorage.getItem("role");
 
-        // Gọi API để lấy danh sách user
-        function fetchUsers(page = 1) {
-            let url = `https://localhost:7191/api/User?searchQuery=${searchQuery}&roleId=${currentRoleId}&status=${currentStatus}&pageNumber=${page}&pageSize=${pageSize}`;
+                // Gọi API để lấy danh sách user
+                function fetchUsers(page = 1) {
+                    let url = `https://localhost:7191/api/User?searchQuery=${searchQuery}&roleId=${currentRoleId}&status=${currentStatus}&pageNumber=${page}&pageSize=${pageSize}`;
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    updateUserTable(data.data);
-                    updatePagination(data.totalPages, page);
-                })
-                .catch(error => console.error("Error fetching users:", error));
-        }
-
-        // Cập nhật bảng hiển thị danh sách user
-        function updateUserTable(users) {
-            let tableBody = document.getElementById("userTableBody");
-            tableBody.innerHTML = "";
-
-            users.forEach(user => {
-                let statusBadge = user.status === "Active"
-                    ? '<span class="badge bg-success">Hoạt động</span>'
-                    : '<span class="badge bg-danger">Bị chặn</span>';
-
-                let row = `
-                    <tr>
-                        <td>${user.userId}</td>
-                        <td>${user.fullname}</td>
-                        <td>${user.email}</td>
-                        <td>${user.phoneNumber}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm change-status-btn"
-                                    data-id="${user.userId}" data-status="${user.status}">
-                                Chuyển trạng thái
-                            </button>
-                            <button class="btn btn-info btn-sm view-feedback-btn"
-                                    data-id="${user.userId}">
-                                Xem góp ý
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-        }
-
-        // Cập nhật phân trang
-        function updatePagination(totalPages, currentPage) {
-            let pagination = document.querySelector(".pagination");
-            pagination.empty();
-            pagination.innerHTML = "";
-
-            let prevClass = currentPage === 1 ? "disabled" : "";
-            pagination.innerHTML += `<li class="page-item ${prevClass}">
-                <a class="page-link" href="#" onclick="fetchUsers(${currentPage - 1})">Trước</a>
-            </li>`;
-
-            for (let i = 1; i <= totalPages; i++) {
-                let activeClass = i === currentPage ? "active" : "";
-                pagination.innerHTML += `<li class="page-item ${activeClass}">
-                    <a class="page-link" href="#" onclick="fetchUsers(${i})">${i}</a>
-                </li>`;
-            }
-
-            let nextClass = currentPage === totalPages ? "disabled" : "";
-            pagination.innerHTML += `<li class="page-item ${nextClass}">
-                <a class="page-link" href="#" onclick="fetchUsers(${currentPage + 1})">Sau</a>
-            </li>`;
-        }
-
-        // Xử lý khi người dùng nhập vào ô search
-        document.getElementById("searchName").addEventListener("input", function () {
-            searchQuery = this.value;
-            fetchUsers(1);
-        });
-
-        // Xử lý khi người dùng chọn trạng thái
-        document.getElementById("searchStatus").addEventListener("change", function () {
-            currentStatus = this.value;
-            fetchUsers(1);
-        });
-
-        // Xử lý chọn Role
-        document.querySelectorAll(".role-tabs .nav-link").forEach(roleTab => {
-            roleTab.addEventListener("click", function () {
-                document.querySelector(".role-tabs .nav-link.active").classList.remove("active");
-                this.classList.add("active");
-
-                currentRoleId = this.getAttribute("data-role"); // Lấy roleId từ data-role
-                fetchUsers(1);
-            });
-        });
-
-        // Change Status
-        document.addEventListener("click", function (e) {
-            if (e.target.classList.contains("change-status-btn")) {
-                let userId = e.target.getAttribute("data-id");
-                let newStatus = e.target.getAttribute("data-status") === "Active" ? "Blocked" : "Active";
-
-                fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newStatus)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    showToast("Đã cập nhật trạng thái")
-                    setTimeout(function () {
-                        fetchUsers(); // Reload danh sách user
-                    }, 1000)
-                });
-            }
-        });
-
-        $(document).on("click", ".view-feedback-btn", function () {
-            let userId = $(this).data("id");
-
-            $.ajax({
-                url: `https://localhost:7191/api/User/Feedback/${userId}`,
-                method: "GET",
-                success: function (data) {
-                    $("#feedbackUser").text( userId);
-                    let feedbackHtml = "";
-                    data.forEach(feedback => {
-                        feedbackHtml += `
-                            <div class="card mb-2">
-                                <div class="card-body">
-                                    <p>${feedback.message}</p>
-                                    <small class="text-muted">${new Date(feedback.createdAt).toLocaleString()}</small>
-                                </div>
-                            </div>`;
-                    });
-                    $("#feedbackList").html(feedbackHtml);
-                    $("#feedbackModal").modal("show");
-                },
-                error: function () {
-                    $("#feedbackList").html("<p class='text-danger'>No feedback available.</p>");
-                    $("#feedbackModal").modal("show");
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            updateUserTable(data.data);
+                            updatePagination(data.totalPages, page);
+                        })
+                        .catch(error => console.error("Error fetching users:", error));
                 }
+
+                // Cập nhật bảng hiển thị danh sách user
+                function updateUserTable(users) {
+                    let tableBody = document.getElementById("userTableBody");
+                    tableBody.innerHTML = "";
+
+                    users.forEach(user => {
+                        let statusBadge = user.status === "Active"
+                            ? '<span class="badge bg-success">Hoạt động</span>'
+                            : '<span class="badge bg-danger">Bị chặn</span>';
+
+                        let row = `
+                            <tr>
+                                <td>${user.userId}</td>
+                                <td>${user.fullname}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phoneNumber}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm change-status-btn"
+                                            data-id="${user.userId}" data-status="${user.status}">
+                                        Chuyển trạng thái
+                                    </button>
+                                    <button class="btn btn-info btn-sm view-feedback-btn"
+                                            data-id="${user.userId}">
+                                        Xem góp ý
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                }
+
+                // Cập nhật phân trang
+                function updatePagination(totalPages, currentPage) {
+                    let pagination = document.querySelector(".pagination");
+                    pagination.empty();
+                    pagination.innerHTML = "";
+
+                    let prevClass = currentPage === 1 ? "disabled" : "";
+                    pagination.innerHTML += `<li class="page-item ${prevClass}">
+                        <a class="page-link" href="#" onclick="fetchUsers(${currentPage - 1})">Trước</a>
+                    </li>`;
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        let activeClass = i === currentPage ? "active" : "";
+                        pagination.innerHTML += `<li class="page-item ${activeClass}">
+                            <a class="page-link" href="#" onclick="fetchUsers(${i})">${i}</a>
+                        </li>`;
+                    }
+
+                    let nextClass = currentPage === totalPages ? "disabled" : "";
+                    pagination.innerHTML += `<li class="page-item ${nextClass}">
+                        <a class="page-link" href="#" onclick="fetchUsers(${currentPage + 1})">Sau</a>
+                    </li>`;
+                }
+
+                // Xử lý khi người dùng nhập vào ô search
+                document.getElementById("searchName").addEventListener("input", function () {
+                    searchQuery = this.value;
+                    fetchUsers(1);
+                });
+
+                // Xử lý khi người dùng chọn trạng thái
+                document.getElementById("searchStatus").addEventListener("change", function () {
+                    currentStatus = this.value;
+                    fetchUsers(1);
+                });
+
+                // Xử lý chọn Role
+                document.querySelectorAll(".role-tabs .nav-link").forEach(roleTab => {
+                    roleTab.addEventListener("click", function () {
+                        document.querySelector(".role-tabs .nav-link.active").classList.remove("active");
+                        this.classList.add("active");
+
+                        currentRoleId = this.getAttribute("data-role"); // Lấy roleId từ data-role
+                        fetchUsers(1);
+                    });
+                });
+
+                // Change Status
+                document.addEventListener("click", function (e) {
+                    if (e.target.classList.contains("change-status-btn")) {
+                        let userId = e.target.getAttribute("data-id");
+                        let newStatus = e.target.getAttribute("data-status") === "Active" ? "Blocked" : "Active";
+
+                        fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newStatus)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            showToast("Đã cập nhật trạng thái")
+                            setTimeout(function () {
+                                fetchUsers(); // Reload danh sách user
+                            }, 1000)
+                        });
+                    }
+                });
+
+                $(document).on("click", ".view-feedback-btn", function () {
+                    let userId = $(this).data("id");
+
+                    $.ajax({
+                        url: `https://localhost:7191/api/User/Feedback/${userId}`,
+                        method: "GET",
+                        success: function (data) {
+                            $("#feedbackUser").text( userId);
+                            let feedbackHtml = "";
+                            data.forEach(feedback => {
+                                feedbackHtml += `
+                                    <div class="card mb-2">
+                                        <div class="card-body">
+                                            <p>${feedback.message}</p>
+                                            <small class="text-muted">${new Date(feedback.createdAt).toLocaleString()}</small>
+                                        </div>
+                                    </div>`;
+                            });
+                            $("#feedbackList").html(feedbackHtml);
+                            $("#feedbackModal").modal("show");
+                        },
+                        error: function () {
+                            $("#feedbackList").html("<p class='text-danger'>No feedback available.</p>");
+                            $("#feedbackModal").modal("show");
+                        }
+                    });
+                });
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    const role = sessionStorage.getItem("role");
+                    if (role === "Operator") {
+                        const addButton = document.getElementById("operator-btn");
+                            addButton.style.display = "none";
+                    }
+
+                    const createAccountForm = document.getElementById('accountForm');
+                    const createAccountModal = new bootstrap.Modal('#createAccountModal');
+
+
+                    // Cập nhật phần submit form
+                    createAccountForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const submitBtn = document.getElementById('btncreatetest');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+
+                    try {
+                        const formData = {
+                            email: document.getElementById('email').value,
+                            password: document.getElementById('password').value,
+                            roleId: parseInt(document.getElementById('role').value)
+                        };
+
+                        // Validation cơ bản
+                        if (!formData.email || !formData.password) {
+                            throw new Error('Vui lòng điền đầy đủ thông tin');
+                        }
+
+                        const response = await fetch('https://localhost:7191/api/Test/create-test-user', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `Lỗi: ${response.statusText}`);
+                        }
+
+                        createAccountModal.hide();
+                         this.reset();
+
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Tạo tài khoản';
+                    }
+                });
             });
         });
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const role = sessionStorage.getItem("role");
-            if (role === "Operator") {
-                const addButton = document.getElementById("operator-btn");
-                    addButton.style.display = "none";
-            }
-        });
-
-
-        // Khởi động lần đầu
-        document.addEventListener("DOMContentLoaded", () => {
-            fetchUsers();
-        });
+                // Khởi động lần đầu
+                document.addEventListener("DOMContentLoaded", () => {
+                    fetchUsers();
+                });
     </script>
 
 </body>

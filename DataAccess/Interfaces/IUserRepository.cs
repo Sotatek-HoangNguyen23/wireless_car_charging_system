@@ -29,6 +29,7 @@ namespace DataAccess.Interfaces
         Task ChangeUserStatusAsync(int userId, string newStatus);
         PagedResult<FeedbackDto> GetFeedbacks(string?search, DateTime? startDate, DateTime? endDate, int page, int pageSize);
         Task<List<Feedback>> GetFeedbackByUserId(int userId);
+        Task DeleteUserReal(int userId);
 
     }
 }
