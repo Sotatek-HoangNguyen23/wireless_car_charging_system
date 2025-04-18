@@ -19,8 +19,6 @@
                 <label for="searchType" class="form-label">Loại xe</label>
                 <select id="searchType" class="form-control">
                     <option value="">Tất cả</option>
-                    <option value="Car">Xe</option>
-                    <option value="Station">Trạm sạc</option>
                 </select>
             </div>
 
@@ -28,8 +26,6 @@
                 <label for="searchBrand" class="form-label">Hãng xe</label>
                 <select id="searchBrand" class="form-control">
                     <option value="">Tất cả</option>
-                    <option value="Car">Xe</option>
-                    <option value="Station">Trạm sạc</option>
                 </select>
             </div>
 
@@ -53,6 +49,7 @@
                             <th>ID</th>
                             <th>Tên xe</th>
                             <th>Biển số</th>
+                            <th>Chủ sở hữu</th>
                             <th>Loại xe</th>
                             <th>Hãng xe</th>
                             <th>Trạng thái</th>
@@ -71,28 +68,52 @@
     </nav>
 </div>
 
-<!-- Modal Xác nhận xử lý -->
-<div class="modal fade" id="confirmProcessModal" tabindex="-1" aria-labelledby="confirmProcessModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Modal xem chi tiết xe -->
+<div class="modal fade" id="carDetailModal" tabindex="-1" aria-labelledby="carDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xử lý</h5>
+                <h5 class="modal-title" id="carDetailModalLabel">Chi tiết xe</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn đánh dấu phản hồi này là <strong>đã xử lý</strong>?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                <button type="button" class="btn btn-primary" id="confirmProcessBtn">Xác nhận</button>
+                <!-- Phần chi tiết Car -->
+                <h6>Thông tin xe</h6>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Tên xe</th><td id="carNameDetail"></td></tr>
+                        <tr><th>Biển số</th><td id="licensePlateDetail"></td></tr>
+                        <tr><th>Chủ sở hữu</th><td id="ownerDetail"></td></tr>
+                        <tr><th>Email</th><td id="emailDetail"></td></tr>
+                        <tr><th>Trang thái</th><td id="licensePlateDetail"></td></tr>                      
+                    </tbody>
+                </table>
+
+                <!-- Phần chi tiết Car Model -->
+                <h6>Thông tin dòng xe</h6>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Hãng</th><td id="brandDetail"></td></tr>
+                        <tr><th>Loại</th><td id="typeDetail"></td></tr>
+                        <tr><th>Màu sắc</th><td id="colorDetail"></td></tr>
+                        <tr><th>Số ghế</th><td id="seatNumberDetail"></td></tr>
+                        <tr><th>Dung lượng pin</th><td id="batteryCapacityDetail"></td></tr>
+                        <tr><th>Công suất sạc tối đa</th><td id="maxChargingPowerDetail"></td></tr>
+                        <tr><th>Tiêu chuẩn sạc</th><td id="chargingStandardDetail"></td></tr>
+                        <tr><th>Quãng đường trung bình</th><td id="averageRangeDetail"></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         $(document).ready(function () {
+            loadFilterOptions()
+
             let currentPage = 1;
             const pageSize = 10;
 
@@ -129,18 +150,20 @@
                 }
 
                 feedbacks.forEach(f => {
-
                     tbody.append(`
-                            <tr>
-                                <td>${f.carId}</td>
-                                <td>${f.carName}</td>
-                                <td>${f.licensePlate}</td>
-                                <td>${f.type}</td>
-                                <td>${f.brand }</td>
-                                <td>${f.isDeleted}</td>
-                                <td></td>
-                            </tr>
-                        `);
+                        <tr>
+                            <td>${f.carId}</td>
+                            <td>${f.carName}</td>
+                            <td>${f.licensePlate}</td>
+                            <td>${f.owner}</td>
+                            <td>${f.type}</td>
+                            <td>${f.brand }</td>
+                            <td>${f.isDeleted}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm view-car-detail" data-car='${JSON.stringify(f)}'>Chi tiết</button>
+                            </td>
+                        </tr>
+                    `);
                 });
             }
 
@@ -167,35 +190,61 @@
 
             loadFeedbacks();
 
-            let selectedFeedbackId = null;
+            $(document).on("click", ".view-car-detail", function () {
+                const car = $(this).data("car");
 
-            // Gán sự kiện khi click nút "Xác nhận đã xử lý"
-            $("#userTableBody").on("click", ".confirm-btn", function () {
-                selectedFeedbackId = $(this).data("id");
-                $("#confirmProcessModal").modal("show");
+                // Thông tin xe
+                $("#carNameDetail").text(car.carName);
+                $("#licensePlateDetail").text(car.licensePlate);
+                $("#ownerDetail").text(car.owner);
+                $("#emailDetail").text(car.email);
+
+                // Thông tin model
+                $("#brandDetail").text(car.brand);
+                $("#typeDetail").text(car.type);
+                $("#colorDetail").text(car.color);
+                $("#seatNumberDetail").text(car.seatNumber);
+                $("#chargingStandardDetail").text(car.chargingStandard);
+                $("#maxChargingPowerDetail").text(car.maxChargingPower);
+                $("#batteryCapacityDetail").text(car.batteryCapacity);
+                $("#averageRangeDetail").text(car.averageRange);
+
+                // Hiển thị modal
+                $("#carDetailModal").modal("show");
             });
 
-            // Xác nhận cập nhật trạng thái
-            $("#confirmProcessBtn").click(function () {
-                if (!selectedFeedbackId) return;
-
-                $.ajax({
-                    url: `https://localhost:7191/api/Feedback/${selectedFeedbackId}/status`,
-                    type: "PUT",
-                    contentType: "application/json",
-                    data: JSON.stringify({ status: "Processed" }),
-                    success: function () {
-                        $("#confirmProcessModal").modal("hide");
-                        loadFeedbacks(currentPage); // Reload lại bảng
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi khi cập nhật trạng thái", xhr);
-                        alert("Cập nhật thất bại!");
-                    }
-                });
-            });
         });
     });
+
+    function loadFilterOptions() {
+        $.ajax({
+            url: "https://localhost:7191/api/Car/filter-options",
+            method: "GET",
+            success: function (data) {
+                const { brands, types } = data;
+
+                const brandSelect = $("#searchBrand");
+                const typeSelect = $("#searchType");
+
+                // Reset option
+                brandSelect.html('<option value="">Tất cả</option>');
+                typeSelect.html('<option value="">Tất cả</option>');
+
+                // Append brand
+                brands.forEach(b => {
+                    brandSelect.append(`<option value="${b}">${b}</option>`);
+                });
+
+                // Append type
+                types.forEach(t => {
+                    typeSelect.append(`<option value="${t}">${t}</option>`);
+                });
+            },
+            error: function () {
+                alert("Không thể tải dữ liệu filter.");
+            }
+        });
+    }
 
     // Hiển thị phân trang
     function renderPagination(totalPages, currentPage) {

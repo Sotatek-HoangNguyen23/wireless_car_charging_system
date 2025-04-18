@@ -211,5 +211,12 @@ namespace API.Controllers
             var result = _carService.GetAllCars(search, type, branch, status, page, pageSize);
             return Ok(result);
         }
+
+        [HttpGet("filter-options")]
+        public IActionResult GetFilterOptions()
+        {
+            var result = _carService.GetFilterOptions();
+            return Ok(result);
+        }
     }
 }

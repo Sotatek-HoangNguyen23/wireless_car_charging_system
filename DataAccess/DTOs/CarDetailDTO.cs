@@ -14,7 +14,8 @@ namespace DataAccess.DTOs
         public bool? IsDeleted { get; set; }
         public DateTime? CarCreateAt { get; set; }
         public DateTime? CarUpdateAt { get; set; }
-
+        public string? Owner { get; set; }
+        public string? Email { get; set; }
         public int CarModelId { get; set; }
         public string? Type { get; set; }
         public string? Color { get; set; }
@@ -28,5 +29,12 @@ namespace DataAccess.DTOs
         public DateTime? ModelCreateAt { get; set; }
         public DateTime? ModelUpdateAt { get; set; }
     }
+
+    public class CarFilterOptionsDto
+    {
+        public List<string> Brands { get; set; }
+        public List<string> Types { get; set; }
+    }
+
 }
 

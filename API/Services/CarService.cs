@@ -110,5 +110,14 @@ namespace API.Services
         {
             return _myCars.GetAllCars(search, type, brand, status, page, pageSize);
         }
+
+        public CarFilterOptionsDto GetFilterOptions()
+        {
+            return new CarFilterOptionsDto
+            {
+                Brands = _myCars.GetAllBrands(),
+                Types = _myCars.GetAllTypes()
+            };
+        }
     }
 }

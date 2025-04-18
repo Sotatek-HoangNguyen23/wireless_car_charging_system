@@ -4,7 +4,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="mb-3">Phản hồi của lái xe</h2>
+    <h2 class="mb-3">Quản lý phản hồi</h2>
 
     <!-- Thanh Search -->
     <div class="filter-section p-2  rounded">
@@ -150,7 +150,7 @@
                                 <td>${f.point ?? '✖'}</td>
                                 <td>${f.message}</td>
                                 <td>${new Date(f.date).toLocaleDateString()}</td>
-                                <td>${f.status}</td>
+                                <td>${f.status === "Pending" ? "Chờ xử lí" : f.status === "Processed" ? "Đã xử lí" : f.status}</td>
                                 <td>${actionBtn}</td>
                             </tr>
                         `);

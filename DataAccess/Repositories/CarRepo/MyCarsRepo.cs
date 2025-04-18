@@ -316,6 +316,14 @@ namespace DataAccess.Repositories.CarRepo
                     CarName = f.CarName,
                     LicensePlate = f.LicensePlate,
                     IsDeleted = f.IsDeleted,
+                    Owner = f.UserCars
+                        .Where(uc => uc.Role == "Owner")
+                        .Select(uc => uc.User.Fullname)
+                        .FirstOrDefault(),
+                    Email = f.UserCars
+                        .Where(uc => uc.Role == "Owner")
+                        .Select(uc => uc.User.Email)
+                        .FirstOrDefault(),
                     Type = f.CarModel.Type,
                     Color = f.CarModel.Color,
                     SeatNumber = f.CarModel.SeatNumber,
@@ -323,7 +331,7 @@ namespace DataAccess.Repositories.CarRepo
                     BatteryCapacity = f.CarModel.BatteryCapacity,
                     MaxChargingPower = f.CarModel.MaxChargingPower,
                     AverageRange = f.CarModel.AverageRange,
-                    ChargingStandard = f.CarModel.Type,
+                    ChargingStandard = f.CarModel.ChargingStandard,
                     Img = f.CarModel.Type,
                 });
 
@@ -331,6 +339,22 @@ namespace DataAccess.Repositories.CarRepo
             var data = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             return new PagedResult<CarDetailDTO>(data, totalCount, pageSize);
+        }
+
+        public List<string?> GetAllBrands()
+        {
+            return _context.CarModels
+                .Select(m => m.Brand)
+                .Distinct()
+                .ToList();
+        }
+
+        public List<string?> GetAllTypes()
+        {
+            return _context.CarModels
+                .Select(m => m.Type)
+                .Distinct()
+                .ToList();
         }
     }
 }

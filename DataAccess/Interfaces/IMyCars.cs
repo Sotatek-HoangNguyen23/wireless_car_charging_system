@@ -39,5 +39,8 @@ namespace DataAccess.Interfaces
         Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role);
 
         PagedResult<CarDetailDTO> GetAllCars(string? search, string? type, string? brand, bool? status, int page, int pageSize);
+
+        List<string?> GetAllBrands();
+        List<string?> GetAllTypes();
     }
 }
