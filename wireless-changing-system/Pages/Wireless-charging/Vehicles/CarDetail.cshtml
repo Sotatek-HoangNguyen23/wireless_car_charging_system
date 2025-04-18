@@ -60,7 +60,7 @@
                 <!-- Action Buttons -->
                 <div class="col-12">
                     <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-lg" onclick="navigateToRentPage()">CHO THUÊ</button>
+                        <button id="rent-btn" class="btn btn-primary btn-lg" onclick="navigateToRentPage()">CHO THUÊ</button>
                         <button class="btn btn-outline-primary btn-lg" onclick="navigateToChargingHistory()">Lịch sử sạc</button>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
     });
 
     // Initial setup
-    document.addEventListener("DOMContentLoaded", async () => {
+        document.addEventListener("DOMContentLoaded", async () => {
         const carId = getCarIdFromUrl();
         if (!carId) {
             console.error("Missing car ID");
@@ -112,9 +112,11 @@
         await startConnection();
         fetchCarDetails(carId);
         fetchRealTimeStatus(carId);
+        checkRentalStatus(carId); // Thêm dòng này
 
         document.querySelector(".del-btn").addEventListener("click", () => deleteCar(carId));
     });
+
 
     // Helper functions
     function getCarIdFromUrl() {
@@ -154,6 +156,26 @@
         } catch (error) {
             console.error("Fetch Real-time Status Error:", error);
             document.getElementById("real-time-status").style.display = "none";
+        }
+    }
+        async function checkRentalStatus(carId) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/is-being-rented?carId=${carId}`);
+            if (!response.ok) throw new Error(await response.text());
+
+            const isBeingRented = await response.json();
+           const rentBtn = document.getElementById("rent-btn");
+
+
+            if (isBeingRented) {
+                rentBtn.textContent = "ĐANG ĐƯỢC THUÊ";
+                rentBtn.classList.remove("btn-primary");
+                rentBtn.classList.add("btn-danger");
+                rentBtn.disabled = true;
+                rentBtn.onclick = null;
+            }
+        } catch (error) {
+            console.error("Rental Status Fetch Error:", error);
         }
     }
 

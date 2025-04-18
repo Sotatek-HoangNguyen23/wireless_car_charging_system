@@ -3,6 +3,7 @@ using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using System.Text.RegularExpressions;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace API.Services
 {
@@ -113,7 +114,24 @@ namespace API.Services
         }
 
         public void editCar(int carModel, int carId, string licensePlate, string carName) {
-            _myCars.editCar(carModel,carId,licensePlate,carName);
+            if (!IsValidVietnameseLicensePlate(licensePlate))
+            {
+                throw new ArgumentException("Invalid license plate format");
+            }
+
+            if (_myCars.CheckDuplicateLicensePlateForEdit(carId,licensePlate))
+            {
+                throw new ArgumentException("License Plate already exists");
+            }
+
+            try
+            {
+                _myCars.editCar(carModel, carId, licensePlate, carName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error: " + ex.Message);
+            }
         }
 
         private bool IsValidVietnameseLicensePlate(string licensePlate)
@@ -198,6 +216,11 @@ namespace API.Services
 
             timeSpan = new TimeSpan(h, m, s);
             return true;
+        }
+
+        public Task<bool> IsCarBeingRentedAsync(int carId)
+        {
+            return _myCars.IsCarBeingRentedAsync(carId);
         }
 
     }

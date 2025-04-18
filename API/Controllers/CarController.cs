@@ -273,5 +273,12 @@ namespace API.Controllers
             var stats = _carService.GetCarStats(carId, year);
             return Ok(stats);
         }
+
+        [HttpGet("is-being-rented")]
+        public async Task<IActionResult> IsCarBeingRentedAsync(int carId)
+        {
+            var response = await _carService.IsCarBeingRentedAsync(carId);
+            return Ok(response);
+        }
     }
 }
