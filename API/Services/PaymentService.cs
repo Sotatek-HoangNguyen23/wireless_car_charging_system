@@ -12,10 +12,10 @@ namespace API.Services
     {
         private readonly IBalancement _balanceRepo;
         private readonly PayOS _payOS;
-        public PaymentService()
+        public PaymentService(IBalancement balancement)
         {
 
-            _balanceRepo = new BalanceRepo();
+            _balanceRepo = balancement;
             _payOS = new PayOS(Constants.clientId, Constants.apiKey, Constants.checksumKey);
         }
 

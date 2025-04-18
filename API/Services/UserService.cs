@@ -17,15 +17,17 @@ namespace API.Services
         private readonly IUserRepository _userRepository;
         private readonly ICccdRepository _cccdRepository;
         private readonly IDriverLicenseRepository _licenseRepository;
+        private readonly IBalancement _balanceRepository;
         private readonly ImageService _imageService;
         private readonly OtpServices _otpServices;
-        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices, IDriverLicenseRepository licenseRepository)
+        public UserService(IUserRepository userRepository, ICccdRepository cccdRepository, ImageService imageService, OtpServices otpServices, IDriverLicenseRepository licenseRepository, IBalancement balanceRepository)
         {
             _userRepository = userRepository;
             _cccdRepository = cccdRepository;
             _imageService = imageService;
             _otpServices = otpServices;
             _licenseRepository = licenseRepository;
+            _balanceRepository = balanceRepository;
         }
 
         public async Task RegisterAsync(RegisterRequest request)
@@ -113,12 +115,22 @@ namespace API.Services
                     };
 
                     await _cccdRepository.SaveCccd(cccd);
+                    var balance = new Balance
+                    {
+                        UserId = user.UserId,
+                        Balance1 = 0,  
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow
+                    };
+
+                    await _balanceRepository.AddBalance(balance);
                     await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    // Ném lỗi với thông báo chi tiết cho biết thất bại trong quá trình lưu dữ liệu
+                    Console.WriteLine($"Lỗi: {ex.InnerException?.Message}");
+
                     throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu", ex);
                 }
             }

@@ -33,7 +33,13 @@ namespace DataAccess.Repositories
             {
                 throw new ArgumentException("Cccd không được null", nameof(cccd));
             }    
-            _context.Cccds.Add(cccd);
+            var existingCccd = _context.Cccds
+                .AsNoTracking()
+                .FirstOrDefault(c => c.Code == cccd.Code);
+            if (existingCccd != null) {
+                throw new ArgumentException("Cccd đã tồn tại", nameof(cccd));
+            }
+                _context.Cccds.Add(cccd);
             return _context.SaveChangesAsync();
         }
     }

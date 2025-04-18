@@ -11,6 +11,30 @@ using SixLabors.ImageSharp.Processing;
 
 namespace API.Services
 {
+    public interface ICloudinaryService
+    {
+        Task<ImageUploadResult> UploadAsync(ImageUploadParams uploadParams);
+        Task<DeletionResult> DestroyAsync(DeletionParams deleteParams);
+    }
+    public class CloudinaryWrapper : ICloudinaryService
+    {
+        private readonly Cloudinary _cloudinary;
+
+        public CloudinaryWrapper(Cloudinary cloudinary)
+        {
+            _cloudinary = cloudinary;
+        }
+
+        public async Task<ImageUploadResult> UploadAsync(ImageUploadParams uploadParams)
+        {
+            return await _cloudinary.UploadAsync(uploadParams);
+        }
+
+        public async Task<DeletionResult> DestroyAsync(DeletionParams deleteParams)
+        {
+            return await _cloudinary.DestroyAsync(deleteParams);
+        }
+    }
     public class InvalidImageException : Exception
     {
         public InvalidImageException(string message) : base(message) { }
@@ -18,9 +42,8 @@ namespace API.Services
 
     public class ImageService
     {
-        private readonly Cloudinary _cloudinary;
-
-        public ImageService(Cloudinary cloudinary)
+        private readonly ICloudinaryService _cloudinary;
+        public ImageService(ICloudinaryService cloudinary)
         {
             _cloudinary = cloudinary;
 

@@ -13,9 +13,9 @@ namespace DataAccess.Repositories
     public class BalanceRepo : IBalancement
     {
         private WccsContext _context;
-        public BalanceRepo()
+        public BalanceRepo(WccsContext context)
         {
-            _context = new WccsContext();
+            _context = context;
         }
 
         public async Task<BalanceTransaction> AddBalanceTransactionAsync(BalanceTransaction payment)
@@ -25,9 +25,19 @@ namespace DataAccess.Repositories
             return payment;
         }
 
+        public Task AddBalance(Balance balance)
+        {
+            if (balance == null)
+            {
+                throw new ArgumentNullException(nameof(balance));
+            }
+            _context.Balances.Add(balance);
+            return _context.SaveChangesAsync();
+        }
+
         public async Task<Balance> GetBalanceByUserId(int userId)
         {
-            
+
             return await _context.Balances
                 .FirstOrDefaultAsync(p => p.UserId == userId);
         }
@@ -41,7 +51,7 @@ namespace DataAccess.Repositories
         public async Task<List<TransactionDTO>> GetTransactionHistory(int userId, DateTime? start, DateTime? end)
         {
             var query = _context.BalanceTransactions
-            .Where(t => t.Balance.UserId == userId )
+            .Where(t => t.Balance.UserId == userId)
             .AsQueryable();
 
             if (start.HasValue)

@@ -17,15 +17,22 @@ namespace API.Services
             var smtpSettings = _configuration.GetSection("SmtpSettings");
             var server = smtpSettings["Server"];
             var port = smtpSettings["Port"];
-            var senderEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL");
-            var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
-            if (string.IsNullOrEmpty(server) || string.IsNullOrEmpty(port))
-            {
-                throw new InvalidOperationException("SMTP settings are not configured properly.");
-            }
+            var senderEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL")
+                    ?? throw new InvalidOperationException("SMTP_EMAIL environment variable is missing");
 
+            var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+                ?? throw new InvalidOperationException("SMTP_PASSWORD environment variable is missing");
+
+            if (string.IsNullOrEmpty(server)){
+                throw new InvalidOperationException("SMTP Server is required");
+            }
+            if (!int.TryParse(port, out var portNumber)) {
+                throw new InvalidOperationException("Invalid SMTP port");
+            }
+            var senderName = smtpSettings["SenderName"]
+                     ?? throw new ArgumentNullException("SenderName is required in SmtpSettings");
             var EmailMessage = new MimeMessage();
-            EmailMessage.From.Add(new MailboxAddress(smtpSettings["SenderName"], senderEmail));
+            EmailMessage.From.Add(new MailboxAddress(senderName, senderEmail));
             EmailMessage.To.Add(new MailboxAddress("",toEmail));
             EmailMessage.Subject = subject;
             EmailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
@@ -34,15 +41,16 @@ namespace API.Services
             };
             using var client = new SmtpClient();
             // Kết nối với SSL/TLS
-            await client.ConnectAsync(server, int.Parse(port), SecureSocketOptions.StartTls);
-            // Xác thực
-            await client.AuthenticateAsync(
-                smtpSettings["Username"],
-                password
-            );
-            // Gửi email
-            await client.SendAsync(EmailMessage);
-            await client.DisconnectAsync(true);
+            try
+            {
+                await client.ConnectAsync(server, portNumber, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(senderEmail, password); 
+                await client.SendAsync(EmailMessage);
+            }
+            finally
+            {
+                await client.DisconnectAsync(true);
+            }
 
         }
 

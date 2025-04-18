@@ -11,9 +11,9 @@ namespace API.Controllers
     {
         private readonly PaymentService _paymentService;
 
-        public PaymentController()
+        public PaymentController(PaymentService paymentService)
         {
-            _paymentService = new PaymentService();
+            _paymentService = paymentService;
         }
 
         [HttpPost("create")]

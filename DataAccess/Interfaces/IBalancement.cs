@@ -14,6 +14,7 @@ namespace DataAccess.Interfaces
         Task<BalanceTransaction> UpdateBalanceTransactionStatusAsync(string orderCode, string status);
         Task<BalanceTransaction> GetBalanceTransactionByOrderIdAsync(string orderCode);
 
+        Task AddBalance(Balance balance);
         Task<Balance> GetBalanceByUserId(int userId);
 
         Task<Balance> UpdateBalance(Balance balance );
