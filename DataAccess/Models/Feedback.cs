@@ -13,5 +13,21 @@ public partial class Feedback
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? Type { get; set; }
+
+    public int? CarId { get; set; }
+
+    public int? StationId { get; set; }
+
+    public int? PointId { get; set; }
+
+    public string? Status { get; set; }
+
+    public virtual Car? Car { get; set; }
+
+    public virtual ChargingPoint? Point { get; set; }
+
+    public virtual ChargingStation? Station { get; set; }
+
     public virtual User User { get; set; } = null!;
 }

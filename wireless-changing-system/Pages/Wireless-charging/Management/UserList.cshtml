@@ -68,7 +68,7 @@
                                 <th>Họ tên</th>
                                 <th>Email</th>
                                 <th>Số điện thoại</th>
-                                <th>Tráng thái</th>
+                                <th>Trạng thái</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -102,6 +102,7 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
         let currentPage = 1;
         let pageSize = 5;
         let currentRoleId = 2; // Mặc định Station Owner
@@ -215,7 +216,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    showToast("Đã cập nhật trạng thái")
+                    showSuccessToast("Đã cập nhật trạng thái")
                     setTimeout(function () {
                         fetchUsers(); // Reload danh sách user
                     }, 1000)
@@ -263,6 +264,7 @@
         // Khởi động lần đầu
         document.addEventListener("DOMContentLoaded", () => {
             fetchUsers();
+        });
         });
     </script>
 

@@ -32,28 +32,45 @@
                         <li class="nav-item">
                             <a class="nav-link active" href="/">Trang Chủ</a>
                         </li>
-                        <li class="nav-item d-none role-based-menu" data-required-role="Admin">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver, Station Owner">
                             <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Trạm Sạc</a>
                         </li>
 
-                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Admin">
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator, Station Owner">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Quản Lý
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/wireless-charging/chargingstation/stationlist">Quản lý trạm sạc</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Danh sách người dùng</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Danh sách phản hồi</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/station">Thống kê</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/carlist">Quản lý xe</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Quản lý người dùng</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Quản lý phản hồi</a></li>
                             </ul>
                         </li>
 
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator, Station Owner">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Thống kê
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/overview">Tổng quan</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/revenue">Doanh thu</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/feedbacklist">Hiệu suất trạm sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/session">Thống kê phiên sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/user">Thống kê người dùng</a></li>
+                            </ul>
+                        </li>
 
-                        <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="https://localhost:5216/wireless-charging/vehicles/mycars">Xe của tôi</a>
                         </li>
-                        <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="https://localhost:5216/wireless-charging/payment/depositmoney">Nạp tiền</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/feedback">Phản hồi của người dùng</a>
                         </li>
                     </ul>
 
@@ -128,12 +145,15 @@
             <p class="mb-0"></p>
         </div>
     </div>
-    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/chart.js/chart.umd.js"></script>
+    <script src="~/lib/chartjs-plugin-datalabels/chartjs-plugin-datalabels.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js-cookie/js.cookie.min.js"></script>
     <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
+
+
     <script>
         // Tách logic cập nhật UI thành hàm riêng
         function updateUserInterface() {
@@ -177,6 +197,21 @@
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 5000);
         }
+        function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            );
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
     </script>
     <script type="module">
         import { logout } from '/js/apiClient.js';
@@ -185,6 +220,7 @@
             logout();
         });
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -23,6 +23,8 @@ public partial class Car
 
     public virtual ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();
 
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
     public virtual ICollection<RealTimeDatum> RealTimeData { get; set; } = new List<RealTimeDatum>();
 
     public virtual ICollection<UserCar> UserCars { get; set; } = new List<UserCar>();

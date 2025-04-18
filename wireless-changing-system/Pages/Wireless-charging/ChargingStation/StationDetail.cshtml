@@ -280,19 +280,44 @@
             const pagination = $(".pagination");
             pagination.empty();
 
-            pagination.append(`<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Trước</a>
-                            </li>`);
-
-            for (let i = 1; i <= totalPages; i++) {
-                pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
-                                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-                                </li>`);
+            function createPageItem(page, text = page, isActive = false, isDisabled = false) {
+                return `<li class="page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${page})">${text}</a>
+                        </li>`;
             }
 
-            pagination.append(`<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Sau</a>
-                            </li>`);
+            // Nút "Trước"
+            pagination.append(createPageItem(currentPage - 1, "Trước", false, currentPage === 1));
+
+            const range = 2; // số trang trước/sau hiện tại sẽ hiển thị
+            const startPage = Math.max(2, currentPage - range);
+            const endPage = Math.min(totalPages - 1, currentPage + range);
+
+            // Trang đầu tiên luôn hiển thị
+            pagination.append(createPageItem(1, "1", currentPage === 1));
+
+            // Dấu ...
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+
+            // Các trang quanh currentPage
+            for (let i = startPage; i <= endPage; i++) {
+                pagination.append(createPageItem(i, i, currentPage === i));
+            }
+
+            // Dấu ...
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+
+            // Trang cuối cùng luôn hiển thị
+            if (totalPages > 1) {
+                pagination.append(createPageItem(totalPages, totalPages, currentPage === totalPages));
+            }
+
+            // Nút "Sau"
+            pagination.append(createPageItem(currentPage + 1, "Sau", false, currentPage === totalPages));
         }
         
         // Chuyển trang

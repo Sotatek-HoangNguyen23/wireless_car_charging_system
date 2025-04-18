@@ -1,0 +1,268 @@
+﻿@page
+@model wireless_changing_system.Pages.FeedbackModel
+@{
+}
+
+<div class="container mt-5">
+    <h3>Viết Feedback</h3>
+    <div class="row">
+        <!-- Nửa 1: Chọn Type -->
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="feedbackType">Loại Feedback <label style="color: red">*</label></label>
+                <select id="feedbackType" class="form-control">
+                    <option value="">-- Chọn loại --</option>
+                    <option value="Car">Xe</option>
+                    <option value="Station">Trạm sạc</option>
+                </select>
+                <div id="feedbackTypeError" class="invalid-feedback"></div>
+            </div>
+        </div>
+
+        <!-- Nửa 2: Chọn Xe hoặc Trạm sạc -->
+        <div class="col-md-6" id="feedbackTarget">
+            <!-- nội dung động render tại đây -->
+        </div>
+    </div>
+
+    <div class="form-group mt-3">
+        <label for="feedbackMessage">Nội dung Feedback <label style="color: red">*</label></label>
+        <small class="text-muted d-block mb-1">(Tối đa 1000 ký tự)</small>
+        <textarea class="form-control" id="feedbackMessage" rows="4" maxlength="1000"></textarea>
+        <div class="invalid-feedback" id="feedbackMessageError"></div>
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn-danger" href="/">Quay lại</a>
+        <button class="btn btn-primary" onclick="submitFeedback()">Gửi Feedback</button>    
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    let currentUserId = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = sessionStorage.getItem("accessToken");
+        const payload = parseJwt(token);        
+
+        if (payload && payload.sub) {
+            currentUserId = payload.sub;
+            console.log("User ID:", currentUserId);
+        } else {
+            console.error("Không tìm thấy userId trong token");
+        }
+
+        document.getElementById("feedbackType").addEventListener("change", function () {
+            let type = this.value;
+            let targetDiv = document.getElementById("feedbackTarget");
+            targetDiv.innerHTML = "";
+
+            if (type === "Car") {
+                $.get("https://localhost:7191/api/Car/owner?userId=" + currentUserId, function (cars) {
+                    let selectHtml = `
+                        <label for="carSelect">Chọn Xe <label style="color: red">*</label></label>
+                        <select id="carSelect" class="form-control" required>
+                            <option value="">-- Chọn xe --</option>
+                            ${cars.map(c => `<option value="${c.carId}">${c.licensePlate}</option>`).join('')}
+                        </select>
+                        <div id="carSelectError" class="invalid-feedback"></div>`;
+                    targetDiv.innerHTML = selectHtml;
+                });
+            } else if (type === "Station") {
+                let page = 1;
+                const pageSize = 5;
+                let allStations = [];
+
+                function fetchStations() {
+                    $.ajax({
+                        url: `https://localhost:7191/api/ChargingStation?page=${page}&pageSize=${pageSize}`,
+                        method: 'GET',
+                        success: function (stations) {
+                            if (stations && stations.data && stations.data.length > 0) {
+                                allStations = allStations.concat(stations.data);
+                                page++;
+                                fetchStations(); // tiếp tục gọi trang tiếp theo
+                            } else {
+                                console.log("Tất cả trạm đã load:", allStations);
+
+                                let selectHtml = `
+                                <label for="stationSelect">Chọn Trạm sạc <label style="color: red">*</label></label>
+                                <select id="stationSelect" class="form-control" required>
+                                    <option value="">-- Chọn trạm --</option>
+                                    ${allStations.map(s => `<option value="${s.stationId}">${s.stationName}</option>`).join('')}
+                                </select>
+                                <div id="stationSelectError" class="invalid-feedback"></div>
+                                <div id="pointSelectWrapper" class="mt-2"></div>`;
+
+                                targetDiv.innerHTML = selectHtml;
+
+                                // Sự kiện khi chọn 1 trạm
+                                document.getElementById("stationSelect").addEventListener("change", function () {
+                                    let stationId = this.value;
+                                    if (!stationId) return;
+
+                                    let pointPage = 1;
+                                    let allPoints = [];
+
+                                    function fetchPoints() {
+                                        $.ajax({
+                                            url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${pointPage}&pageSize=${pageSize}`,
+                                            method: 'GET',
+                                            success: function (data) {
+                                                if (data.points.data && data.points.data.length > 0) {
+                                                    allPoints = allPoints.concat(data.points.data);
+                                                    pointPage++;
+                                                    fetchPoints(); // tiếp tục gọi
+                                                } else {
+                                                    console.log("Tất cả trụ đã load:", allPoints);
+
+                                                    let pointHtml = `
+                                                    <label for="pointSelect">Chọn Trụ sạc</label>
+                                                    <select id="pointSelect" class="form-control">
+                                                        <option value="">-- Chọn trụ --</option>
+                                                        ${allPoints.map(p => `<option value="${p.chargingPointId}">${p.chargingPointName}</option>`).join('')}
+                                                    </select>`;
+
+                                                    document.getElementById("pointSelectWrapper").innerHTML = pointHtml;
+                                                }
+                                            },
+                                            error: function (err) {
+                                                console.error("Lỗi khi gọi API trụ:", err);
+                                            }
+                                        });
+                                    }
+
+                                    fetchPoints(); // gọi lần đầu
+                                });
+                            }
+                        },
+                        error: function (err) {
+                            console.error("Lỗi khi gọi API trạm:", err);
+                        }
+                    });
+                }
+
+                fetchStations();
+            }
+        });
+    })
+
+    function submitFeedback() {
+        let type = document.getElementById("feedbackType").value;
+        let message = document.getElementById("feedbackMessage").value;
+        let carId = type === "Car" ? document.getElementById("carSelect")?.value : null;
+        let stationId = type === "Station" ? document.getElementById("stationSelect")?.value : null;
+        let pointId = type === "Station" ? document.getElementById("pointSelect")?.value : null;
+
+        if (validateAllFields()) {
+            $.ajax({
+                url: "https://localhost:7191/api/Feedback",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    userId: currentUserId,
+                    type: type,
+                    message: message,
+                    carId: carId || null,
+                    stationId: stationId || null,
+                    pointId: pointId || null
+                }),
+                success: function () {
+                    showSuccessToast("Gửi feedback thành công!");
+                    clearForm();
+                },
+                error: function () {
+                    showToast("Có lỗi xảy ra.");
+                }
+            });
+        } else {
+            showToast("Vui lòng điền đầy đủ thông tin.");
+        }       
+    }
+
+    function clearForm() {
+        document.getElementById("feedbackType").value = "";
+        document.getElementById("feedbackTarget").innerHTML = "";
+        document.getElementById("feedbackMessage").value = "";
+    }
+
+    // Validate
+    function getValidationFields() {
+        const type = document.getElementById("feedbackType").value;
+        const dynamicFields = {
+            feedbackType: {
+                required: true,
+                message: 'Vui lòng chọn loại phản hồi'
+            },
+            feedbackMessage: {
+                required: true,
+                maxLength: 1000,
+                message: 'Mô tả không vượt quá 1000 ký tự'
+            }
+        };
+
+        if (type === "Car") {
+            dynamicFields.carSelect = {
+                required: true,
+                message: "Vui lòng chọn xe cần phản hồi"
+            };
+        }
+
+        if (type === "Station") {
+            dynamicFields.stationSelect = {
+                required: true,
+                message: "Vui lòng chọn trạm sạc cần phản hồi"
+            };
+        }
+
+        return dynamicFields;
+    }
+
+    function validateField(id) {
+        const fields = getValidationFields();
+        const input = document.getElementById(id);
+        const value = input?.value?.trim();
+        const error = document.getElementById(id + 'Error');
+        let valid = true;
+
+        if (!input || !fields[id]) return true;
+
+        // Clear lỗi cũ
+        error.innerText = '';
+        input.classList.remove('is-invalid');
+
+        const rules = fields[id];
+
+        if (rules.required && !value) {
+            showError(input, error, "Trường này là bắt buộc");
+            valid = false;
+        }
+
+        if (rules.maxLength && value.length > rules.maxLength) {
+            showError(input, error, rules.message);
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    function validateAllFields() {
+        const fields = getValidationFields();
+        return Object.keys(fields).every(id => validateField(id));
+    }
+
+    document.addEventListener("change", function (e) {
+        if (["feedbackType", "carSelect", "stationSelect"].includes(e.target.id)) {
+            validateField(e.target.id);
+        }
+    });
+
+    document.getElementById("feedbackMessage").addEventListener("input", () => validateField("feedbackMessage"));
+
+    function showError(input, errorEl, message) {
+        errorEl.innerText = message;
+        input.classList.add('is-invalid');
+    }
+
+</script>

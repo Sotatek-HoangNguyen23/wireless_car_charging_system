@@ -1,0 +1,228 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Management.CarListModel
+@{
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Quản lí xe</h2>
+
+    <!-- Thanh Search -->
+    <div class="filter-section p-2  rounded">
+        <div class="row">
+            <!-- Ô nhập Search -->
+            <div class="col-md-3">
+                <label for="searchName" class="form-label">Tìm kiếm</label>
+                <input type="text" class="form-control" id="searchName" placeholder="Nhập tên hoặc biển số" />
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchType" class="form-label">Loại xe</label>
+                <select id="searchType" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="Car">Xe</option>
+                    <option value="Station">Trạm sạc</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchBrand" class="form-label">Hãng xe</label>
+                <select id="searchBrand" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="Car">Xe</option>
+                    <option value="Station">Trạm sạc</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchStatus" class="form-label">Trạng thái</label>
+                <select id="searchStatus" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="Processed">Đã xử lí</option>
+                    <option value="Pending">Chờ xử lí</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="stationOwner">
+            <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên xe</th>
+                            <th>Biển số</th>
+                            <th>Loại xe</th>
+                            <th>Hãng xe</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    <nav>
+        <ul class="pagination justify-content-center mt-3"></ul>
+    </nav>
+</div>
+
+<!-- Modal Xác nhận xử lý -->
+<div class="modal fade" id="confirmProcessModal" tabindex="-1" aria-labelledby="confirmProcessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xử lý</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn đánh dấu phản hồi này là <strong>đã xử lý</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-primary" id="confirmProcessBtn">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        $(document).ready(function () {
+            let currentPage = 1;
+            const pageSize = 10;
+
+            // Gọi API để load feedback
+            function loadFeedbacks(page = 1) {
+                const search = $("#searchName").val();
+                const type = $("#searchType").val();
+                const branch = $("#searchBrand").val();
+                const status = $("#searchStatus").val();
+
+                $.ajax({
+                    url: "https://localhost:7191/api/Car/all-cars",
+                    type: "GET",
+                    data: { search, type, branch, status, page, pageSize },
+                    success: function (response) {
+                        console.log(response);
+                        renderTable(response.data);
+                        renderPagination(response.totalPages, page);
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi tải xe", xhr);
+                    }
+                });
+            }
+
+            // Hiển thị danh sách feedback vào bảng
+            function renderTable(feedbacks) {
+                const tbody = $("#userTableBody");
+                tbody.empty();
+
+                if (feedbacks.length === 0) {
+                    tbody.append(`<tr><td colspan="10" class="text-center">Không có xe nào</td></tr>`);
+                    return;
+                }
+
+                feedbacks.forEach(f => {
+
+                    tbody.append(`
+                            <tr>
+                                <td>${f.carId}</td>
+                                <td>${f.carName}</td>
+                                <td>${f.licensePlate}</td>
+                                <td>${f.type}</td>
+                                <td>${f.brand }</td>
+                                <td>${f.isDeleted}</td>
+                                <td></td>
+                            </tr>
+                        `);
+                });
+            }
+
+            // Xử lý sự kiện khi click vào trang trong phân trang
+            $(".pagination").on("click", ".page-link", function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data("page"));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadFeedbacks(page);
+                }
+            });
+
+            // Xử lý sự kiện tìm kiếm
+            $("#searchName").on("input change", function () {
+                currentPage = 1;
+                loadFeedbacks();
+            });
+
+            $("#searchType, #searchBrannd, #searchStatus").on("change", function () {
+                currentPage = 1;
+                loadFeedbacks();
+            });
+
+            loadFeedbacks();
+
+            let selectedFeedbackId = null;
+
+            // Gán sự kiện khi click nút "Xác nhận đã xử lý"
+            $("#userTableBody").on("click", ".confirm-btn", function () {
+                selectedFeedbackId = $(this).data("id");
+                $("#confirmProcessModal").modal("show");
+            });
+
+            // Xác nhận cập nhật trạng thái
+            $("#confirmProcessBtn").click(function () {
+                if (!selectedFeedbackId) return;
+
+                $.ajax({
+                    url: `https://localhost:7191/api/Feedback/${selectedFeedbackId}/status`,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({ status: "Processed" }),
+                    success: function () {
+                        $("#confirmProcessModal").modal("hide");
+                        loadFeedbacks(currentPage); // Reload lại bảng
+                    },
+                    error: function (xhr) {
+                        console.error("Lỗi khi cập nhật trạng thái", xhr);
+                        alert("Cập nhật thất bại!");
+                    }
+                });
+            });
+        });
+    });
+
+    // Hiển thị phân trang
+    function renderPagination(totalPages, currentPage) {
+        const pagination = $(".pagination");
+        pagination.empty();
+
+        let paginationHtml = `
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
+                        </li>
+                    `;
+
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `
+                            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                        `;
+        }
+
+        paginationHtml += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
+                        </li>
+                    `;
+
+        pagination.append(paginationHtml);
+    }
+
+</script>

@@ -10,7 +10,7 @@ namespace API.Controllers
     public class ChargingPointController : ControllerBase
     {
 
-        private ChargingStationService _stationService;
+        private readonly ChargingStationService _stationService;
 
         public ChargingPointController(ChargingStationService stationService)
         {

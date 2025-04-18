@@ -1,6 +1,9 @@
 ﻿using DataAccess.DTOs;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
+using DataAccess.Repositories;
 using System.Text.RegularExpressions;
 
 namespace API.Services
@@ -101,6 +104,11 @@ namespace API.Services
         public async Task<bool> ConfirmRentalAsync(int userId, int carId, string role)
         {
             return await _myCars.UpdateIsAllowedToChargeAsync(userId, carId, role);
+        }
+
+        public PagedResult<CarDetailDTO> GetAllCars(string? search, string? type, string? brand, bool? status, int page, int pageSize)
+        {
+            return _myCars.GetAllCars(search, type, brand, status, page, pageSize);
         }
     }
 }

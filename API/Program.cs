@@ -77,6 +77,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<OtpServices>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -86,6 +88,8 @@ builder.Services.AddScoped<ChargingStationService>();
 builder.Services.AddScoped<IChargingPointRepository, ChargingPointRepository>();
 builder.Services.AddScoped<IMyCars, MyCarsRepo>();
 builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 
 //=======================================
 // JWt configuration

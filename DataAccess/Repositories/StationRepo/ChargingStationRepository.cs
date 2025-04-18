@@ -191,20 +191,29 @@ namespace DataAccess.Repositories.StationRepo
 
         public async Task<bool> DeleteChargingStation(int stationId)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Xóa ChargingPoints bằng SQL để giảm tải bộ nhớ
+            await _context.Database.ExecuteSqlRawAsync(
+                "DELETE FROM charging_point WHERE station_id = {0}", stationId);
+
+            // Tìm station để xóa bằng EF → để vẫn giữ được tracking nếu sau này muốn extend logic
             var station = await _context.ChargingStations
-                .Include(s => s.ChargingPoints)                         // Load ChargingPoints để xóa
                 .FirstOrDefaultAsync(s => s.StationId == stationId);
 
             if (station == null)
+            {
+                await transaction.RollbackAsync();
                 return false;
+            }
 
-            // Xóa ChargingPoints trước khi xóa ChargingStation
-            _context.ChargingPoints.RemoveRange(station.ChargingPoints);
             _context.ChargingStations.Remove(station);
-
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             return true;
         }
+
 
         public List<ChargingSession> GetSessionByStation(int stationId)
         {

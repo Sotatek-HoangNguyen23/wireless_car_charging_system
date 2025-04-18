@@ -1,5 +1,7 @@
 ﻿using DataAccess.DTOs;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,5 +37,7 @@ namespace DataAccess.Interfaces
 
         Task<UserCar?> GetUserCarAsync(int userId, int carId, string role);
         Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role);
+
+        PagedResult<CarDetailDTO> GetAllCars(string? search, string? type, string? brand, bool? status, int page, int pageSize);
     }
 }
