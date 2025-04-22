@@ -31,9 +31,12 @@
                     </div>
 
                     <button type="submit"
+                            id="loginButton"
                             class="btn btn-primary btn-lg w-100 mb-3 fw-bold">
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
                         Đăng Nhập
                     </button>
+
 
                     <div class="text-center mb-3">
                         <a href="./auth/forgot-password" class="text-decoration-none text-secondary">
@@ -62,8 +65,16 @@
     </div>
 </div>
 <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = document.getElementById('loginButton');
+    const loginSpinner = document.getElementById('loginSpinner');
+
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Bật spinner và disable button
+      loginSpinner.classList.remove('d-none');
+      loginButton.disabled = true;
 
       const email = document.getElementById('emailInput').value;
       const password = document.getElementById('passwordInput').value;
@@ -72,9 +83,7 @@
       try {
         const response = await fetch('https://localhost:7191/api/auth/login', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(loginData)
         });
@@ -94,8 +103,12 @@
 
       } catch (error) {
         sessionStorage.clear();
-        showToast( error.message);
+        showToast(error.message);
         console.error('Lỗi:', error);
+      } finally {
+        // Tắt spinner và enable button
+        loginSpinner.classList.add('d-none');
+        loginButton.disabled = false;
       }
     });
     function showToast(message = null) {

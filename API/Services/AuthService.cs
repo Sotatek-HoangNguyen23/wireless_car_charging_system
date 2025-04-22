@@ -42,7 +42,7 @@ namespace API.Services
             }
             if (user.Status == "Inactive")
             {
-                throw new ArgumentException("Tài khoản của bạn đã bị khóa");
+                throw new ArgumentException("Tài khoản của bạn đã bị khóa.Vui lòng vào email để kích hoạt tài khoản");
             }
 
             var AccessToken = GenerateAccessToken(user);

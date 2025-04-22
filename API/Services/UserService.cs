@@ -302,6 +302,24 @@ namespace API.Services
 
             return UserDto;
         }
+        public async Task ActiveAccount(string email)
+        {
+            var user = await _userRepository.GetUserByEmail(email);
+            if (user == null)
+            {
+                throw new ArgumentException("Không tìm thấy người dùng");
+            }
+            try
+            {
+                user.Status = "Active";
+                user.UpdateAt = DateTime.UtcNow;
+                await _userRepository.UpdateUser(user);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Không thể kích hoạt tài khoản", ex);
+            }
+        }
         public async Task<UserDto> GetUserByPhone(string phone)
         {
             var user = await _userRepository.GetUserByPhone(phone);

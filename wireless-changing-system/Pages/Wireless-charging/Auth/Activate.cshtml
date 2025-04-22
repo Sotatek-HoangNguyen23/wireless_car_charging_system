@@ -1,0 +1,139 @@
+﻿@page "/Wireless-charging/Auth/activate"
+@model wireless_changing_system.Pages.Wireless_charging.Auth.ActivateModel
+@{
+    ViewData["Title"] = "Kích hoạt tài khoản";
+}
+
+<div class="container py-5">
+    <h2 class="mb-4 text-center">Kích hoạt tài khoản</h2>
+    <div id="message"></div>
+
+    <div id="actions" class="text-center mt-4" style="display:none;">
+        <!-- Nút đóng cửa sổ -->
+        <button id="closeBtn" class="btn btn-secondary me-2">Đóng</button>
+        <!-- Nút gửi lại email kích hoạt (chỉ hiện khi thất bại) -->
+        <button id="resendBtn" class="btn btn-primary">Gửi lại email kích hoạt</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+          const messageDiv = document.getElementById('message');
+          const actionsDiv = document.getElementById('actions');
+          const closeBtn = document.getElementById('closeBtn');
+          const resendBtn = document.getElementById('resendBtn');
+
+          // Lấy token và email từ query string
+          const params = new URLSearchParams(window.location.search);
+          const token = params.get('token');
+          const email = params.get('email');
+
+          if (!token || !email) {
+            messageDiv.innerHTML = `
+              <div class="alert alert-danger">
+                Liên kết kích hoạt không hợp lệ.
+              </div>`;
+            return;
+          }
+
+          // Hàm gọi API kích hoạt
+          async function activate() {
+            // Hiển thị spinner
+            messageDiv.innerHTML = `
+              <div class="text-center">
+                <div class="spinner-border" role="status"></div>
+              </div>`;
+            actionsDiv.style.display = 'none';
+
+            try {
+              const res = await fetch('https://localhost:7191/api/otp/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Email: email, OtpCode: token })
+              });
+              const result = await res.json();
+
+              if (res.ok) {
+                // Thành công
+                messageDiv.innerHTML = `
+                  <div class="alert alert-success">
+                    Đã kích hoạt tài khoản thành công.<br/>
+                    Bạn có thể tắt cửa sổ này.
+                  </div>`;
+                // Chỉ hiện nút Đóng
+                closeBtn.textContent = 'Đóng';
+                resendBtn.style.display = 'none';
+                actionsDiv.style.display = '';
+              } else {
+                // Thất bại
+                const err = result.detail  || 'Kích hoạt thất bại.';
+                messageDiv.innerHTML = `
+                  <div class="alert alert-danger">
+                    ${err}
+                  </div>`;
+                // Hiện cả 2 nút: Đóng và Gửi lại
+                closeBtn.textContent = 'Đóng';
+                resendBtn.style.display = '';
+                actionsDiv.style.display = '';
+              }
+            } catch (e) {
+              // Lỗi kết nối
+              messageDiv.innerHTML = `
+                <div class="alert alert-danger">
+                  Lỗi kết nối: ${e.message}
+                </div>`;
+              closeBtn.textContent = 'Đóng';
+              resendBtn.style.display = '';
+              actionsDiv.style.display = '';
+            }
+          }
+
+          // Tự động kích hoạt khi load
+          activate();
+
+          // Xử lý đóng
+          closeBtn.addEventListener('click', () => window.close());
+
+          // Xử lý gửi lại email kích hoạt
+          resendBtn.addEventListener('click', async () => {
+            resendBtn.disabled = true;
+            messageDiv.innerHTML = `
+              <div class="text-center">
+                <div class="spinner-border" role="status"></div>
+              </div>`;
+
+            try {
+              const res = await fetch('https://localhost:7191/api/otp/activation-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Email: email })
+              });
+              const result = await res.json();
+              if (res.ok) {
+                messageDiv.innerHTML = `
+                  <div class="alert alert-success">
+                    ${result.message}<br/>
+                    Vui lòng kiểm tra lại email để kích hoạt.
+                  </div>`;
+                resendBtn.style.display = 'none';
+              } else {
+                const err = result.detail || result.title || 'Gửi lại email thất bại.';
+                messageDiv.innerHTML = `
+                  <div class="alert alert-danger">
+                    ${err}
+                  </div>`;
+                resendBtn.disabled = false;
+              }
+            } catch (e) {
+              messageDiv.innerHTML = `
+                <div class="alert alert-danger">
+                  Lỗi kết nối: ${e.message}
+                </div>`;
+              resendBtn.disabled = false;
+            }
+          });
+        });
+    </script>
+}

@@ -20,7 +20,7 @@ namespace API.Controllers
         private readonly string _frontendUrl;
 
 
-        public OtpController(OtpServices otpServices,EmailService emailService, UserService userService)
+        public OtpController(OtpServices otpServices, EmailService emailService, UserService userService)
         {
             _otpServices = otpServices;
             _emailService = emailService;
@@ -113,7 +113,7 @@ namespace API.Controllers
             try
             {
                 var token = await _otpServices.genResetPasswordToken(Email);
-                    return Ok(new { Message = "OTP created success", Token=token });
+                return Ok(new { Message = "OTP created success", Token = token });
             }
             catch
             {
@@ -144,12 +144,12 @@ namespace API.Controllers
                 {
                     return Ok(new { Message = "Password reset successfully." });
                 }
-               return BadRequest(new ProblemDetails
-               {
-                   Title = "Token không hợp lệ",
-                   Detail = "Token không đúng hoặc đã hết hạn",
-                   Status = 400
-               });
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Token không hợp lệ",
+                    Detail = "Token không đúng hoặc đã hết hạn",
+                    Status = 400
+                });
             }
             catch
             {
@@ -177,7 +177,8 @@ namespace API.Controllers
             var user = await _userService.GetUserByEmail(request.Email);
             if (user == null)
             {
-                return NotFound(new {
+                return NotFound(new
+                {
                     Title = "Người dùng không tồn tại",
                     Detail = "Không tìm thấy người dùng.",
                     Status = 404
@@ -187,7 +188,7 @@ namespace API.Controllers
             try
             {
                 var token = await _otpServices.GenerateAccountActivationTokenAsync(request.Email);
-                var activationLink = $"{_frontendUrl}/activate?token={token}&email={request.Email}";
+                var activationLink = $"{_frontendUrl}/Wireless-charging/Auth/activate?token={token}&email={request.Email}";
                 var body = _activationTemplate
                .Replace("{{ActivationLink}}", activationLink)
                .Replace("{{UserName}}", user.Fullname);
@@ -206,8 +207,43 @@ namespace API.Controllers
 
             }
         }
+        [HttpPost("activate")]
+        public async Task<IActionResult> ConfirmActivation([FromBody] VerifyActiveAccountRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+                    Status = 400
+                });
+            var valid = await _otpServices.VerifyActivationTokenAsync(request.OtpCode, request.Email);
+            if (!valid)
+            {
+                return BadRequest(
+                    new ProblemDetails
+                    {
+                        Title = "Invalid Token",
+                        Detail = "Token không đúng hoặc đã hết hạn",
+                        Status = 400
+                    });
+            }
+            try
+            {
+                await _userService.ActiveAccount(request.Email);
 
+                return Ok(new { Message = "Kích hoạt tài khoản thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Status = 500,
+                });
+
+            }
+        }
     }
-
-    
 }
