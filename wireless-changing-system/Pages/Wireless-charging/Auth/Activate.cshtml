@@ -94,8 +94,13 @@
           activate();
 
           // Xử lý đóng
-          closeBtn.addEventListener('click', () => window.close());
-
+        closeBtn.addEventListener('click', () => {
+          if (window.opener && !window.opener.closed) {
+            window.close();
+          } else {
+            window.location.href = '/';
+          }
+        });
           // Xử lý gửi lại email kích hoạt
           resendBtn.addEventListener('click', async () => {
             resendBtn.disabled = true;
