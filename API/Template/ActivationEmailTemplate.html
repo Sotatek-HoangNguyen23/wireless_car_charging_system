@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Kích hoạt tài khoản – Công ty ABC</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: #f2f4f6;
+            font-family: Arial,sans-serif;
+        }
+
+        .wrapper {
+            width: 100%;
+            padding: 20px 0;
+            background: #f2f4f6;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+            .header h1 {
+                margin: 0;
+                font-size: 24px;
+            }
+
+        .body {
+            padding: 30px 20px;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 12px 24px;
+            background: #27ae60;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .footer {
+            background: #f7f7f7;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center">
+                <table class="content" width="100%" cellpadding="0" cellspacing="0">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            <h1>Công ty ABC</h1>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td class="body">
+                            <p>Xin chào <strong>{{UserName}}</strong>,</p>
+                            <p>Vui lòng nhấn nút bên dưới để kích hoạt tài khoản của bạn:</p>
+                            <p style="text-align:center;">
+                                <a href="{{ActivationLink}}" class="btn">Kích hoạt tài khoản</a>
+                            </p>
+                            <p>– Hoặc copy và dán liên kết sau vào trình duyệt:</p>
+                            <p style="word-break:anywhere"><a href="{{ActivationLink}}">{{ActivationLink}}</a></p>
+                            <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <p>Công ty ABC © 2025</p>
+                            <p>Hotline: 0123.456.789 | Email: <a href="mailto:support@abc.com">support@abc.com</a></p>
+                            <p><a href="https://www.abc.com">www.abc.com</a></p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

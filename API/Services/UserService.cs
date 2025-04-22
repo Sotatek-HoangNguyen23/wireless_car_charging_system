@@ -103,7 +103,7 @@ namespace API.Services
                     RoleId = 1,
                     Gender = request.Gender,
                     Address = request.Address,
-                    Status = "Active",
+                    Status = "Inactive",
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
                 };
@@ -249,13 +249,13 @@ namespace API.Services
         private void ValidateRegisterRequest(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Fullname) || request.Fullname.Length > 100)
-                throw new ArgumentException("Họ và tên tối đa 100 ký tự");
+                throw new ArgumentException("Họ và tên có tối đa 100 ký tự");
 
-            if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 256)
-                throw new ArgumentException("Email tối đa 256 ký tự");
+            if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 225)
+                throw new ArgumentException("Email có tối đa 225 ký tự");
 
-            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 15)
-                throw new ArgumentException("Số điện thoại tối đa 15 ký tự");
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 10)
+                throw new ArgumentException("Số điện thoại phải có 10 chữ số");
 
             if (string.IsNullOrWhiteSpace(request.Address) || request.Address.Length > 250)
                 throw new ArgumentException("Địa chỉ tối đa 250 ký tự");
@@ -264,8 +264,8 @@ namespace API.Services
             if (string.IsNullOrWhiteSpace(cccdCode) || cccdCode.Length < 9 || cccdCode.Length > 12)
                 throw new ArgumentException("CCCD phải có từ 9 đến 12 ký tự");
 
-            if (string.IsNullOrWhiteSpace(request.PasswordHash) || request.PasswordHash.Length < 8 || request.PasswordHash.Length > 128)
-                throw new ArgumentException("Mật khẩu phải có từ 8 đến 128 ký tự");
+            if (string.IsNullOrWhiteSpace(request.PasswordHash) || request.PasswordHash.Length < 8 || request.PasswordHash.Length > 100)
+                throw new ArgumentException("Mật khẩu phải có từ 8 đến 100 ký tự");
         }
 
         public async Task<UserDto> GetUserByEmail(string email)
@@ -330,7 +330,7 @@ namespace API.Services
                 var user = await _userRepository.GetUserByEmail(request.Email);
                 if (user == null)
                 {
-                    throw new ArgumentException("User not found");
+                    throw new ArgumentException("User khong ton tai");
                 }
                 var isValid = await _otpServices.verifyResetPasswordToken(request.Token, request.Email);
                 if (!isValid)
@@ -339,7 +339,7 @@ namespace API.Services
                 }
                 if (!IsPasswordCorrect(request.NewPassword))
                 {
-                    throw new ArgumentException("Password is not strong enough");
+                    throw new ArgumentException("Mật khẩu không đủ mạnh");
                 }
                 var password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 user.PasswordHash = password;
@@ -413,7 +413,7 @@ namespace API.Services
                 throw new ArgumentException("Họ và tên tối đa 100 ký tự");
 
             if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 256)
-                throw new ArgumentException("Email tối đa 256 ký tự");
+                throw new ArgumentException("Email tối đa 225 ký tự");
 
             if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 15)
                 throw new ArgumentException("Số điện thoại tối đa 15 ký tự");

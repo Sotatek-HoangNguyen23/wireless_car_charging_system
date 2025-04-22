@@ -155,9 +155,8 @@
 
             // Cập nhật thông tin user
             if (accessToken) {
-                const defaultAvatarUrl = '@Url.Content("~/img/avatar.jpg")'; // Sửa chính tả
                 document.getElementById("userName").textContent = fullName || '';
-                document.getElementById("userAvatar").src = avatarUrl || defaultAvatarUrl;
+                document.getElementById("userAvatar").src = avatarUrl || "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0";
                 document.getElementById("authSection").classList.add("d-none");
                 document.getElementById("userSection").classList.remove("d-none");
             } else {

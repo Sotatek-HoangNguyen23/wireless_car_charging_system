@@ -16,12 +16,17 @@ namespace API.Controllers
         private readonly EmailService _emailService;
         private readonly UserService _userService;
         private readonly string _otpTemplate;
+        private readonly string _activationTemplate;
+        private readonly string _frontendUrl;
+
 
         public OtpController(OtpServices otpServices,EmailService emailService, UserService userService)
         {
             _otpServices = otpServices;
             _emailService = emailService;
             _otpTemplate = System.IO.File.ReadAllText("Template/OTPEmailTemplate.html");
+            _activationTemplate = System.IO.File.ReadAllText("Template/ActivationEmailTemplate.html");
+            _frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://localhost:5216";
             _userService = userService;
         }
         [HttpPost("generate")]
@@ -156,6 +161,52 @@ namespace API.Controllers
                 });
             }
         }
+        [HttpPost("activation-token")]
+        public async Task<IActionResult> GenerateActivationToken([FromBody] OtpRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+                    Status = 400
+                });
+            }
+
+            var user = await _userService.GetUserByEmail(request.Email);
+            if (user == null)
+            {
+                return NotFound(new {
+                    Title = "Người dùng không tồn tại",
+                    Detail = "Không tìm thấy người dùng.",
+                    Status = 404
+                });
+
+            }
+            try
+            {
+                var token = await _otpServices.GenerateAccountActivationTokenAsync(request.Email);
+                var activationLink = $"{_frontendUrl}/activate?token={token}&email={request.Email}";
+                var body = _activationTemplate
+               .Replace("{{ActivationLink}}", activationLink)
+               .Replace("{{UserName}}", user.Fullname);
+                var emailBody = _activationTemplate.Replace("{{ActivationLink}}", token);
+                await _emailService.SendEmailAsync(request.Email, "Kích hoạt tài khoản", body);
+                return Ok(new { Message = "Activation email sent." });
+            }
+            catch
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Status = 500,
+                });
+
+            }
+        }
+
     }
 
     

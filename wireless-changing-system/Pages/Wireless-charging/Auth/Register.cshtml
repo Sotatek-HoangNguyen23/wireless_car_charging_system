@@ -216,7 +216,7 @@
             </button>
 
             <div class="text-center">
-                <a href="/login" class="text-decoration-none">
+                <a href="/wireless-charging/auth" class="text-decoration-none">
                     Đã có tài khoản? Đăng nhập tại đây
                 </a>
             </div>
@@ -526,7 +526,6 @@
         return re.test(email);
     }
 
-    // Hàm validate số điện thoại
     function validatePhone(phone) {
         // Nếu số điện thoại bắt đầu bằng +84, chuyển đổi về dạng nội địa (0 thay thế +84)
         let normalizedPhone = phone.startsWith('+84')

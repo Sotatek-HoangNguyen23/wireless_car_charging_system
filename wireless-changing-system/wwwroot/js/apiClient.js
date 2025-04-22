@@ -22,6 +22,7 @@ async function performTokenRefresh() {
 
         return data.accessToken;
     } catch (error) {
+        alert("Bạn can dang nhap de truy cập tính năng này!");
         logout();
         throw error;
     }

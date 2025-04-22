@@ -40,6 +40,10 @@ namespace API.Services
             {
                 return null; // Authentication failed
             }
+            if (user.Status == "Inactive")
+            {
+                throw new ArgumentException("Tài khoản của bạn đã bị khóa");
+            }
 
             var AccessToken = GenerateAccessToken(user);
             var refreshToken = await GenerateRefreshToken();

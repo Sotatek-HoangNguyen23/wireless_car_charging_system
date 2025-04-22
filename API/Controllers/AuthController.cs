@@ -83,9 +83,18 @@ namespace API.Controllers
 
                 return Ok(response);
             }
-            catch (Exception e)
+            catch (ArgumentException e)
             {
                 return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ProblemDetails
                 {
                     Title = "Invalid Request",
                     Detail = e.Message,
@@ -117,12 +126,22 @@ namespace API.Controllers
                 });
 
                 return Ok(new { Result = "Successfully logged out" });
-            }catch (Exception ex)
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Invalid Request",
-                    Detail = ex.Message,
+                    Detail = e.Message,
                     Status = 500
                 });
             }
@@ -162,6 +181,15 @@ namespace API.Controllers
                     Status = 400
                 });
             }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 500
+                });
+            }
         }
 
         [HttpGet("profile/{userId}")]
@@ -174,11 +202,21 @@ namespace API.Controllers
             }
             catch (ArgumentException e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
             }
             catch (Exception e)
             {
-                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 500
+                });
             }
         }
 
@@ -192,11 +230,21 @@ namespace API.Controllers
             }
             catch (ArgumentException e)
             {
-                return BadRequest(new { Message = e.Message });
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 400
+                });
             }
             catch (Exception e)
             {
-                return StatusCode(500, new { Message = "Internal server error", Error = e.Message });
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = e.Message,
+                    Status = 500
+                });
             }
         }
 

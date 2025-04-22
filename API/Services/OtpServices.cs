@@ -11,12 +11,16 @@ namespace API.Services
         Task<bool> VerifyOtpAsync(string identifier, string inputOtp);
         Task<string> genResetPasswordToken(string email);
         Task<bool> verifyResetPasswordToken(string token, string email);
+        Task<string> GenerateAccountActivationTokenAsync(string email);
+        Task<bool> VerifyActivationTokenAsync(string token, string email);
+
     }
     public class OtpServices : IOtpServices
     {
         private readonly IConnectionMultiplexer _redis;
         private const int OTP_EXPIRY_MINUTES = 5;
         private const int MAX_ATTEMPTS = 3;
+        private const int ACTIVATION_TOKEN_DAYS = 7;
 
         public OtpServices(IConnectionMultiplexer redis)
         {
@@ -160,8 +164,30 @@ namespace API.Services
             return number.ToString("D6");
         }
 
+       
 
+        public async Task<bool> VerifyActivationTokenAsync(string token, string email)
+        {
+            var key = $"activation-token:{token}";
+            var db = _redis.GetDatabase();
+            var storedEmail = await db.StringGetAsync(key);
 
+            if (storedEmail.IsNullOrEmpty || storedEmail.ToString() != email)
+                return false;
+
+            await db.KeyDeleteAsync(key);
+            return true;
+        }
+        public async Task<string> GenerateAccountActivationTokenAsync(string email)
+        {
+            // Dùng GUID đảm bảo token đủ dài và khó đoán
+            var token = Guid.NewGuid().ToString();
+            var key = $"activation-token:{token}";
+            var db = _redis.GetDatabase();
+
+            await db.StringSetAsync(key, email, TimeSpan.FromDays(ACTIVATION_TOKEN_DAYS));
+            return token;
+        }
         private class OtpData
         {
             public required string Code { get; set; }
