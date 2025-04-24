@@ -53,7 +53,7 @@ namespace _Arduino_ChargingPoint1
         static void Main(string[] args)
         {
         restart_program:
-            arduinoPort = new SerialPort("COM10", 9600);
+            arduinoPort = new SerialPort("COM11", 9600);
             arduinoPort.Open();
             Console.WriteLine("Waiting for command from Arduino...");
             try

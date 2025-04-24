@@ -5,12 +5,12 @@ namespace _Arduino_Barie
 {
     internal class Program
     {
-        private static string connectionString = "Server=TONY\\SQLEXPRESS;Database=WCCS;User Id=sa;Password=123456;";
+        private static string connectionString = "Server=HUETAYY\\SQLEXPRESS;Database=WCCS;User Id=sa;Password=123;";
         private static SerialPort arduinoPort;
 
         static void Main(string[] args)
         {
-            arduinoPort = new SerialPort("COM9", 9600);
+            arduinoPort = new SerialPort("COM4", 9600);
             arduinoPort.Open();
             Console.WriteLine("Waiting for command from Arduino...");
 
