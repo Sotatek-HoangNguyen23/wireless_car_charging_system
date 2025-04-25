@@ -38,7 +38,7 @@ namespace API.Services
             }
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                return null; // Authentication failed
+                throw new ArgumentException("Mat khau sai"); // Authentication failed
             }
             if (user.Status == "Inactive")
             {

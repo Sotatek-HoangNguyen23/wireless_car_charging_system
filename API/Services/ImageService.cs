@@ -86,7 +86,7 @@ namespace API.Services
                 var deleteParams = new DeletionParams(publicId)
                 {
                     ResourceType = ResourceType.Image,
-                    Invalidate = true // Xóa cache CDN
+                    Invalidate = true 
                 };
 
                 var result = await _cloudinary.DestroyAsync(deleteParams);
