@@ -25,7 +25,7 @@ namespace TestProject.UserTest
 
             _context = new WccsContext(options);
             _repository = new DriverLicenseRepository(_context);
-
+            var driverRole = new Role { RoleId = 1, RoleName = "Driver" };
             var users = new List<User>
             {
                 new User
@@ -34,7 +34,9 @@ namespace TestProject.UserTest
                 Fullname = "Nguyen Van A",
                 Email = "a@test.com",
                 PhoneNumber = "1111111111",
-                CreateAt = DateTime.UtcNow
+                CreateAt = DateTime.UtcNow,
+                Role =driverRole,
+                RoleId = 1
             },
             new User
             {
@@ -42,7 +44,9 @@ namespace TestProject.UserTest
                 Fullname = "Tran Thi B",
                 Email = "b@test.com",
                 PhoneNumber = "2222222222",
-                CreateAt = DateTime.UtcNow
+                CreateAt = DateTime.UtcNow,
+                Role =driverRole,
+                RoleId = 1
             }
             };
             var licenses = new List<DriverLicense>
@@ -81,9 +85,10 @@ namespace TestProject.UserTest
                 UpdateAt = new DateTime(2023, 3, 5),
                 UserId = 2, 
                 ImgFront = "front3.jpg",
-                ImgBack = "back3.jpg"
+                ImgBack = "back3.jpg",
             }
             };
+            await _context.Roles.AddAsync(driverRole);
 
 
             await _context.Users.AddRangeAsync(users);

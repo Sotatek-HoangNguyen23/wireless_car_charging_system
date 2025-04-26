@@ -36,7 +36,11 @@ namespace API.Services
             {
                 throw new ArgumentException("Password không được vượt quá 100 ký tự.", nameof(request.Password));
             }
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user == null)
+            {
+                throw new ArgumentException("Tai khoan khong ton tai");
+            }
+            if ( !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
                 throw new ArgumentException("Mat khau sai"); // Authentication failed
             }

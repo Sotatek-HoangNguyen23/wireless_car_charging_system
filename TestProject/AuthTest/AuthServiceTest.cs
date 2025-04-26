@@ -108,7 +108,7 @@ namespace TestProject.AuthTest
             Assert.That(savedToken.UserId, Is.EqualTo(1));
         }
         [Test]
-        public async Task Authenticate_InvalidEmail_ReturnsNull()
+        public void Authenticate_InvalidEmail_ReturnsNull()
         {
             // Arrange
             var request = new AuthenticateRequest
@@ -118,35 +118,28 @@ namespace TestProject.AuthTest
             };
 
             // Act
-            var result = await _authService.Authenticate(request);
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await _authService.Authenticate(request));
 
-            // Assert
-            Assert.That(result, Is.Null);
-
-            // Verify refresh token saved
-            var savedToken = await _context.RefreshTokens.FirstOrDefaultAsync();
-            Assert.That(savedToken, Is.Null);
+            // Assert exception message
+            Assert.That(ex.Message, Does.Contain("Tai khoan khong ton tai"));
         }
         [Test]
-        public async Task Authenticate_InvalidPassword_ReturnsNull()
+        public void Authenticate_InvalidPassword_ThrowException()
         {
             // Arrange
             var request = new AuthenticateRequest
             {
                 Email = "test@example.com",
-                Password = "WrongPassword"
+                Password = "WrongPassword" 
             };
 
-            // Act
-            var result = await _authService.Authenticate(request);
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await _authService.Authenticate(request));
 
-            // Assert
-            Assert.That(result, Is.Null);
-
-            // Verify no refresh token is saved
-            var savedToken = await _context.RefreshTokens.FirstOrDefaultAsync();
-            Assert.That(savedToken, Is.Null);
+            // Assert exception message
+            Assert.That(ex.Message, Does.Contain("Mat khau sai"));
         }
+
         [Test]
         public void Authenticate_NullEmail_ThrowsException()
         {

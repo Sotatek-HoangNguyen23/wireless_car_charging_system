@@ -285,7 +285,7 @@ namespace TestProject.UserTest
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
                 await _userService.RegisterAsync(_validRequest));
-            Assert.That(ex.Message, Does.Contain("Mật khẩu phải có từ 8 đến 128 ký tự"));
+            Assert.That(ex.Message, Does.Contain("Mật khẩu phải có từ 8 đến 100 ký tự"));
         }
         [Test]
         public void RegisterAsync_ShouldThrowExceptionWhenPasswordIsWeak()
@@ -485,7 +485,7 @@ namespace TestProject.UserTest
             );
 
             Assert.That(ex.InnerException, Is.TypeOf<ArgumentException>());
-            Assert.That(ex.InnerException.Message, Is.EqualTo("User not found"));
+            Assert.That(ex.InnerException.Message, Is.EqualTo("User khong ton tai"));
         }
         [Test]
         public void ResetPassword_ShouldThrowException_WhenTokenIsInvalid()
@@ -566,7 +566,7 @@ namespace TestProject.UserTest
             );
 
             Assert.That(ex.InnerException, Is.TypeOf<ArgumentException>());
-            Assert.That(ex.InnerException.Message, Is.EqualTo("Password is not strong enough"));
+            Assert.That(ex.InnerException.Message, Is.EqualTo("Mật khẩu không đủ mạnh"));
         }
 
         [Test]
