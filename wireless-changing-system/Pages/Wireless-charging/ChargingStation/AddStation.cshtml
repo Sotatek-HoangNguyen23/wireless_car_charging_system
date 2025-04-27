@@ -3,129 +3,122 @@
 @{
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Station</title>
-    <link rel="stylesheet" href="~/css/chargingstation/addstation.css">
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center my-4">Thêm trạm sạc</h1>
-        <div class="form-container">
-            <!-- Station Name và Owner -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="stationName" class="form-label fw-bolder">Tên trạm sạc <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
-                    <input type="text" class="form-control" id="stationName" placeholder="Nhập tên trạm sạc">
-                    <div class="invalid-feedback" id="stationNameError"></div>
-                </div>
-                <div class="col-md-6">
-                    <label for="owner" class="form-label fw-bolder">Chủ sở hữu <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Bạn sẽ không thể tự thay đổi chủ sở hữu tronng tương lai)</small>
-                    <select class="form-select" id="owner">
-                        <option selected disabled>Đang tải danh sách chủ sở hữu...</option>
-                    </select>
-                    <div class="invalid-feedback" id="ownerError"></div>
-                </div>
+
+<div class="container">
+    <h1 class="text-center my-4">Thêm trạm sạc</h1>
+    <div class="bg-light p-4 rounded-3 mx-auto" style="max-width: 800px;">
+        <!-- Station Name và Owner -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="stationName" class="form-label fw-bolder">Tên trạm sạc <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
+                <input type="text" class="form-control" id="stationName" placeholder="Nhập tên trạm sạc">
+                <div class="invalid-feedback" id="stationNameError"></div>
             </div>
-
-            <!--Charging Location -->
-            <div class="row">
-                <h3 class="my-2">Vị trí trạm sạc</h3>
-            </div>
-
-            <!-- Station Address -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label for="stationAddress" class="form-label fw-bolder">Địa chỉ <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
-                    <div class="d-flex">
-                        <input type="text" class="form-control mr-3" id="stationAddress" placeholder="Nhập địa chỉ">
-                        <button class="btn btn-primary mt-2" style="white-space: nowrap;" id="searchAddress">Tìm địa chỉ</button>
-                    </div>
-                    <div class="invalid-feedback" id="stationAddressError"></div>
-                </div>
-            </div>
-
-            <!-- Map -->
-            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-            <div>
-                <div class="fw-bold">Chọn vị trí trạm sạc trên map (vị trí này sẽ k thể thay đổi trong tương lai)</div>
-                <div id="map" style="height: 500px;"></div>
-                <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" id="longitude" class="form-control" placeholder="Longitude" style="width: 150px;" hidden />
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" id="latitude" class="form-control" placeholder="Latitude" style="width: 150px;" hidden/>
-                    </div>
-                </div>
-            </div>
-            
-
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label for="description" class="form-label fw-bolder">Mô tả <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>                  
-                    <textarea class="form-control" id="description" rows="3" placeholder="Nhập mô tả"></textarea>
-                    <div class="invalid-feedback" id="descriptionError"></div>
-                </div>
-            </div>
-
-            <!--Charging Point -->
-            <div class="row">
-                <h3 class="my-2">Điểm sạc</h3>
-            </div>
-
-            <!-- Total Points và Point Name -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="totalPoints" class="form-label fw-bolder">Tổng số điểm sạc <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 100 điểm sạc)</small>
-                    <input type="number" class="form-control" id="totalPoints" placeholder="Nhập tổng số điểm sạc">
-                    <div class="invalid-feedback" id="totalPointsError"></div>
-                </div>
-                <div class="col-md-6 row">
-                    <label for="pointName" class="form-label fw-bolder">Mã điểm sạc <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 5 chữ cái)</small>
-                    <input type="text" class="form-control" id="pointName" placeholder="VD: HCM, HN, P,...">
-                    <div class="invalid-feedback" id="pointNameError"></div>
-                    <p class="form-note">Tên điểm sạc sẽ có dạng: Mã điểm sạc + số thứ tự (VD: P-1, P2,...)</p>
-                </div>
-            </div>
-
-            <!-- Description và Max Power -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="description" class="form-label fw-bolder">Mô tả điểm sạc <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
-                    <textarea class="form-control" id="pointDescription" rows="3" placeholder="Mô tả"></textarea>
-                    <div class="invalid-feedback" id="pointDescriptionError"></div>
-                </div>
-                <div class="col-md-6">
-                    <label for="maxPower" class="form-label fw-bolder">Công suất tối đa (kW) <label style="color: red">*</label></label>
-                    <small class="text-muted d-block mb-1">(Tối đa 350kW)</small>
-                    <input type="number" class="form-control" id="maxPower" placeholder="Nhập công suất tối đa">
-                    <div class="invalid-feedback" id="maxPowerError"></div>
-                </div>
-            </div>
-
-            <!-- Nút Submit -->
-            <div class="text-center">
-                <button id="btn-submit" type="submit" class="btn btn-primary">Thêm trạm sạc</button>
-                <button class="btn btn-danger">Hủy</button>
+            <div class="col-md-6">
+                <label for="owner" class="form-label fw-bolder">Chủ sở hữu <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Bạn sẽ không thể tự thay đổi chủ sở hữu tronng tương lai)</small>
+                <select class="form-select" id="owner">
+                    <option selected disabled>Đang tải danh sách chủ sở hữu...</option>
+                </select>
+                <div class="invalid-feedback" id="ownerError"></div>
             </div>
         </div>
-    </div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
+        <!--Charging Location -->
+        <div class="row">
+            <h3 class="my-2">Vị trí trạm sạc</h3>
+        </div>
+
+        <!-- Station Address -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="stationAddress" class="form-label fw-bolder">Địa chỉ <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control flex-grow-1" id="stationAddress" placeholder="Nhập địa chỉ">
+                    <button class="btn btn-primary" style="white-space: nowrap; height: fit-content;" id="searchAddress">Tìm địa chỉ</button>
+                </div>
+                <div class="invalid-feedback" id="stationAddressError"></div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <div>
+            <div class="fw-bold">Chọn vị trí trạm sạc trên map (vị trí này sẽ k thể thay đổi trong tương lai)</div>
+            <div id="map" class="border rounded-3" style="height: 500px;"></div>
+            <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" id="longitude" class="form-control" placeholder="Longitude" style="width: 150px;" hidden />
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" id="latitude" class="form-control" placeholder="Latitude" style="width: 150px;" hidden />
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label for="description" class="form-label fw-bolder">Mô tả <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
+                <textarea class="form-control" id="description" rows="3" placeholder="Nhập mô tả"></textarea>
+                <div class="invalid-feedback" id="descriptionError"></div>
+            </div>
+        </div>
+
+        <!--Charging Point -->
+        <div class="row">
+            <h3 class="my-2">Điểm sạc</h3>
+        </div>
+
+        <!-- Total Points và Point Name -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="totalPoints" class="form-label fw-bolder">Tổng số điểm sạc <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 100 điểm sạc)</small>
+                <input type="number" class="form-control" id="totalPoints" placeholder="Nhập tổng số điểm sạc">
+                <div class="invalid-feedback" id="totalPointsError"></div>
+            </div>
+            <div class="col-md-6">
+                <label for="pointName" class="form-label fw-bolder">Mã điểm sạc <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 5 chữ cái)</small>
+                <input type="text" class="form-control" id="pointName" placeholder="VD: HCM, HN, P,...">
+                <div class="invalid-feedback" id="pointNameError"></div>
+                <small class="text-muted">Tên điểm sạc sẽ có dạng: Mã điểm sạc + số thứ tự (VD: P-1, P2,...)</small>
+            </div>
+        </div>
+
+        <!-- Description và Max Power -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="description" class="form-label fw-bolder">Mô tả điểm sạc <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 225 ký tự)</small>
+                <textarea class="form-control" id="pointDescription" rows="3" placeholder="Mô tả"></textarea>
+                <div class="invalid-feedback" id="pointDescriptionError"></div>
+            </div>
+            <div class="col-md-6">
+                <label for="maxPower" class="form-label fw-bolder">Công suất tối đa (kW) <label style="color: red">*</label></label>
+                <small class="text-muted d-block mb-1">(Tối đa 350kW)</small>
+                <input type="number" class="form-control" id="maxPower" placeholder="Nhập công suất tối đa">
+                <div class="invalid-feedback" id="maxPowerError"></div>
+            </div>
+        </div>
+
+        <!-- Nút Submit -->
+        <div class="text-center">
+            <button id="btn-submit" type="submit" class="btn btn-primary">Thêm trạm sạc</button>
+            <button class="btn btn-danger">Hủy</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+    document.addEventListener("DOMContentLoaded", function () {
+        // [Keep all your existing JavaScript code]
         const defaultLat = 10.7769;
         const defaultLng = 106.7009;
 
@@ -201,30 +194,51 @@
 
                 console.log("Dữ liệu gửi đi:", stationDto); // Kiểm tra JSON trước khi gửi
 
-                $.ajax({
-                    url: "https://localhost:7191/api/ChargingStation/Add",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(stationDto),
-                    success: function (response) {
-                        showSuccessToast("Thêm trạm sạc thành công!");
-                        setTimeout(function () {
-                            window.location.href = "/wireless-charging/chargingstation/stationlist";
-                        }, 1000);
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi khi thêm trạm sạc:", xhr.responseText);
-                        showToast("Thêm trạm sạc thất bại!");
-                    }
-                });
+                addChargingStation(stationDto);
             });
 
-            $.ajax({
-                url: "https://localhost:7191/api/User?roleId=2&pageNumber=1&pageSize=10",
-                type: "GET",
-                success: function (data) {
+            loadOwners();
+        });
+
+        async function addChargingStation(stationDto) {
+            try {
+                const url = "https://localhost:7191/api/ChargingStation/Add";
+                const options = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stationDto)
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    showSuccessToast("Thêm trạm sạc thành công!");
+                    setTimeout(() => {
+                        window.location.href = "/wireless-charging/chargingstation/stationlist";
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi thêm trạm sạc:", errorText);
+                    showToast("Thêm trạm sạc thất bại!");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Thêm trạm sạc thất bại!");
+            }
+        }
+
+        async function loadOwners() {
+            try {
+                const url = "https://localhost:7191/api/User?roleId=2&pageNumber=1&pageSize=10";
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
                     const ownerSelect = $("#owner");
-                    ownerSelect.empty(); // Xoá các option cũ
+                    ownerSelect.empty();
                     ownerSelect.append(`<option selected disabled>Chọn chủ sở hữu</option>`);
 
                     data.data.forEach(user => {
@@ -232,13 +246,16 @@
                             <option value="${user.userId}">${user.fullname}</option>
                         `);
                     });
-                },
-                error: function (xhr) {
-                    console.error("Lỗi khi lấy danh sách user:", xhr.responseText);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi lấy danh sách user:", errorText);
                     $("#owner").html(`<option disabled selected>Không thể tải danh sách chủ sở hữu</option>`);
                 }
-            });
-        });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                $("#owner").html(`<option disabled selected>Không thể tải danh sách chủ sở hữu</option>`);
+            }
+        }
 
         // Validate
         const fields = {
@@ -342,8 +359,5 @@
 
         // Disable submit khi chưa hợp lệ
         document.getElementById('btn-submit').disabled = true;
-
-    </script>
-
-</body>
-</html>
+    });
+</script>

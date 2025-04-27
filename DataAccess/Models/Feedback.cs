@@ -21,6 +21,8 @@ public partial class Feedback
 
     public int? PointId { get; set; }
 
+    public string? Response {  get; set; }
+
     public string? Status { get; set; }
 
     public virtual Car? Car { get; set; }

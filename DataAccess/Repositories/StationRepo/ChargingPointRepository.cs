@@ -2,8 +2,6 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Collections.Specialized.BitVector32;
 
 namespace DataAccess.Repositories.StationRepo
 {
@@ -20,8 +18,8 @@ namespace DataAccess.Repositories.StationRepo
         {
             var points = _context.ChargingPoints
                 .Include(cp => cp.ChargingSessions)
-                .Include(cp => cp.RealTimeData)             // Get Station + Location & Point
-                .Where(cp => cp.StationId == stationId)     // Compare StationID with variable
+                .Include(cp => cp.RealTimeData)            
+                .Where(cp => cp.StationId == stationId)
                 .AsNoTracking()
                 .Select(cp => new ChargingPointDto
                 {
@@ -101,18 +99,19 @@ namespace DataAccess.Repositories.StationRepo
             return point;
         }
 
-        public async Task<bool> DeleteChargingPoint(int pointId)
+        public async Task<ChargingPoint?> DeleteChargingPoint(int pointId)
         {
-            var point = await _context.ChargingPoints                        
-                .FirstOrDefaultAsync(s => s.ChargingPointId == pointId);
+            var point = await _context.ChargingPoints
+                .FirstOrDefaultAsync(p => p.ChargingPointId == pointId);
 
             if (point == null)
-                return false;
+                return null;
 
-            _context.ChargingPoints.Remove(point);
+            point.Status = "Removed";
+
             await _context.SaveChangesAsync();
 
-            return true;
+            return point;
         }
 
     }

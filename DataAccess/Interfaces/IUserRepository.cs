@@ -27,8 +27,5 @@ namespace DataAccess.Interfaces
         Task<List<User>> GetUserByEmailOrPhone(string search);
         PagedResult<UserDto> GetUsers(string? searchQuery, string? status, int? roleId, int pageNumber, int pageSize);
         Task ChangeUserStatusAsync(int userId, string newStatus);
-        PagedResult<FeedbackDto> GetFeedbacks(string?search, DateTime? startDate, DateTime? endDate, int page, int pageSize);
-        Task<List<Feedback>> GetFeedbackByUserId(int userId);
-
     }
 }

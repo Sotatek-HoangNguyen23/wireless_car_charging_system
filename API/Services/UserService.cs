@@ -645,16 +645,6 @@ namespace API.Services
             await _userRepository.ChangeUserStatusAsync(userId, newStatus);
         }
 
-        public PagedResult<FeedbackDto> GetFeedbacks(string? search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
-        {
-            return _userRepository.GetFeedbacks(search, startDate, endDate, page, pageSize);
-        }
-
-        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
-        {
-            return await _userRepository.GetFeedbackByUserId(userId);
-        }
-
         public bool IsEmailCorrect(string email)
         {
             string regex = @"^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$";

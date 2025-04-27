@@ -34,21 +34,14 @@ namespace DataAccess.Repositories
                     Point = f.Point.ChargingPointName,
                     Message = f.Message,
                     Status = f.Status,
-                    Date = f.CreatedAt
+                    Date = f.CreatedAt,
+                    Response = f.Response
                 });
 
             int totalCount = query.Count(); ;
             var data = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             return new PagedResult<FeedbackDto>(data, totalCount, pageSize);
-        }
-
-        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
-        {
-            return await _context.Feedbacks
-                .Where(f => f.UserId == userId)
-                .OrderByDescending(f => f.CreatedAt)
-                .ToListAsync();
         }
 
         public void AddFeedback(Feedback feedback)

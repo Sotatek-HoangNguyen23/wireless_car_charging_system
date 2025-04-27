@@ -3,193 +3,284 @@
 @{
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Station Detail</title>
-    <link rel="stylesheet" href="~/css/chargingstation/detail.css"> 
+<div class="container">
+    <h3 class="col-md-6"></h3>
 
-</head>
-<body>
-    <div class="container">
-        <h3 class="col-md-6"></h3>
-
-        <!-- Header với ảnh và thông tin trạm sạc -->
-        <div class="station-header">
-            <img src="https://img.canarymedia.com/content/uploads/witricity3.png?auto=compress%2Cformat&crop=focalpoint&fit=crop&fp-x=0.5&fp-y=0.5&h=501&q=80&w=864&s=8fb2e832892760cff6912e6683a67514" alt="Station Image">
-            <div class="station-info">
-                
-            </div>
-        </div>
-
-        <!-- Charging Points -->
-        <div class="charging-points">
-            <div class="row">
-                <h3 class="col-md-4">Các điểm sạc của trạm</h3>
-                <button id="add-point-btn" type="button" class="btn btn-primary col-md-3" data-bs-toggle="modal" data-bs-target="#addPointModal">
-                    Thêm điểm sạc
-                </button>
-            </div>
-            <div class="row point-list">
-                
-            </div>
-        </div>
-
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center"></ul>
-        </nav>
-    </div>
-
-    <!-- Modal Xác Nhận Xóa Station -->
-    <div class="modal fade" id="deleteStationConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteConfirmLabel">Xác nhận xóa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Bạn có chắc chắn muốn xóa trạm sạc này không?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteStationBtn">Xóa</button>
-                </div>
-            </div>
+    <!-- Header với ảnh và thông tin trạm sạc -->
+    <div class="station-header d-flex align-items-center mb-4">
+        <img src="https://img.canarymedia.com/content/uploads/witricity3.png?auto=compress%2Cformat&crop=focalpoint&fit=crop&fp-x=0.5&fp-y=0.5&h=501&q=80&w=864&s=8fb2e832892760cff6912e6683a67514" alt="Station Image" class="img-fluid rounded me-4" style="width: 500px; height: 300px;">
+        <div class="station-info flex-grow-1">
+            
         </div>
     </div>
 
-    <!-- Modal Xác Nhận Xóa Point-->
-    <div class="modal fade" id="deletePointConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteConfirmLabel">Xác nhận xóa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Bạn có chắc chắn muốn xóa điểm sạc này không?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeletePointBtn">Xóa</button>
-                </div>
-            </div>
+    <!-- Charging Points -->
+    <div class="charging-points">
+        <div class="row mb-3">
+            <h3 class="col-md-4">Các điểm sạc của trạm</h3>
+            <button id="add-point-btn" type="button" class="btn btn-primary col-md-3" data-bs-toggle="modal" data-bs-target="#addPointModal">
+                Thêm điểm sạc
+            </button>
+        </div>
+        <div class="row point-list mb-4">
+            
         </div>
     </div>
 
-    <!-- Modal Add -->
-    <div class="modal fade" id="addPointModal" tabindex="-1" aria-labelledby="addPointModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addPointModalLabel">Thêm điểm sạc</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="totalPoint" class="form-label">Tổng số điểm sạc</label>
-                                <input type="number" class="form-control" id="totalPoint">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="codeName" class="form-label">Mã điểm sạc</label>
-                                <input type="text" class="form-control" id="codeName">
-                            </div>                           
-                            <div class="col-md-4">
-                                <label for="maxPower" class="form-label">Công suất tối đa</label>
-                                <input type="number" class="form-control" id="maxPower">
-                            </div>
-                            <p class="form-note">Tên điểm sạc sẽ có dạng: Mã điểm sạc + số thứ tự (VD: P-1, P2,...)</p>
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center"></ul>
+    </nav>
+</div>
+
+<!-- Modal Xác Nhận Xóa Station -->
+<div class="modal fade" id="deleteStationConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa trạm sạc này không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteStationBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác Nhận Xóa Point-->
+<div class="modal fade" id="deletePointConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa điểm sạc này không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeletePointBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add -->
+<div class="modal fade" id="addPointModal" tabindex="-1" aria-labelledby="addPointModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPointModalLabel">Thêm điểm sạc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="totalPoint" class="form-label">Tổng số điểm sạc</label>
+                            <input type="number" class="form-control" id="totalPoint">
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="description" class="form-label">Mô tả</label>
-                                <textarea class="form-control" id="description" rows="3" placeholder="Mô tả"></textarea>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="codeName" class="form-label">Mã điểm sạc</label>
+                            <input type="text" class="form-control" id="codeName">
+                        </div>                           
+                        <div class="col-md-4">
+                            <label for="maxPower" class="form-label">Công suất tối đa</label>
+                            <input type="number" class="form-control" id="maxPower">
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="btn-add">Thêm</button>
-                </div>
+                        <p class="form-note">Tên điểm sạc sẽ có dạng: Mã điểm sạc + số thứ tự (VD: P-1, P2,...)</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Mô tả"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btn-add">Thêm</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal Update -->
-    <div class="modal fade" id="updatePointModal" tabindex="-1" aria-labelledby="updatePointModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="updatePointModalLabel">Cập nhật điểm sạc</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="pointName" class="form-label">Tên điểm sạc</label>
-                                <input type="text" class="form-control" id="updatePointName">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="maxPower" class="form-label">Công suất tối đa</label>
-                                <input type="number" class="form-control" id="updateMaxPower">
-                            </div>                            
+<!-- Modal Update -->
+<div class="modal fade" id="updatePointModal" tabindex="-1" aria-labelledby="updatePointModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updatePointModalLabel">Cập nhật điểm sạc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="pointName" class="form-label">Tên điểm sạc</label>
+                            <input type="text" class="form-control" id="updatePointName">
                         </div>
+                        <div class="col-md-6">
+                            <label for="maxPower" class="form-label">Công suất tối đa</label>
+                            <input type="number" class="form-control" id="updateMaxPower">
+                        </div>                            
+                    </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="description" class="form-label">Mô tả</label>
-                                <textarea class="form-control" id="updateDescription" rows="3"></textarea>
-                            </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="updateStatus" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="updateStatus">
+                                <option value="Available">Sẵn sàng </option>
+                                <option value="Maintenance">Bảo trì </option>
+                            </select>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="btn-update">Cập nhật</button>
-                </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="updateDescription" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btn-update">Cập nhật</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+    document.addEventListener("DOMContentLoaded", function () {
         let currentPage = 1;
+        let data;
         const pageSize = 3;
         const role = sessionStorage.getItem("role");
+        const urlParams = new URLSearchParams(window.location.search);
+        var stationId = urlParams.get('stationId');
 
         $(document).ready(function () {
-            // Lấy stationId từ URL hoặc đặt mặc định
-            const urlParams = new URLSearchParams(window.location.search);
-            stationId = urlParams.get('stationId');
+            loadStationData(stationId, currentPage, pageSize);
 
-            loadStationData();
+            let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
+            let pointIdToDelete = null;
+
+            // Khi click vào nút Delete, mở modal và lưu ID
+            $(document).on("click", ".btn-delete-station", function (e) {
+                e.preventDefault();
+                stationIdToDelete = $(this).data("id");
+                $("#deleteStationConfirmModal").modal("show");
+            });
+
+            $(document).on("click", ".btn-delete-point", function (e) {
+                e.preventDefault();
+                pointIdToDelete = $(this).data("id");
+                $("#deletePointConfirmModal").modal("show");
+            });
+
+            // Khi nhấn xác nhận xóa
+            $("#confirmDeleteStationBtn").click(function () {
+                if (!stationIdToDelete) {
+                    showToast("Không tìm thấy trạm sạc!");
+                    return;
+                }
+
+                deleteStation(stationIdToDelete);
+            });
+
+            $("#confirmDeletePointBtn").click(function () {
+                if (!pointIdToDelete) {
+                    showToast("Point not found!");
+                    return;
+                }
+
+                deletePoint(pointIdToDelete);
+            });
+
+            let pointIdToUpdate = null;
+
+            // Khi nhấn vào nút cập nhật
+            $(document).on("click", ".btn-update-point", function (e) {
+                e.preventDefault();
+                pointIdToUpdate = $(this).data("id");
+                $("#updatePointModal").modal("show");
+            });
+
+            $("#updatePointModal").on("show.bs.modal", function () {
+
+                if (!pointIdToUpdate) {
+                    console.error("Không có ID của điểm sạc để cập nhật.");
+                    showToast("Không tìm thấy điểm sạc.");
+                    return;
+                }
+
+                loadChargingPointToUpdate(pointIdToUpdate);
+            });
+
+            $("#btn-update").click(function () {
+                const maxPowerValue = $("#updateMaxPower").val();
+
+                const updatePointDto = {
+                    chargingPointName: $("#updatePointName").val(),
+                    description: $("#updateDescription").val(),
+                    status: $("#updateStatus").val(),
+                    maxPower: maxPowerValue ? parseFloat(maxPowerValue) : 0
+                };
+
+                updateChargingPoint(pointIdToUpdate, updatePointDto);
+            });
+
+            // Add Point
+            $("#btn-add").click(function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                stationId = urlParams.get('stationId');
+                const pointDto = {
+                    totalPoint: parseInt($("#totalPoint").val()),
+                    pointCode: $("#codeName").val(),
+                    pointName: $("#pointName").val(),
+                    pointDescription: $("#description").val(),
+                    maxPower: parseFloat($("#maxPower").val())
+                };
+
+                addChargingPoint(stationId, pointDto);
+            });
         }); 
 
         // Gọi API lấy thông tin trạm sạc
-        function loadStationData() {
-            $.ajax({
-                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${currentPage}&pageSize=${pageSize}`,
-                method: "GET",
-                dataType: "json",
-                success: function (data) {
+        async function loadStationData(stationId, currentPage, pageSize) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${currentPage}&pageSize=${pageSize}`;
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    data = await response.json();
                     console.log("API Response:", data);
                     updateStationInfo(data);
                     updateStationPointInfo(data);
                     updatePagination(data.points.totalPages);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error fetching station data:", error);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server Error:", errorText);
                     showToast("Không thể tải dữ liệu trạm sạc.");
                 }
-            });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Không thể tải dữ liệu trạm sạc.");
+            }
         }
 
         // Hàm cập nhật thông tin trạm sạc vào HTML
@@ -210,7 +301,7 @@
                 <button class="btn btn-warning btn-sm show-on-map" data-lat="${station.latitude}" data-lng="${station.longitude}">
                 Xem trên Google Map
                 </button>              
-                ${role !== "Driver" ? `
+                ${role === "Operator" || role === "Station Owner" ? `
                     <a class="btn btn-info btn-sm" href="updatestation?stationId=${station.stationId}">Cập nhật</a>
                     <a href="#" class="btn btn-danger btn-sm btn-delete-station" data-id="${station.stationId}"">Xóa</a>
                 ` : ""}
@@ -224,38 +315,46 @@
             });
         }
 
+        // Mở GGMap
         function openGoogleMaps(lat, lng) {
             const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
             window.open(googleMapsUrl, "_blank"); // Mở Google Maps trong tab mới
         }
 
+        // Cập nhật danh sách điểm sạc
         function updateStationPointInfo(data) {
             if (!data || !data.station) return;
 
             let points = data.points.data
 
-
-            // Cập nhật danh sách điểm sạc
             let pointHTML = '';
             points.forEach(point => {
                 let statusClass = getStatusClass(point.status);
-                pointHTML += `
-                    <div class="col-md-4">
-                        <div class="point-card">
-                            <h5>${point.chargingPointName}</h5>
-                            <p>
-                                <strong>Trạng thái:</strong> ${point.status}
-                                <span class="status-dot ${statusClass}"></span>
-                            </p>
-                            <p><strong>Công suất tối đa:</strong> ${point.maxPower}</p>
-                            <p><strong>Mô tả:</strong> ${point.description}</p>
-                            ${role !== "Driver" ? `
-                                <a class="btn btn-info btn-sm btn-update-point" href="#" data-id="${point.chargingPointId}">Cập nhật</a>
-                                <a class="btn btn-danger btn-sm btn-delete-point" href="#" data-id="${point.chargingPointId}">Xóa</a>
-                            ` : ""}
+
+                    pointHTML += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${point.chargingPointName}</h5>
+                                    <p class="card-text">
+                                        <strong>Trạng thái:</strong> 
+                                        ${point.status === 'Available' ? 'Trống' : point.status === 'In Use' ? 'Đang sử dụng' : point.status === 'Maintenance' ? 'Bảo trì' : 'Không xác định'}
+                                        <span class="status-dot ${getStatusClass(point.status)}"></span>
+                                    </p>
+                                    <p class="card-text"><strong>Công suất tối đa:</strong> ${point.maxPower}kW</p>
+                                    <p class="card-text"><strong>Mô tả:</strong> ${point.description}</p>
+
+                                    ${role === "Operator" || role === "Station Owner"
+                                        ? `
+                                            <a class="btn btn-info btn-sm btn-update-point" href="#" data-id="${point.chargingPointId}">Cập nhật</a>
+                                            <a class="btn btn-danger btn-sm btn-delete-point" href="#" data-id="${point.chargingPointId}">Xóa</a>
+                                            `
+                                        : ""
+                                    }
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;                            
             });
 
             $(".charging-points .point-list").html(pointHTML);
@@ -265,11 +364,11 @@
         function getStatusClass(status) {
             switch (status.toLowerCase()) {
                 case "available":
-                    return "available";  // Xanh lá
+                    return "bg-success";  // Xanh lá
                 case "in use":
-                    return "in-use";     // Đỏ
+                    return "bg-danger";     // Đỏ
                 case "maintenance":
-                    return "maintenance"; // Vàng
+                    return "bg-warning"; // Vàng
                 default:
                     return "";
             }
@@ -319,207 +418,200 @@
             // Nút "Sau"
             pagination.append(createPageItem(currentPage + 1, "Sau", false, currentPage === totalPages));
         }
-        
+    
         // Chuyển trang
-        function changePage(page) {
+        window.changePage = function (page) {
             if (page < 1) return;
 
             currentPage = page;
 
-            // Gọi API để lấy dữ liệu `Point` mới theo `currentPage`
-            $.ajax({
-                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${currentPage}&pageSize=${pageSize}`,
-                method: "GET",
-                dataType: "json",
-                success: function (data) {
-                    updateStationPointInfo(data); // Cập nhật danh sách Point mới
-                    updatePagination(data.points.totalPages); // Cập nhật lại phân trang
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error fetching station points:", error);
-                }
-            });
+            loadStationPoints(stationId, currentPage, pageSize);
         }
 
-        // Delete Station, Point
-        $(document).ready(function () {
-            let stationIdToDelete = null; // Lưu ID trạm sạc cần xóa
-            let pointIdToDelete = null;
-
-            // Khi click vào nút Delete, mở modal và lưu ID
-            $(document).on("click", ".btn-delete-station", function (e) {
-                e.preventDefault();
-                stationIdToDelete = $(this).data("id");
-                $("#deleteStationConfirmModal").modal("show");
-            });
-
-            $(document).on("click", ".btn-delete-point", function (e) {
-                e.preventDefault();
-                pointIdToDelete = $(this).data("id");
-                $("#deletePointConfirmModal").modal("show");
-            });
-
-            // Khi nhấn xác nhận xóa
-            $("#confirmDeleteStationBtn").click(function () {
-                if (!stationIdToDelete) {
-                    showToast("Không tìm thấy trạm sạc!");
-                    return;
-                }
-
-                $.ajax({
-                    url: `https://localhost:7191/api/ChargingStation/${stationIdToDelete}`,
-                    type: "DELETE",
-                    success: function () {
-                        $("#deleteConfirmModal").modal("hide"); // Đóng modal
-                        showSuccessToast("Xóa trạm sạc thành công!");
-                        setTimeout(function () {
-                            window.location.href = "/wireless-charging/chargingstation/stationlist";
-                        }, 1000);
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi khi xóa:", xhr.responseText);
-                        showToast("Xóa trạm sạc thất bại!");
-                    }
-                });
-            });
-
-            $("#confirmDeletePointBtn").click(function () {
-                if (!pointIdToDelete) {
-                    showToast("Point not found!");
-                    return;
-                }
-
-                $.ajax({
-                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToDelete}`,
-                    type: "DELETE",
-                    success: function () {
-                        $("#deleteConfirmModal").modal("hide"); // Đóng modal
-                        showSuccessToast("Xóa điểm sạc thành công!");
-                        setTimeout(function () {
-                            location.reload(); // Làm mới danh sách
-                        }, 1000)                       
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi khi xóa:", xhr.responseText);
-                        showToast("Xóa trạm sạc thất bại!");
-                    }
-                });
-            });
-        });
-
-        // Update Point
-        $(document).ready(function () {
-            let pointIdToUpdate = null;
-
-            // Khi nhấn vào nút cập nhật
-            $(document).on("click", ".btn-update-point", function (e) {
-                e.preventDefault();
-                pointIdToUpdate = $(this).data("id");
-                $("#updatePointModal").modal("show");
-            });
-
-            $("#updatePointModal").on("show.bs.modal", function () {
-
-                if (!pointIdToUpdate) {
-                    console.error("Không có ID của điểm sạc để cập nhật.");
-                    showToast("Không tìm thấy điểm sạc.");
-                    return;
-                }
-
-                $.ajax({
-                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`,
-                    type: "GET",
-                    success: function (data) {
-                        console.log("Dữ liệu API trả về:", data);
-
-                        if (data) {
-                            $("#updatePointName").val(data.chargingPointName || "");
-                            $("#updateMaxPower").val(data.maxPower || "");
-                            $("#updateDescription").val(data.description || "");
-                        } else {
-                            console.warn("Dữ liệu trả về không hợp lệ.");
-                        }
-                    },
-                    error: function () {
-                        console.error("Không thể lấy dữ liệu điểm sạc.");
-                        showToast("Không thể lấy dữ liệu điểm sạc.");
-                    }
-                });
-            });
-
-            $("#btn-update").click(function () {
-                const maxPowerValue = $("#updateMaxPower").val();
-
-                const updatePointDto = {
-                    chargingPointName: $("#updatePointName").val(),
-                    description: $("#updateDescription").val(),
-                    maxPower: maxPowerValue ? parseFloat(maxPowerValue) : 0
+        // Thông tin điểm sạc
+        async function loadStationPoints(stationId, currentPage, pageSize) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${currentPage}&pageSize=${pageSize}`;
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
                 };
 
-                console.log("Dữ liệu gửi đi:", JSON.stringify(updatePointDto));
-                $.ajax({
-                    url: `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`,
-                    type: "PUT",
-                    contentType: "application/json",
-                    data: JSON.stringify(updatePointDto),
-                    success: function (response) {
-                        console.log("Cập nhật thành công:", response);
-                        showSuccessToast("Cập nhật điểm sạc thành công!");
-                        $("#updatePointModal").modal("hide");
-                        setTimeout(function () {
-                            location.reload(); //Làm mới danh sách
-                        }, 1000)
-                    },
-                    error: function (xhr) {
-                        console.error("Error:", xhr.responseText);
-                        showToast("Xóa điểm sạc thấy bại!");
-                    }
-                });
-            });
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStationPointInfo(data); // Cập nhật danh sách Point mới
+                    updatePagination(data.points.totalPages); // Cập nhật lại phân trang
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server Error:", errorText);
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
+        }
 
-        });
+        // Xóa trạm
+        async function deleteStation(stationIdToDelete) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/${stationIdToDelete}`;
+                const options = {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                };
 
-        // Add Point
-        $("#btn-add").click(function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            stationId = urlParams.get('stationId');
-            const pointDto = {
-                totalPoint: parseInt($("#totalPoint").val()),
-                pointCode: $("#codeName").val(),
-                pointName: $("#pointName").val(),
-                pointDescription: $("#description").val(),
-                maxPower: parseFloat($("#maxPower").val())
-            };
-
-            $.ajax({
-                url: `https://localhost:7191/api/ChargingPoint/AddPoints?stationId=${stationId}`,
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(pointDto),
-                success: function (response) {
-                    $("#addPointModal").modal("hide");
-                    showSuccessToast("Thêm điểm sạc thành công!")
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    $("#deleteConfirmModal").modal("hide"); // Đóng modal
+                    showSuccessToast("Xóa trạm sạc thành công!");
                     setTimeout(function () {
+                        window.location.href = "/wireless-charging/chargingstation/stationlist";
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server Error:", errorText);
+                    showToast("Xóa không thành công!");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Xóa không thành công!");
+            }
+        }
+
+        // Xóa điểm sạc
+        async function deletePoint(pointIdToDelete) {
+            try {
+                const url = `https://localhost:7191/api/ChargingPoint/${pointIdToDelete}`;
+                const options = {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    $("#deletePointConfirmModal").modal("hide");
+                    showSuccessToast("Xóa điểm sạc thành công!");
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const stationId = urlParams.get('stationId');
+                    loadStationData(stationId, currentPage, pageSize);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server Error:", errorText);
+                    showToast("Xóa không thành công!");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Xóa không thành công!");
+            }
+        }
+
+        // Loaad form update điểm sạc
+        async function loadChargingPointToUpdate(pointIdToUpdate) {
+            try {
+                const url = `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`;
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Dữ liệu API trả về:", data);
+
+                    if (data) {
+                        $("#updatePointName").val(data.chargingPointName || "");
+                        $("#updateMaxPower").val(data.maxPower || "");
+                        $("#updateDescription").val(data.description || "");
+                        $("#updateStatus").val(data.status || "");
+                    } else {
+                        console.warn("Dữ liệu trả về không hợp lệ.");
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server Error:", errorText);
+                    showToast("Không thể lấy dữ liệu điểm sạc.");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Không thể lấy dữ liệu điểm sạc.");
+            }
+        }
+
+        // Update điểm sạc
+        async function updateChargingPoint(pointIdToUpdate, updatePointDto) {
+            try {
+                const url = `https://localhost:7191/api/ChargingPoint/${pointIdToUpdate}`;
+                const options = {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatePointDto)
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Cập nhật thành công:", data);
+                    showSuccessToast("Cập nhật điểm sạc thành công!");
+                    $("#updatePointModal").modal("hide");
+                    setTimeout(() => {
                         location.reload(); // Làm mới danh sách
-                    }, 1000)
-                },
-                error: function (xhr) {
-                    console.error("Lỗi khi thêm điểm sạc:", xhr.responseText);
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi từ server:", errorText);
+                    showToast("Cập nhật điểm sạc thất bại!");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Cập nhật điểm sạc thất bại!");
+            }
+        }
+
+        // Add điểm sạc
+        async function addChargingPoint(stationId, pointDto) {
+            try {
+                const url = `https://localhost:7191/api/ChargingPoint/AddPoints?stationId=${stationId}`;
+                const options = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pointDto)
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    $("#addPointModal").modal("hide");
+                    showSuccessToast("Thêm điểm sạc thành công!");
+                    setTimeout(() => {
+                        location.reload(); // Làm mới danh sách
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi thêm điểm sạc:", errorText);
                     showToast("Thêm điểm sạc thất bại!");
                 }
-            });
-        });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Thêm điểm sạc thất bại!");
+            }
+        }
+
 
         // Phân quyền theo role
-        document.addEventListener("DOMContentLoaded", function () {
-            const role = sessionStorage.getItem("role");
-            if (role === "Driver") {
-                const addButton = document.getElementById("add-point-btn");
-                addButton.style.display = "none";
-            }
-        });
+        if (role !== "Operator" && role !== "Station Owner") {
+            const addButton = document.getElementById("add-point-btn");
+            addButton.style.display = "none";
+        }
+    });
+</script>
 
-    </script>
-
-</body>
-</html>
+<style>
+    .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+</style>

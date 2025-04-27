@@ -3,15 +3,7 @@
 @{
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Station</title>
-    <link rel="stylesheet" href="~/css/chargingstation/addstation.css">
-</head>
-<body>
+
     <div class="container">
         <h1 class="text-center my-4">Cập nhật trạm sạc</h1>
         <div class="form-container">
@@ -22,107 +14,100 @@
                     <input type="text" class="form-control" id="stationName">
                 </div>
                 <div class="col-md-6">
-                    <label for="owner" class="form-label fw-bolder">Chủ sở hữu</label>
-                    <select class="form-select" id="owner">
-                        <option selected disabled>Đang tải danh sách chủ sở hữu...</option>
+                    <label for="status" class="form-label fw-bolder">Trạng thái</label>
+                    <select class="form-select" id="status">
+                        <option value="Active">Hoạt động</option>
+                        <option value="Inactive">Không hoạt động</option>
                     </select>
                 </div>
             </div>
 
             <!-- Nút Submit -->
             <div class="text-center">
-                <button id="btn-update" type="submit" class="btn btn-primary">Update</button>
-                <button class="btn btn-danger">Cancel</button>
+                <button id="btn-update" type="submit" class="btn btn-primary">Cập nhật</button>
+                <a class="btn btn-danger" href="/wireless-charging/chargingstation/stationlist">Hủy</a>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>        
+    <script type="module">        
+        import { fetchWithAuth } from '/js/apiClient.js';
 
-        $(document).ready(function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            stationId = urlParams.get('stationId');
+        document.addEventListener("DOMContentLoaded", function () {
+            $(document).ready(function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                let stationId = urlParams.get('stationId');
 
-            if (!stationId) {
-                showToast("Không tìm thấy ID trạm sạc.");
-                window.location.href = "wireless-charging/chargingstation/stationlist";
-                return;
-            }
+                if (!stationId) {
+                    showToast("Không tìm thấy ID trạm sạc.");
+                    window.location.href = "wireless-charging/chargingstation/stationlist";
+                    return;
+                }
 
-            let currentOwnerId = null; // Biến tạm để lưu ownerId
+                // Gọi API để lấy dữ liệu hiện có
+                loadStationDetail(stationId);
 
-            // Gọi API để lấy dữ liệu hiện có
-            $.ajax({
-                url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`,
-                type: "GET",
-                dataType: "json",
-                success: function (data) {
+                // Khi nhấn Update
+                $("#btn-update").click(function () {
+                    const updateChargingStationDto = {
+                        stationName: $("#stationName").val(),
+                        status: $("#status").val()
+                    };
+
+                    updateStation(stationId, updateChargingStationDto);
+                });
+            });
+        });
+
+        async function loadStationDetail(stationId) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`;
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
                     console.log(data);
 
                     $("#stationName").val(data.station.stationName || '');
-                    $("#owner").val(data.station.ownerId || '');
-                    $("#description").val(data.station.locationDescription || '');
-
-                    currentOwnerId = data.station.ownerId; // Gán ownerId                   
-                },
-                error: function (xhr, status, error) {
-                    console.error("Lỗi khi tải dữ liệu trạm sạc:", error);
+                    $("#status").val(data.station.status || 'Active');
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi tải dữ liệu trạm sạc:", errorText);
                     showToast("Lỗi khi tải dữ liệu trạm sạc.");
                 }
-            });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Lỗi khi tải dữ liệu trạm sạc.");
+            }
+        }
 
-            // Khi nhấn Update
-            $("#btn-update").click(function () {
-                const updateChargingStationDto = {
-                    stationName: $("#stationName").val(),
-                    ownerId: parseInt($("#owner").val()),
-                    address: $("#stationAddress").val(),
-                    latitude: parseFloat($("#latitude").val()),
-                    Longitude: parseFloat($("#longitude").val()),
-                    maxConsumPower: parseFloat($("#maxPower").val()) || 0
+        async function updateStation(stationId, updateChargingStationDto) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/${stationId}`;
+                const options = {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateChargingStationDto)
                 };
 
-                $.ajax({
-                    url: `https://localhost:7191/api/ChargingStation/${stationId}`,
-                    type: "PUT",
-                    contentType: "application/json",
-                    data: JSON.stringify(updateChargingStationDto),
-                    success: function () {
-                        showSuccessToast("Cập nhật thành công!");
-                        setTimeout(function () {
-                            window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
-                        }, 1000);
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi khi cập nhật:", xhr.responseText);
-                        showToast("Cập nhật thất bại!");
-                    }
-                });
-            });
-
-            $.ajax({
-                url: "https://localhost:7191/api/User?roleId=2&pageNumber=1&pageSize=10",
-                type: "GET",
-                success: function (data) {
-                    const ownerSelect = $("#owner");
-                    ownerSelect.empty(); // Xoá các option cũ
-                    ownerSelect.append(`<option disabled ${!currentOwnerId ? "selected" : ""}>Chọn chủ sở hữu</option>`);
-
-                    data.data.forEach(user => {
-                        ownerSelect.append(`
-                            <option value="${user.userId}">${user.fullname}</option>
-                        `);
-                    });
-                },
-                error: function (xhr) {
-                    console.error("Lỗi khi lấy danh sách user:", xhr.responseText);
-                    $("#owner").html(`<option disabled selected>Không thể tải danh sách chủ sở hữu</option>`);
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    showSuccessToast("Cập nhật thành công!");
+                    setTimeout(function () {
+                        window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi cập nhật:", errorText);
+                    showToast("Cập nhật thất bại!");
                 }
-            });
-        });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Cập nhật thất bại!");
+            }
+        }
     </script>
-
-
-</body>
-</html>

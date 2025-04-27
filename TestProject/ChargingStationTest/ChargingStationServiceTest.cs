@@ -3,43 +3,120 @@ using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace TestProject.ChargingStationTest
 {
     public class ChargingStationServiceTest
     {
-        private WccsContext _context = new();
+        private WccsContext _context;
         private ChargingStationService _service;
         private IChargingStationRepository _stationRepository;
         private IChargingPointRepository _pointRepository;
 
-        private const decimal latitude = 10;
-        private const decimal longitude = 10;
-
         [SetUp]
         public void Setup()
         {
+            var options = new DbContextOptionsBuilder<WccsContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            _context = new WccsContext(options);
+
+            // Seed dữ liệu
+            var user1 = new User { UserId = 1, Fullname = "Nguyen Van A", Email = "a@example.com", PhoneNumber = "0123456789", CreateAt = DateTime.UtcNow };
+            var user2 = new User { UserId = 2, Fullname = "Tran Thi B", Email = "b@example.com", PhoneNumber = "0987654321", CreateAt = DateTime.UtcNow };
+
+            var location1 = new StationLocation
+            {
+                StationLocationId = 1,
+                Address = "123 ABC Street, HCM City",
+                Latitude = 10.762622M,
+                Longitude = 106.660172M
+            };
+
+            var station1 = new ChargingStation
+            {
+                StationId = 1,
+                OwnerId = 1,
+                StationLocationId = 1,
+                StationName = "Hanoi Station",
+                Status = "Available",
+                MaxConsumPower = 50,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow
+            };
+
+            var station2 = new ChargingStation
+            {
+                StationId = 2,
+                OwnerId = 1,
+                StationLocationId = 1,
+                StationName = "HCM Station",
+                Status = "Available",
+                MaxConsumPower = 60,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow
+            };
+
+            var points = new List<ChargingPoint>
+            {
+                new ChargingPoint { ChargingPointId = 1, ChargingPointName = "Point 1", Status = "Available", MaxPower = 50, StationId = 1 },
+                new ChargingPoint { ChargingPointId = 2, ChargingPointName = "Point 2", Status = "In Use", MaxPower = 50, StationId = 2 },
+                new ChargingPoint { ChargingPointId = 3, ChargingPointName = "Point 3", Status = "Available", MaxPower = 60, StationId = 2 }
+            };
+
+            var session1 = new ChargingSession
+            {
+                SessionId = 1,
+                CarId = 1, // Giả sử có Car với id là 1
+                ChargingPointId = 1,
+                UserId = user1.UserId,
+                StartTime = DateTime.UtcNow.AddMinutes(-30),
+                EndTime = DateTime.UtcNow,
+                EnergyConsumed = 5.5,
+                Cost = 10,
+                Status = "Completed"
+            };
+
+            var session2 = new ChargingSession
+            {
+                SessionId = 2,
+                CarId = 1,
+                ChargingPointId = 1,
+                UserId = user1.UserId,
+                StartTime = DateTime.UtcNow.AddMinutes(-60),
+                EndTime = DateTime.UtcNow.AddMinutes(-30),
+                EnergyConsumed = 6.0,
+                Cost = 12,
+                Status = "Completed"
+            };
+
+            _context.Users.AddRange(user1, user2);
+            _context.StationLocations.Add(location1);
+            _context.ChargingStations.AddRange(station1, station2);
+            _context.ChargingPoints.AddRange(points);
+            _context.ChargingSessions.AddRange(session1, session2);
+            _context.SaveChanges();
+
             _stationRepository = new ChargingStationRepository(_context);
             _pointRepository = new ChargingPointRepository(_context);
             _service = new ChargingStationService(_stationRepository, _pointRepository);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _context.Dispose();
+        }
+
         [Test]
-        public void GetChargingStations_ShouldReturnEmpty_WhenNoStationsExist()
+        public void GetChargingStations_ShouldReturnAllStations_NoFilter()
         {
             var result = _service.GetChargingStations(null, 0, 0, 1, 10);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Data.Count, Is.EqualTo(0));
-        }
-
-        [Test]
-        public async Task GetChargingStations_ShouldReturnStations_WhenDataExists()
-        {
-            var result = _service.GetChargingStations(null, 0, 0, 1, 20);
-
-            Assert.That(result.Data.Count, Is.EqualTo(11));
-            Assert.That(result.Data[0].StationName, Is.EqualTo("Station Test"));
+            Assert.That(result.Data.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -56,9 +133,8 @@ namespace TestProject.ChargingStationTest
             var result = _service.GetStationDetails(2, 1, 10);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Station.StationName, Is.EqualTo("Ho Chi Minh Station"));
-            Assert.That(result.Points.Data.Count, Is.EqualTo(5));
-            Assert.That(result.Points.Data[0].ChargingPointName, Is.EqualTo("HCM-1"));
+            Assert.That(result.Station.StationName, Is.EqualTo("HCM Station"));
+            Assert.That(result.Points.Data.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -66,14 +142,14 @@ namespace TestProject.ChargingStationTest
         {
             var newStation = new NewChargingStationDto
             {
-                StationName = "Test Station",
-                OwnerId = 2,
-                Address = "456 XYZ Street",
-                Latitude = latitude,
-                Longitude = longitude,
-                LocationDescription = "Near the mall",
-                TotalPoint = 5,
-                PointCode = "P",
+                StationName = "New Station",
+                OwnerId = 1,
+                Address = "New Address",
+                Latitude = 11,
+                Longitude = 106,
+                LocationDescription = "Near mall",
+                TotalPoint = 2,
+                PointCode = "NS",
                 PointDescription = "Fast charger",
                 MaxPower = 100
             };
@@ -81,7 +157,7 @@ namespace TestProject.ChargingStationTest
             var result = await _service.AddChargingStation(newStation);
 
             Assert.That(result, Is.True);
-            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(12));
+            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(3));
         }
 
         [Test]
@@ -89,15 +165,30 @@ namespace TestProject.ChargingStationTest
         {
             var updateDto = new UpdateChargingStationDto
             {
-                StationName = "New Name",
+                StationName = "Updated Name",
                 Status = "Inactive"
             };
 
-            var result = await _service.UpdateChargingStation(2024, updateDto);
+            var result = await _service.UpdateChargingStation(1, updateDto);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.StationName, Is.EqualTo("New Name"));
+            Assert.That(result.StationName, Is.EqualTo("Updated Name"));
             Assert.That(result.Status, Is.EqualTo("Inactive"));
+        }
+
+        [Test]
+        public async Task UpdateChargingStation_ShouldReturnNull_NonExistingStation()
+        {
+            var updateDto = new UpdateChargingStationDto
+            {
+                StationName = "Updated Name",
+                Status = "Inactive"
+            };
+
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        await _service.UpdateChargingStation(999, updateDto));  
+
+            Assert.That(ex.Message, Is.EqualTo("Station does not exist."));
         }
 
         [Test]
@@ -111,10 +202,10 @@ namespace TestProject.ChargingStationTest
         [Test]
         public async Task DeleteChargingStation_ShouldDeleteStation_WhenIdExists()
         {
-            var result = await _service.DeleteChargingStation(2017);
+            var result = await _service.DeleteChargingStation(1);
 
             Assert.That(result, Is.True);
-            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(11));
+            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(1));
         }
 
         // Test GetPointById
@@ -129,10 +220,10 @@ namespace TestProject.ChargingStationTest
         [Test]
         public async Task GetPointById_ShouldReturnCorrectPoint_WhenIdExists()
         {
-            var result = _service.GetPointById(4);
+            var point = _service.GetPointById(1);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.ChargingPointName, Is.EqualTo("HCM-1"));
+            Assert.That(point, Is.Not.Null);
+            Assert.That(point.ChargingPointName, Is.EqualTo("Point 1"));
         }
 
         // Test AddPoint
@@ -141,20 +232,32 @@ namespace TestProject.ChargingStationTest
         {
             var stationDto = new NewChargingStationDto
             {
-                TotalPoint = 3,
-                PointCode = "P",
-                PointDescription = "Fast charger",
-                MaxPower = 100
+                TotalPoint = 2,
+                PointCode = "PX",
+                PointDescription = "Test charger",
+                MaxPower = 80
             };
 
-            // Act
-            var result = await _service.AddPoint(2, stationDto);
+            var points = await _service.AddPoint(1, stationDto);
 
-            // Assert
-            Assert.That(result.Count, Is.EqualTo(3));
-            Assert.That(result[^3].ChargingPointName, Is.EqualTo("P-7"));
-            Assert.That(result[^2].ChargingPointName, Is.EqualTo("P-8"));
-            Assert.That(result[^1].ChargingPointName, Is.EqualTo("P-9"));
+            Assert.That(points.Count, Is.EqualTo(2));
+            Assert.That(points[0].ChargingPointName, Does.StartWith("PX"));
+        }
+
+        [Test]
+        public async Task AddPoint_ShouldReturnEmpty_NonExistingStation()
+        {
+            var stationDto = new NewChargingStationDto
+            {
+                TotalPoint = 2,
+                PointCode = "PX",
+                PointDescription = "Test charger",
+                MaxPower = 80
+            };
+
+            var points = await _service.AddPoint(999, stationDto);
+
+            Assert.That(points, Is.Empty);
         }
 
         [Test]
@@ -179,9 +282,9 @@ namespace TestProject.ChargingStationTest
                 ChargingPointName = "Updated Point",
                 Status = "In Use"
             };
-
-            var result = await _service.UpdateChargingPoint(2047, updateDto);
-
+           
+            var result = await _service.UpdateChargingPoint(1, updateDto); 
+            
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ChargingPointName, Is.EqualTo("Updated Point"));
             Assert.That(result.Status, Is.EqualTo("In Use"));
@@ -192,39 +295,48 @@ namespace TestProject.ChargingStationTest
         {
             var result = await _service.DeleteChargingPoint(999);
 
-            Assert.That(result, Is.False);
+            Assert.That(result, Is.Null);
         }
 
         [Test]
         public async Task DeleteChargingPoint_ShouldDeletePoint_WhenIdExists()
         {
-            var result = await _service.DeleteChargingPoint(2046);
+            var result = await _service.DeleteChargingPoint(2);
 
-            Assert.That(result, Is.True);
-            Assert.That(_context.ChargingPoints.Count(), Is.EqualTo(18));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Status, Is.EqualTo("Removed"));
         }
 
         [Test]
         public void GetStats_ShouldReturnCorrectStats_WhenDataExists()
         {
-            var result = _service.GetStats(1, 2025, 3);
+            var stationId = 1;
+            var year = 2025;
+            var month = 4;
+            
+            var result = _service.GetStats(stationId, year, month);
 
+            
             Assert.That(result, Is.Not.Null);
             Assert.That(result.TotalEnergyConsumed, Is.EqualTo(11.5));
             Assert.That(result.TotalRevenue, Is.EqualTo(22.0));
-            Assert.That(result.TotalChargingSessions, Is.EqualTo(2));
-            Assert.That(result.AverageChargingTime, Is.EqualTo(37.5));
+            Assert.That(result.TotalChargingSessions, Is.EqualTo(2)); 
+            Assert.That(result.AverageChargingTime, Is.EqualTo(30));
 
             Assert.That(result.ChartData.Count, Is.EqualTo(2));
-            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 1"));
-            Assert.That(result.ChartData[1].Label, Is.EqualTo("Ngày 2"));
+            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 27"));
+            Assert.That(result.ChartData[1].Label, Is.EqualTo("Ngày 26"));
         }
 
         [Test]
         public void GetStats_ShouldReturnEmptyStats_WhenNoSessionsMatchFilter()
         {
-            var result = _service.GetStats(1, 2023, 3);
-
+            var stationId = 1;
+            var year = 2023; 
+            var month = 1;
+            
+            var result = _service.GetStats(stationId, year, month);
+            
             Assert.That(result.TotalEnergyConsumed, Is.EqualTo(0));
             Assert.That(result.TotalRevenue, Is.EqualTo(0));
             Assert.That(result.TotalChargingSessions, Is.EqualTo(0));

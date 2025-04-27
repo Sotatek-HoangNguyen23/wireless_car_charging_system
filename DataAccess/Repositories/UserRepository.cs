@@ -189,36 +189,6 @@ namespace DataAccess.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
-        public PagedResult<FeedbackDto> GetFeedbacks(string?search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
-        {
-            var query = _context.Feedbacks
-                .Where(f =>
-                    (string.IsNullOrEmpty(search) || f.User.Email.Contains(search) || f.Message.Contains(search)) &&
-                    (!startDate.HasValue || f.CreatedAt >= startDate) &&
-                    (!endDate.HasValue || f.CreatedAt <= endDate)
-                )
-                .Select(f => new FeedbackDto
-                {
-                    Id = f.FeedbackId,
-                    User = f.User.Email,
-                    Message = f.Message,
-                    Date = f.CreatedAt
-                });
-
-            int totalCount = query.Count(); ;
-            var data = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            return new PagedResult<FeedbackDto> (data, totalCount, pageSize);
-        }
-
-        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
-        {
-            return await _context.Feedbacks
-                .Where(f => f.UserId == userId)
-                .OrderByDescending(f => f.CreatedAt)
-                .ToListAsync();
-        }
     }
 }
 

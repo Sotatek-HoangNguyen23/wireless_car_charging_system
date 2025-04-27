@@ -16,12 +16,26 @@
     </div>
 </div>
 
-<script>
-    $(document).ready(function () {
-        $.ajax({
-            url: 'https://localhost:7191/api/dashboard/system-overview',
-            method: 'GET',
-            success: function (data) {
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener("DOMContentLoaded", () => {
+        $(document).ready(function () {
+            loadSystemOverview();
+        });
+    });
+
+    async function loadSystemOverview() {
+        try {
+            const url = 'https://localhost:7191/api/dashboard/system-overview';
+            const options = {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            };
+
+            const response = await fetchWithAuth(url, options);
+            if (response.ok) {
+                const data = await response.json();
                 const cards = [
                     { label: 'Tổng trạm sạc', value: data.totalStations, icon: 'fa-charging-station', color: 'primary' },
                     { label: 'Tổng điểm sạc', value: data.totalChargingPoints, icon: 'fa-plug', color: 'info' },
@@ -38,24 +52,25 @@
                     $('#overview').append(`
                         <div class="col-md-4">
                             <div class="card shadow-sm border-start border-${c.color} border-4 h-100">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="flex-shrink-0 me-3">
-                                <i class="fa-solid ${c.icon} fa-2x text-${c.color}"></i>
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        <i class="fa-solid ${c.icon} fa-2x text-${c.color}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 text-muted">${c.label}</h6>
+                                        <h5 class="mb-0 fw-bold">${c.value}</h5>
+                                    </div>
                                 </div>
-                                <div>
-                                <h6 class="mb-1 text-muted">${c.label}</h6>
-                                <h5 class="mb-0 fw-bold">${c.value}</h5>
-                                </div>
-                            </div>
                             </div>
                         </div>
-                    `);   
+                    `);
                 });
-            },
-            error: function (err) {
-                console.error('Lỗi khi lấy dữ liệu tổng quan:', err);
+            } else {
+                console.error('Error fetching data:', response.status);
             }
-        });
-    });
+        } catch (err) {
+            console.error('Error loading system overview:', err);
+        }
+    }
 </script>
 
