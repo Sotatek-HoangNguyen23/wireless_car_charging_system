@@ -1,6 +1,8 @@
 ﻿using DataAccess.DTOs;
+using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using DataAccess.Repositories.StationRepo;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -297,6 +299,62 @@ namespace DataAccess.Repositories.CarRepo
             _context.UserCars.Update(userCar);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public PagedResult<CarDetailDTO> GetAllCars(string? search, string? type, string? brand, bool? status, int page, int pageSize)
+        {
+            var query = _context.Cars
+                .Where(f =>
+                    (string.IsNullOrEmpty(search) || f.CarName.Contains(search) || f.LicensePlate.Contains(search)) &&
+                    (string.IsNullOrEmpty(type) || f.CarModel.Type.Contains(type)) &&
+                    (string.IsNullOrEmpty(brand) || f.CarModel.Brand.Contains(brand)) &&
+                    (status == null || f.IsDeleted == status)
+                )
+                .Select(f => new CarDetailDTO
+                {
+                    CarId = f.CarId,
+                    CarName = f.CarName,
+                    LicensePlate = f.LicensePlate,
+                    IsDeleted = f.IsDeleted,
+                    Owner = f.UserCars
+                        .Where(uc => uc.Role == "Owner")
+                        .Select(uc => uc.User.Fullname)
+                        .FirstOrDefault(),
+                    Email = f.UserCars
+                        .Where(uc => uc.Role == "Owner")
+                        .Select(uc => uc.User.Email)
+                        .FirstOrDefault(),
+                    Type = f.CarModel.Type,
+                    Color = f.CarModel.Color,
+                    SeatNumber = f.CarModel.SeatNumber,
+                    Brand = f.CarModel.Brand,
+                    BatteryCapacity = f.CarModel.BatteryCapacity,
+                    MaxChargingPower = f.CarModel.MaxChargingPower,
+                    AverageRange = f.CarModel.AverageRange,
+                    ChargingStandard = f.CarModel.ChargingStandard,
+                    Img = f.CarModel.Type,
+                });
+
+            int totalCount = query.Count(); ;
+            var data = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return new PagedResult<CarDetailDTO>(data, totalCount, pageSize);
+        }
+
+        public List<string?> GetAllBrands()
+        {
+            return _context.CarModels
+                .Select(m => m.Brand)
+                .Distinct()
+                .ToList();
+        }
+
+        public List<string?> GetAllTypes()
+        {
+            return _context.CarModels
+                .Select(m => m.Type)
+                .Distinct()
+                .ToList();
         }
     }
 }

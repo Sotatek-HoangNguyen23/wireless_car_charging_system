@@ -29,44 +29,6 @@
                 </div>
             </div>
 
-            <!--Charging Location -->
-            <div class="row">
-                <h3 class="my-2">Charging location</h3>
-            </div>
-
-            <!-- Station Address -->
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label for="stationAddress" class="form-label fw-bolder">Địa chỉ</label>
-                    <div class="d-flex">
-                        <input type="text" class="form-control mr-3" id="stationAddress" placeholder="Nhập địa chỉ">
-                        <button class="btn btn-primary mt-2" style="white-space: nowrap;" id="searchAddress">Tìm địa chỉ</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Map -->
-            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-            <div id="map" style="height: 500px;"></div>
-            <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="longitude" class="form-label mb-0">Kinh độ:</label>
-                    <input type="text" id="longitude" class="form-control" placeholder="Longitude" style="width: 150px;" />
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    <label for="latitude" class="form-label mb-0">Vĩ độ:</label>
-                    <input type="text" id="latitude" class="form-control" placeholder="Latitude" style="width: 150px;" />
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label for="description" class="form-label fw-bolder">Description</label>
-                    <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
-                </div>
-            </div>
-
             <!-- Nút Submit -->
             <div class="text-center">
                 <button id="btn-update" type="submit" class="btn btn-primary">Update</button>
@@ -76,64 +38,7 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>        
-        const defaultLat = 10.7769;
-        const defaultLng = 106.7009;
-
-        const map = L.map('map').setView([defaultLat, defaultLng], 14);
-
-        // Sử dụng bản đồ từ OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Thêm marker kéo được
-        const marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
-
-        // Cập nhật tọa độ vào input khi kéo marker
-        marker.on('dragend', function (e) {
-            const { lat, lng } = e.target.getLatLng();
-            document.getElementById('latitude').value = lat.toFixed(6);
-            document.getElementById('longitude').value = lng.toFixed(6);
-        });
-
-        // Cho phép click vào bản đồ để đặt lại marker
-        map.on('click', function (e) {
-            marker.setLatLng(e.latlng);
-            document.getElementById('latitude').value = e.latlng.lat.toFixed(6);
-            document.getElementById('longitude').value = e.latlng.lng.toFixed(6);
-        });
-
-        // Xử lý khi nhấn nút Tìm địa chỉ
-        document.getElementById('searchAddress').addEventListener('click', function () {
-            const address = document.getElementById('stationAddress').value;
-            if (!address) return;
-
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-
-                        map.setView([lat, lon], 16); // Zoom tới địa chỉ
-                        marker.setLatLng([lat, lon]);
-
-                        // Gán vào input
-                        document.getElementById('latitude').value = lat.toFixed(6);
-                        document.getElementById('longitude').value = lon.toFixed(6);
-                    } else {
-                        showToast("Không tìm thấy địa chỉ.");
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast("Có lỗi xảy ra khi tìm địa chỉ.");
-                });
-        });
 
         $(document).ready(function () {
             const urlParams = new URLSearchParams(window.location.search);
@@ -154,25 +59,12 @@
                 dataType: "json",
                 success: function (data) {
                     console.log(data);
-                    if (data) {
-                        const lat = parseFloat(data.station.latitude);
-                        const lng = parseFloat(data.station.longitude);
-
-                    // Nếu lat và lng hợp lệ, cập nhật marker và map
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        marker.setLatLng([lat, lng]);
-                        map.setView([lat, lng], 16); // Zoom tới vị trí trạm
-                    }
 
                     $("#stationName").val(data.station.stationName || '');
                     $("#owner").val(data.station.ownerId || '');
-                    $("#stationAddress").val(data.station.address || '');
-                    $("#latitude").val(lat || '');
-                    $("#longitude").val(lng || '');
                     $("#description").val(data.station.locationDescription || '');
 
-                    currentOwnerId = data.station.ownerId; // Gán ownerId
-                    }
+                    currentOwnerId = data.station.ownerId; // Gán ownerId                   
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi tải dữ liệu trạm sạc:", error);

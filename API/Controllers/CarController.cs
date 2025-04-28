@@ -198,5 +198,25 @@ namespace API.Controllers
 
             return Ok(new { message = "Xác nhận thuê xe thành công!" });
         }
+
+        [HttpGet("all-cars")]
+        public IActionResult GetAllCars(
+            [FromQuery] string? search,
+            [FromQuery] string? type,
+            [FromQuery] string? branch,
+            [FromQuery] bool? status,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var result = _carService.GetAllCars(search, type, branch, status, page, pageSize);
+            return Ok(result);
+        }
+
+        [HttpGet("filter-options")]
+        public IActionResult GetFilterOptions()
+        {
+            var result = _carService.GetFilterOptions();
+            return Ok(result);
+        }
     }
 }

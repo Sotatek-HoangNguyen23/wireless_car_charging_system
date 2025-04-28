@@ -31,6 +31,7 @@ public partial class RealTimeDatum
 
     public string? Powerpoint { get; set; }
 
+
     public virtual Car Car { get; set; } = null!;
 
     public virtual ChargingPoint Chargingpoint { get; set; } = null!;

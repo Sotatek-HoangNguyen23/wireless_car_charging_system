@@ -75,7 +75,7 @@
                                 <th>Họ tên</th>
                                 <th>Email</th>
                                 <th>Số điện thoại</th>
-                                <th>Tráng thái</th>
+                                <th>Trạng thái</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -143,12 +143,13 @@
     </div>
 
     <script>
-                let currentPage = 1;
-                let pageSize = 5;
-                let currentRoleId = 2; // Mặc định Station Owner
-                let currentStatus = "";
-                let searchQuery = "";
-                const role = sessionStorage.getItem("role");
+        document.addEventListener("DOMContentLoaded", function () {
+        let currentPage = 1;
+        let pageSize = 5;
+        let currentRoleId = 2; // Mặc định Station Owner
+        let currentStatus = "";
+        let searchQuery = "";
+        const role = sessionStorage.getItem("role");
 
                 // Gọi API để lấy danh sách user
                 function fetchUsers(page = 1) {
@@ -249,20 +250,20 @@
                         let userId = e.target.getAttribute("data-id");
                         let newStatus = e.target.getAttribute("data-status") === "Active" ? "Blocked" : "Active";
 
-                        fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(newStatus)
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            showToast("Đã cập nhật trạng thái")
-                            setTimeout(function () {
-                                fetchUsers(); // Reload danh sách user
-                            }, 1000)
-                        });
-                    }
+                fetch(`https://localhost:7191/api/User/change-status/${userId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newStatus)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showSuccessToast("Đã cập nhật trạng thái")
+                    setTimeout(function () {
+                        fetchUsers(); // Reload danh sách user
+                    }, 1000)
                 });
+            }
+        });
 
                 $(document).on("click", ".view-feedback-btn", function () {
                     let userId = $(this).data("id");
@@ -351,10 +352,11 @@
             });
         });
 
-                // Khởi động lần đầu
-                document.addEventListener("DOMContentLoaded", () => {
-                    fetchUsers();
-                });
+        // Khởi động lần đầu
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchUsers();
+        });
+        });
     </script>
 
 </body>
