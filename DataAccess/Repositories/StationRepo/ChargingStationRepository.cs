@@ -182,26 +182,21 @@ namespace DataAccess.Repositories.StationRepo
         }
 
 
-        public async Task<bool> DeleteChargingStation(int stationId)
+        public async Task<ChargingStation?> DeleteChargingStation(int stationId)
         {
-            // Xóa ChargingPoints liên quan
-            var chargingPoints = _context.ChargingPoints
-                .Where(cp => cp.StationId == stationId);
-
-            _context.ChargingPoints.RemoveRange(chargingPoints);
-
             var station = await _context.ChargingStations
                 .FirstOrDefaultAsync(s => s.StationId == stationId);
 
             if (station == null)
             {
-                return false;
+                return null;
             }
 
-            _context.ChargingStations.Remove(station);
+            station.Status = "Deleted";
+            
             await _context.SaveChangesAsync();
 
-            return true;
+            return station;
         }
 
         public List<ChargingSession> GetSessionByStation(int stationId)

@@ -20,7 +20,7 @@ namespace API.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult GetChargingStations(string? keyword, decimal userLat, decimal userLng, int page = 1, int pageSize = 2)
+        public ActionResult GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page = 1, int pageSize = 2)
         {
             var stations = _stationService.GetChargingStations(keyword, userLat, userLng, page, pageSize);
             return new JsonResult(stations);
@@ -113,7 +113,7 @@ namespace API.Controllers
         public async Task<IActionResult> DeleteChargingStation(int stationId)
         {
             var result = await _stationService.DeleteChargingStation(stationId);
-            if (!result)
+            if (result == null)
                 return NotFound(new { message = "Station does not exist!" });
 
             return Ok(new { message = "Station deleted Successfully!" });

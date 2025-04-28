@@ -49,6 +49,7 @@
 
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
+
     document.addEventListener("DOMContentLoaded", function () {
         let currentPage = 1;
         const pageSize = 2;
@@ -79,7 +80,11 @@
         // Lấy dữ liệu trạm sạc
         async function loadStations(userLat, userLng, keyword, currentPage, pageSize) {
             try {
-                const url = `https://localhost:7191/api/ChargingStation?keyword=${encodeURIComponent(keyword)}&userLat=${userLat}&userLng=${userLng}&page=${currentPage}&pageSize=${pageSize}`;
+                let url = `https://localhost:7191/api/ChargingStation?keyword=${encodeURIComponent(keyword)}&page=${currentPage}&pageSize=${pageSize}`;
+
+                if (userLat !== null && userLat !== undefined && userLng !== null && userLng !== undefined) {
+                    url += `&userLat=${userLat}&userLng=${userLng}`;
+                }
 
                 const options = {
                     method: 'GET',
@@ -111,7 +116,7 @@
                 }, error => {
                     console.error("Không thể lấy vị trí hiện tại!", error);
                     showToast("Không thể lấy vị trí hiện tại!");
-                    loadStations(null, null, $("#search-input").val());
+                    loadStations(null, null, $("#search-input").val(), currentPage, pageSize);
                 });
             } else {
                 console.error("Trình duyệt không hỗ trợ Geolocation.");

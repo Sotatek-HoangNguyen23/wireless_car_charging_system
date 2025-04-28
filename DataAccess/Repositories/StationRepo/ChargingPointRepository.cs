@@ -107,7 +107,7 @@ namespace DataAccess.Repositories.StationRepo
             if (point == null)
                 return null;
 
-            point.Status = "Removed";
+            point.Status = "Deleted";
 
             await _context.SaveChangesAsync();
 

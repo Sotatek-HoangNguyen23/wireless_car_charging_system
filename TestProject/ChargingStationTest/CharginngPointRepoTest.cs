@@ -222,7 +222,7 @@ namespace TestProject.ChargingStationTest
             // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(updatedPoint, Is.Not.Null);
-            Assert.That(updatedPoint.Status, Is.EqualTo("Removed"));
+            Assert.That(updatedPoint.Status, Is.EqualTo("Deleted"));
         }
 
 

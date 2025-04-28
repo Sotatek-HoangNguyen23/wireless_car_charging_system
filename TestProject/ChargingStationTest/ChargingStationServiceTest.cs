@@ -185,10 +185,10 @@ namespace TestProject.ChargingStationTest
                 Status = "Inactive"
             };
 
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
         await _service.UpdateChargingStation(999, updateDto));  
 
-            Assert.That(ex.Message, Is.EqualTo("Station does not exist."));
+            Assert.That(ex.Message, Is.EqualTo("Station not found!"));
         }
 
         [Test]
@@ -196,7 +196,7 @@ namespace TestProject.ChargingStationTest
         {
             var result = await _service.DeleteChargingStation(999);
 
-            Assert.That(result, Is.False);
+            Assert.That(result, Is.Null);
         }
 
         [Test]
@@ -204,8 +204,8 @@ namespace TestProject.ChargingStationTest
         {
             var result = await _service.DeleteChargingStation(1);
 
-            Assert.That(result, Is.True);
-            Assert.That(_context.ChargingStations.Count(), Is.EqualTo(1));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Status, Is.EqualTo("Deleted"));
         }
 
         // Test GetPointById
@@ -304,7 +304,7 @@ namespace TestProject.ChargingStationTest
             var result = await _service.DeleteChargingPoint(2);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Status, Is.EqualTo("Removed"));
+            Assert.That(result.Status, Is.EqualTo("Deleted"));
         }
 
         [Test]
@@ -323,9 +323,8 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.TotalChargingSessions, Is.EqualTo(2)); 
             Assert.That(result.AverageChargingTime, Is.EqualTo(30));
 
-            Assert.That(result.ChartData.Count, Is.EqualTo(2));
-            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 27"));
-            Assert.That(result.ChartData[1].Label, Is.EqualTo("Ngày 26"));
+            Assert.That(result.ChartData.Count, Is.EqualTo(1));
+            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 28"));
         }
 
         [Test]

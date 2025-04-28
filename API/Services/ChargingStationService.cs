@@ -17,7 +17,7 @@ namespace API.Services
             _stationRepository = stationRepository;
         }
 
-        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal userLat, decimal userLng, int page, int pageSize)
+        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize)
         {
             return _stationRepository.GetAllStation(keyword, userLat, userLng, page, pageSize);
         }
@@ -84,7 +84,7 @@ namespace API.Services
         }
 
 
-        public async Task<bool> DeleteChargingStation(int stationId)
+        public async Task<ChargingStation?> DeleteChargingStation(int stationId)
         {
             return await _stationRepository.DeleteChargingStation(stationId);
         }

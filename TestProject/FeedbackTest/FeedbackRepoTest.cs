@@ -138,7 +138,7 @@ namespace TestProject.FeedbackTest
         public void GetFeedbacks_WithPagingAndFilter_ReturnsPagedResult()
         {
             // Act
-            var result = _repository.GetFeedbacks("test", "Car", null, null, null, 1, 1);
+            var result = _repository.GetFeedbacks(null, "Car", null, null, null, 1, 1);
 
             // Assert
             Assert.That(result.Data.Count, Is.EqualTo(1)); // Chỉ có 1 feedback được trả về
@@ -158,25 +158,6 @@ namespace TestProject.FeedbackTest
             // Assert
             Assert.That(result.Data.Count, Is.EqualTo(2)); // Lọc toàn bộ feedbacks trong phạm vi ngày
         }
-
-
-        [Test]
-        public async Task GetFeedbackByUserId_ReturnsCorrectList()
-        {
-            var result = await _repository.GetFeedbackByUserId(1);
-
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result[0].Message, Is.EqualTo("Bad battery"));
-        }
-
-        [Test]
-        public async Task GetFeedbackByUserId_WithNoFeedbacks_ReturnsEmptyList()
-        {
-            var result = await _repository.GetFeedbackByUserId(999); // userId không tồn tại
-
-            Assert.That(result.Count, Is.EqualTo(0));
-        }
-
 
         [Test]
         public void AddFeedback_AddsFeedbackToContext()

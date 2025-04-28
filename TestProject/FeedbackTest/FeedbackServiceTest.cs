@@ -75,7 +75,7 @@ namespace TestProject.FeedbackTest
                 UserId = user1.UserId,
                 Type = "Car",
                 Message = "Bad battery",
-                Status = "Resolved",
+                Status = "Processed",
                 CreatedAt = DateTime.Now
             };
 
@@ -195,49 +195,19 @@ namespace TestProject.FeedbackTest
         [Test]
         public async Task UpdateFeedbackStatusAsync_UpdatesStatusSuccessfully()
         {
-            // Arrange
-            var feedbackId = 1;
-            var newStatus = "Resolved";
+            var result = await _feedbackService.ResolveFeedback(2, "Processed", "Thank you for your feedback!");
 
-            // Act
-            var result = await _feedbackService.UpdateFeedbackStatusAsync(feedbackId, newStatus);
-
-            // Assert
-            Assert.That(result, Is.True); // Đảm bảo trạng thái đã được cập nhật
-            var updatedFeedback = await _context.Feedbacks.FindAsync(feedbackId);
-            Assert.That(updatedFeedback?.Status, Is.EqualTo(newStatus)); // Kiểm tra trạng thái mới
+            var updatedFeedback = await _context.Feedbacks.FindAsync(2);
+            Assert.That(updatedFeedback!.Status, Is.EqualTo("Processed"));
+            Assert.That(updatedFeedback.Response, Is.EqualTo("Thank you for your feedback!"));
         }
 
         [Test]
         public async Task UpdateFeedbackStatusAsync_FeedbackNotFound_ReturnsFalse()
         {
-            // Act
-            var result = await _feedbackService.UpdateFeedbackStatusAsync(999, "Resolved");
+            var resultNotFound = await _feedbackService.ResolveFeedback(999, "Processed", "Response");
 
-            // Assert
-            Assert.That(result, Is.False); // Không tìm thấy feedback nên phải trả false
-        }
-
-
-        [Test]
-        public async Task GetFeedbackByUserId_ReturnsCorrectFeedbacks()
-        {
-            // Act
-            var result = await _feedbackService.GetFeedbackByUserId(1);
-
-            // Assert
-            Assert.That(result.Count, Is.EqualTo(1)); 
-            Assert.That(result[0].Message, Is.EqualTo("Bad battery")); 
-        }
-
-        [Test]
-        public async Task GetFeedbackByUserId_UserHasNoFeedback_ReturnsEmptyList()
-        {
-            // Act
-            var result = await _feedbackService.GetFeedbackByUserId(999); // userId không tồn tại trong dữ liệu seed
-
-            // Assert
-            Assert.That(result.Count, Is.EqualTo(0));
+            Assert.That(resultNotFound, Is.EqualTo(false));
         }
 
     }

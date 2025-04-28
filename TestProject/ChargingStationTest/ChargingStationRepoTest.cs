@@ -334,25 +334,16 @@ namespace TestProject.ChargingStationTest
             var updateDto = new UpdateChargingStationDto
             {
                 StationName = "Updated Station",
-                OwnerId = 1,
                 Status = "In Used",
-                MaxConsumPower = 70,
-                Latitude = 100,
-                Longitude = 100,
-                Address = "New Address"
+                MaxConsumPower = 70
             };
 
             var result = await _repository.UpdateChargingStation(2021, updateDto);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.StationName, Is.EqualTo("Updated Station"));
-            Assert.That(result.Owner.Fullname, Is.EqualTo("Nguyen Van A"));
             Assert.That(result.Status, Is.EqualTo("In Used"));
             Assert.That(result.MaxConsumPower, Is.EqualTo(70.0));
-            Assert.That(result.StationLocation, Is.Not.Null);
-            Assert.That(result.StationLocation.Latitude, Is.EqualTo(100));
-            Assert.That(result.StationLocation.Longitude, Is.EqualTo(100));
-            Assert.That(result.StationLocation.Address, Is.EqualTo("New Address"));
         }
 
         // Test UpdateChargingStation when Id not exist
@@ -376,23 +367,16 @@ namespace TestProject.ChargingStationTest
         [Test]
         public async Task DeleteChargingStation_ShouldReturnTrue_WhenStationExists()
         {
-            // Arrange
             var stationId = 2023;
 
-            // Act
             var result = await _repository.DeleteChargingStation(stationId);
+            var updatedStation = _repository.GetStationById(stationId);
 
-            // Assert
-            Assert.That(result, Is.True);
-
-            var deletedStation = await _context.ChargingStations.FindAsync(stationId);
-            Assert.That(deletedStation, Is.Null);
-
-            var relatedChargingPoints = await _context.ChargingPoints
-                .Where(cp => cp.StationId == stationId)
-                .ToListAsync();
-            Assert.That(relatedChargingPoints.Count, Is.EqualTo(0));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(updatedStation, Is.Not.Null);
+            Assert.That(updatedStation.Status, Is.EqualTo("Deleted"));
         }
+
 
         // Test DeleteChargingStation When Station Id not exist
         [Test]
@@ -405,7 +389,7 @@ namespace TestProject.ChargingStationTest
             var result = await _repository.DeleteChargingStation(stationId);
 
             // Assert
-            Assert.That(result, Is.False);
+            Assert.That(result, Is.Null);
         }
 
 

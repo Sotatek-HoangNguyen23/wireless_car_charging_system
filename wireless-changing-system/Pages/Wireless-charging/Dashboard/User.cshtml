@@ -64,7 +64,7 @@
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", function () {
         const today = new Date();
         const defaultStart = new Date(today.getFullYear(), 0, 2);
         const defaultEnd = new Date(today.getFullYear(), 11, 32);
@@ -89,7 +89,7 @@
                 url.searchParams.append("start", start);
                 url.searchParams.append("end", end);
 
-                const response = await fetch(url.toString(), {
+                const response = await fetchWithAuth(url.toString(), {
                     method: 'GET',
                     headers: {
                         "Content-Type": "application/json"
