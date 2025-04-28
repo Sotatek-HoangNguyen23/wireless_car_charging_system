@@ -1,5 +1,5 @@
-﻿using DataAccess.DTOs;
-using DataAccess.DTOs.Auth;
+﻿using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.CarDTO;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;

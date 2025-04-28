@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.DTOs
+namespace DataAccess.DTOs.CarDTO
 {
     public class ChargingStatusDTO
     {
@@ -60,6 +60,6 @@ namespace DataAccess.DTOs
         public DateTime? EndTime { get; set; }
         public double? Cost { get; set; }
         public string Status { get; set; } = null!;
-        
+
     }
 }

@@ -1,5 +1,5 @@
 ﻿using API.Services;
-using DataAccess.DTOs;
+using DataAccess.DTOs.CarDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Authorization;
