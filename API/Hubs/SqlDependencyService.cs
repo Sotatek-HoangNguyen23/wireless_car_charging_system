@@ -29,7 +29,8 @@ namespace API.Hubs
             {
                 SqlDependency.Stop(_connectionString);
                 SqlDependency.Start(_connectionString);
-                ListenForChanges();
+                ListenForRealTimeDataChanges();
+                //ListenForChargingSessionChanges();
             }
             catch (Exception ex)
             {
@@ -37,7 +38,7 @@ namespace API.Hubs
             }
         }
 
-        private void ListenForChanges()
+        private void ListenForRealTimeDataChanges()
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -46,7 +47,7 @@ namespace API.Hubs
             SELECT data_id, car_id, chargingpoint_id, battery_level, 
                    charging_power, temperature, time_moment, battery_voltage, 
                    charging_current, charging_time, energy_consumed, cost, 
-                   powerpoint
+                   powerpoint,status,license_plate
             FROM dbo.real_time_data", connection)) // Đã sửa cột
                 {
                     SqlDependency dependency = new SqlDependency(command);
@@ -55,6 +56,22 @@ namespace API.Hubs
                 }
             }
         }
+        //private void ListenForChargingSessionChanges()
+        //{
+        //    using (SqlConnection connection = new SqlConnection(_connectionString))
+        //    {
+        //        connection.Open();
+        //        using (SqlCommand command = new SqlCommand(@"
+        //    SELECT session_id, car_id, charging_point_id, user_id, 
+        //           start_time, end_time, energy_consumed, cost, status
+        //    FROM dbo.charging_session", connection))
+        //        {
+        //            SqlDependency dependency = new SqlDependency(command);
+        //            dependency.OnChange += OnDatabaseChange;
+        //            command.ExecuteReader(); // Kích hoạt SqlDependency
+        //        }
+        //    }
+        //}
 
 
 
@@ -63,7 +80,8 @@ namespace API.Hubs
             if (e.Type == SqlNotificationType.Change)
             {
                 await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "Dữ liệu bảng real_time_data đã thay đổi!");
-                ListenForChanges(); // Đăng ký lại để tiếp tục lắng nghe
+                ListenForRealTimeDataChanges(); // Đăng ký lại để tiếp tục lắng nghe
+                //ListenForChargingSessionChanges();
             }
         }
     }

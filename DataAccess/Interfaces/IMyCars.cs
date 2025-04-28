@@ -1,4 +1,5 @@
-﻿using DataAccess.DTOs;
+﻿using DataAccess.DTOs.CarDTO;
+using DataAccess.DTOs;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
@@ -19,8 +20,9 @@ namespace DataAccess.Interfaces
         ChargingStatusDTO GetChargingStatusById(int carId);
 
 
-        List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId);
-
+        List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10);
+        //List<ChargingSession> GetChargingHistoryByCarId(int carId);
+        List<CarMonthlyStatDTO> GetCarStats(int carId, int year);
         bool deleteCar(int carId);
 
         List<CarModel> getCarModels(string? search);
@@ -37,6 +39,14 @@ namespace DataAccess.Interfaces
 
         Task<UserCar?> GetUserCarAsync(int userId, int carId, string role);
         Task<bool> UpdateIsAllowedToChargeAsync(int userId, int carId, string role);
+
+        Task<ChargingSession> AddChargingSession(ChargingSession session);
+
+        Task<int?> GetCurrentDriverByCarId( int carId);
+
+        bool CheckDuplicateLicensePlateForEdit(int carId, string newLicensePlate);
+
+        Task<bool> IsCarBeingRentedAsync(int carId);
 
         PagedResult<CarDetailDTO> GetAllCars(string? search, string? type, string? brand, bool? status, int page, int pageSize);
 

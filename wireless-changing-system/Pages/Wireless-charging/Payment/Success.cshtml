@@ -10,10 +10,12 @@
     <button class="btn btn-success mt-3" onclick="closeTab()">Đóng</button>
 </div>
 
-<script>
+<script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
     function closeTab() {
         window.close();
     }
+    window.closeTab = closeTab;
 
     document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
@@ -21,7 +23,7 @@
         const status = urlParams.get("status");
 
         if (orderCode && status) {
-            fetch(`https://localhost:7191/api/Payment/callback?orderCode=${orderCode}&status=${status}`, {
+            fetchWithAuth(`https://localhost:7191/api/Payment/callback?orderCode=${orderCode}&status=${status}`, {
                 method: "GET"
             })
             .then(response => response.json())

@@ -54,7 +54,6 @@ public partial class WccsContext : DbContext
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
         if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Balance>(entity =>
@@ -313,6 +312,10 @@ public partial class WccsContext : DbContext
                 .HasMaxLength(225)
                 .IsUnicode(false)
                 .HasColumnName("img_frontPubblicId");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
@@ -393,7 +396,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<RealTimeDatum>(entity =>
         {
-            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B6D1C402C");
+            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B5C369DE7");
 
             entity.ToTable("real_time_data");
 
@@ -415,36 +418,46 @@ public partial class WccsContext : DbContext
                 .HasColumnName("charging_power");
             entity.Property(e => e.ChargingTime)
                 .HasMaxLength(50)
+                .IsUnicode(false)
                 .HasColumnName("charging_time");
             entity.Property(e => e.ChargingpointId).HasColumnName("chargingpoint_id");
             entity.Property(e => e.Cost)
                 .HasMaxLength(50)
                 .HasColumnName("cost");
+            entity.Property(e => e.EndTime).HasColumnName("end_time");
             entity.Property(e => e.EnergyConsumed)
                 .HasMaxLength(50)
                 .HasColumnName("energy_consumed");
+            entity.Property(e => e.LicensePlate)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("license_plate");
             entity.Property(e => e.Powerpoint)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("powerpoint");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
             entity.Property(e => e.Temperature)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("temperature");
             entity.Property(e => e.TimeMoment)
-                .HasMaxLength(50)
-                .IsUnicode(false)
+                .HasDefaultValueSql("(getdate())")
                 .HasColumnName("time_moment");
 
             entity.HasOne(d => d.Car).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__real_time__car_i__619B8048");
+                .HasConstraintName("FK__real_time__car_i__4F7CD00D");
 
             entity.HasOne(d => d.Chargingpoint).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.ChargingpointId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__real_time__charg__628FA481");
+                .HasConstraintName("FK__real_time__charg__5070F446");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

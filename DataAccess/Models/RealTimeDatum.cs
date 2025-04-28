@@ -17,7 +17,7 @@ public partial class RealTimeDatum
 
     public string? Temperature { get; set; }
 
-    public string? TimeMoment { get; set; }
+    public DateTime? TimeMoment { get; set; }
 
     public string? BatteryVoltage { get; set; }
 
@@ -31,6 +31,13 @@ public partial class RealTimeDatum
 
     public string? Powerpoint { get; set; }
 
+    public string? Status { get; set; }
+
+    public string? LicensePlate { get; set; }
+
+    public DateTime? StartTime { get; set; }
+
+    public DateTime? EndTime { get; set; }
 
     public virtual Car Car { get; set; } = null!;
 

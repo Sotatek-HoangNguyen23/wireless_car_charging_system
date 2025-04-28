@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.DTOs
+namespace DataAccess.DTOs.CarDTO
 {
     public class ProfileDTO
     {
@@ -48,7 +48,7 @@ namespace DataAccess.DTOs
 
     public class ChangePassDTO
     {
-        public int UserId { get; set; }
+
         public string? Password { get; set; }
         public string? NewPassword { get; set; }
         public string? ConfirmNewPassword { get; set; }

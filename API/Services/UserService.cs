@@ -1,7 +1,6 @@
 ﻿using Azure.Core;
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet.Core;
-using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
@@ -9,6 +8,7 @@ using DataAccess.Models;
 using Org.BouncyCastle.Asn1.Ocsp;
 using DataAccess.Repositories.StationRepo;
 using System.Text.RegularExpressions;
+using DataAccess.DTOs.CarDTO;
 
 namespace API.Services
 {
@@ -461,7 +461,7 @@ namespace API.Services
                 throw new ArgumentException("New password and confirmation do not match.");
             }
 
-            var user = await _userRepository.GetUserById(passDTO.UserId);
+            var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");
