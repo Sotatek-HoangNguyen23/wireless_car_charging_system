@@ -186,6 +186,7 @@
             });
         } catch (error) {
             console.error("Lỗi khi lấy lịch sử giao dịch", error);
+            transactionHistory.innerHTML = `<h4> Không có dữ liệu<h4>`;
         }
     }
 </script>

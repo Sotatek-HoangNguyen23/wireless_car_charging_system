@@ -41,6 +41,8 @@ namespace DataAccess.Interfaces
 
         Task<int?> GetCurrentDriverByCarId( int carId);
 
+        bool CheckDuplicateLicensePlateForEdit(int carId, string newLicensePlate);
 
+        Task<bool> IsCarBeingRentedAsync(int carId);
     }
 }

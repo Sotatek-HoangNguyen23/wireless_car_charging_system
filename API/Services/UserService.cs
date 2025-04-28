@@ -276,7 +276,7 @@ namespace API.Services
             await _userRepository.UpdateUser(user);
         }
 
-        public async Task ChangePasswordAsync(ChangePassDTO passDTO)
+        public async Task ChangePasswordAsync(int userId,ChangePassDTO passDTO)
         {
             if (string.IsNullOrWhiteSpace(passDTO.Password) ||
                 string.IsNullOrWhiteSpace(passDTO.NewPassword) ||
@@ -293,7 +293,7 @@ namespace API.Services
                 throw new ArgumentException("New password and confirmation do not match.");
             }
 
-            var user = await _userRepository.GetUserById(passDTO.UserId);
+            var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");

@@ -2,24 +2,24 @@
 @model wireless_changing_system.Pages.Wireless_charging.Vehicles.AddCarModel
 @{
     <div class="container py-4">
-        <h1 class="mb-4">Car Registration</h1>
+        <h1 class="mb-4">Thêm xe</h1>
         
         <div class="card rounded-5 shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Name</label>
-                    <input type="text" class="form-control" placeholder="Name your car" />
+                    <label class="form-label fw-bold">Đặt tên xe của bạn</label>
+                    <input type="text" class="form-control" placeholder="Đặt tên xe" />
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold"><span class="text-danger">*</span>License Plate</label>
-                    <input type="text" class="form-control" placeholder="Enter license plate" />
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>Biển số xe</label>
+                    <input type="text" class="form-control" placeholder="Biển số xe" />
                 </div>
 
                 <div class="mb-4 position-relative">
-                    <label class="form-label fw-bold"><span class="text-danger">*</span>Type</label>
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>Loại</label>
                     <div class="input-group">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Find your car model..." />
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm loại xe..." />
                         <span id="clearSearch" class="input-group-text bg-transparent border-0 position-absolute end-0 top-50 translate-middle-y" style="cursor: pointer; display: none;">
                             <i class="bi bi-x-circle"></i>
                         </span>
@@ -29,34 +29,34 @@
 
                 <div id="carModelDetails" style="display: none;">
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Color:</label>
+                        <label class="form-label fw-bold mb-0">Màu xe:</label>
                         <span id="selectedColor"></span>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Seat number:</label>
+                        <label class="form-label fw-bold mb-0">Số chỗ:</label>
                         <span id="selectedSeatNumber"></span>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Brand:</label>
+                        <label class="form-label fw-bold mb-0">Hãng:</label>
                         <span id="selectedBrand"></span>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Charging Standard:</label>
+                        <label class="form-label fw-bold mb-0">Chuẩn sạc:</label>
                         <span id="selectedChargingStandard"></span>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Average Range:</label>
+                        <label class="form-label fw-bold mb-0">Quãng đường đi được:</label>
                         <span id="selectedAverageRange"></span>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bold mb-0">Max Charging Power:</label>
+                        <label class="form-label fw-bold mb-0">Công suất tối đa:</label>
                         <span id="selectedMaxChargingPower"></span>
                     </div>
                     <div class="mb-1">
                         <img id="selectedImage" src="" alt="Car Image" class="img-thumbnail" style="width: 500px; height: auto;" />
                     </div>
                 </div>
-                <button id="btn-add" class="btn btn-primary">+ Add</button>
+                <button id="btn-add" class="btn btn-primary">+ Thêm</button>
             </div>
         </div>
     </div>

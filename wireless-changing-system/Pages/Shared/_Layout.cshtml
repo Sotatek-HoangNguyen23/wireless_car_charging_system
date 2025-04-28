@@ -32,18 +32,34 @@
                         <li class="nav-item">
                             <a class="nav-link active" href="/">Trang Chủ</a>
                         </li>
-                        <li class="nav-item d-none role-based-menu" data-required-role="Operator,Admin,Driver">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Operator,Driver,Station Owner">
                             <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Trạm Sạc</a>
                         </li>
 
-                        <li class="nav-item d-none role-based-menu" data-required-role="Operator,Admin">
-                            <a class="nav-link" href="/management">Quản lí chung</a>
+                        <li class="nav-item d-none role-based-menu" data-required-role="Admin">
+                            <a class="nav-link" href="/wireless-charging/management">Bảng Quản Lý</a>
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Admin">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Quản Lý
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/wireless-charging/chargingstation/stationlist">Quản lý trạm sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Danh sách người dùng</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Danh sách phản hồi</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/station">Thống kê</a></li>
+                            </ul>
                         </li>
 
-                        <li class="nav-item d-none role-based-menu" data-required-role="Driver,Admin">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/vehicles/rentconfirm">Danh sách thuê</a>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="User,Admin">
                             <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
                         </li>
-                        <li class="nav-item d-none role-based-menu" data-required-role="Driver,Admin">
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/payment/depositmoney">Nạp tiền</a>
                         </li>
                     </ul>
@@ -62,7 +78,7 @@
                                 <span class="ms-2" id="userName"></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="https://localhost:5216/wireless-charging/profiles/detail">Hồ Sơ</a></li>
+                                <li><a class="dropdown-item" href="https://localhost:5216/wireless-charging/profiles">Hồ Sơ</a></li>
                                 <li><a class="dropdown-item" id="logoutBtn" href="#">Đăng Xuất</a></li>
                             </ul>
                         </div>

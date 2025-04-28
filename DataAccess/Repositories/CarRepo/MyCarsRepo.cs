@@ -89,10 +89,13 @@ namespace DataAccess.Repositories.CarRepo
                              StationName = s.StationName,
                              Address = sl.Address,
                              Status = rtd.Status,
+                             LicensePlate = rtd.LicensePlate,
                              BatteryLevel = rtd.BatteryLevel,
                              ChargingPower = rtd.ChargingPower,
                              Temperature = rtd.Temperature,
                              Cost = rtd.Cost,
+                             Powerpoint = rtd.Powerpoint,
+                             BatteryVoltage = rtd.BatteryVoltage,
                              Current = rtd.ChargingCurrent,
                              TimeMoment = rtd.TimeMoment,
                              ChargingTime = rtd.ChargingTime,
@@ -360,5 +363,25 @@ namespace DataAccess.Repositories.CarRepo
             return monthlyStats;
         }
 
+        public bool CheckDuplicateLicensePlateForEdit(int carId, string newLicensePlate)
+        {
+            var existingCar = _context.Cars
+            .FirstOrDefault(c => c.LicensePlate == newLicensePlate && c.CarId != carId && c.IsDeleted != true);
+
+            return existingCar != null;
+        }
+
+        public async Task<bool> IsCarBeingRentedAsync(int carId)
+        {
+            var currentTime = DateTime.UtcNow;
+
+            return await _context.UserCars
+                .AnyAsync(uc =>
+                    uc.CarId == carId &&
+                    uc.Role == "Renter" &&
+                    uc.IsAllowedToCharge == true &&
+                    uc.StartDate <= currentTime &&
+                    (uc.EndDate == null || uc.EndDate >= currentTime));
+        }
     }
 }

@@ -291,9 +291,21 @@ namespace API.Controllers
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePassDTO passDTO)
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+
             try
             {
-                await _userService.ChangePasswordAsync(passDTO);
+                await _userService.ChangePasswordAsync(userId,passDTO);
                 return Ok(new { Message = "Password changed successfully" });
             }
             catch (ArgumentException ex)
