@@ -868,28 +868,6 @@ namespace API.Services
         {
             await _userRepository.ChangeUserStatusAsync(userId, newStatus);
         }
-
-        public PagedResult<FeedbackDto> GetFeedbacks(string? search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
-        {
-            if (page <= 0)
-            {
-                throw new ArgumentException("Page number must be greater than zero", nameof(page));
-            }
-            if (pageSize <= 0)
-            {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
-            }
-            return _userRepository.GetFeedbacks(search, startDate, endDate, page, pageSize);
-        }
-
-        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
-        {
-            if (userId <= 0)
-            {
-                throw new ArgumentException("Invalid user ID.");
-            }
-            return await _userRepository.GetFeedbackByUserId(userId);
-        }
         public async Task DeleteUserReal(int userId)
         {
             await _userRepository.DeleteUserReal(userId);
