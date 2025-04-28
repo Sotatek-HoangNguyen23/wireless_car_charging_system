@@ -92,7 +92,7 @@ namespace TestProject.ChargingStationTest
 
             _repository = new ChargingPointRepository(_context);
             // Add initial data
-            var station = new ChargingStation
+            var station2 = new ChargingStation
             {
                 StationId = 2,
                 StationName = "Test Station",
@@ -140,20 +140,14 @@ namespace TestProject.ChargingStationTest
                 }
             };
 
-            _context.ChargingStations.Add(station);
+            _context.ChargingStations.Add(station2);
             _context.SaveChanges();
-        }
-        [TearDown]
-        public void TearDown()
-        {
-            _context.Database.EnsureDeleted();
-            _context.Dispose();
         }
 
         [TearDown]
         public void TearDown()
-        {
-            _context?.Dispose();
+        {          
+            _context.Dispose();
         }
 
         // Test GetAllPointsByStation

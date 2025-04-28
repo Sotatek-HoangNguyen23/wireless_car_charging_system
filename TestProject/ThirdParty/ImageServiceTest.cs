@@ -181,8 +181,8 @@ namespace TestProject.ThirdParty
             var file = CreateTestImageFile("no_qr.png", "image/png"); // Tạo ảnh trắng
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<Exception>(() => _imageService.ReadSmallQrCode(file));
-            Assert.That(ex.Message, Does.Contain("Không tìm thấy QR code"));
+            var ex = Assert.ThrowsAsync<InvalidImageException>(() => _imageService.ReadSmallQrCode(file));
+            Assert.That(ex.Message, Does.Contain("Không thể đọc QR code"));
         }
 
         private IFormFile CreateTestImageFile(string fileName, string contentType)
