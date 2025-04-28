@@ -261,31 +261,7 @@ namespace API.Controllers
         {
             await _userService.ChangeUserStatusAsync(userId, newStatus);
             return Ok(new { message = "User status updated successfully." });
-        }
-
-        [AllowAnonymous]
-        [HttpGet("Feedback")]
-        public IActionResult GetFeedbacks(
-            [FromQuery] string? search,
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var result = _userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
-            return Ok(result);
-        }
-
-        [AllowAnonymous]
-        [HttpGet("Feedback/{userId}")]
-        public async Task<IActionResult> GetFeedback(int userId)
-        {
-            var feedbacks = await _userService.GetFeedbackByUserId(userId);
-            if (feedbacks == null || feedbacks.Count == 0)
-                return NotFound(new { message = "No feedback found" });
-
-            return Ok(feedbacks);
-        }
+        }        
 
         [AllowAnonymous]
         [HttpGet("licenses")]

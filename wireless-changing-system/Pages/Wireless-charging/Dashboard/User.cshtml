@@ -3,10 +3,6 @@
 @{
 }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
 <h4 class="mt-5">Thống kê người dùng</h4>
 
 <div class="container mt-4">
@@ -65,102 +61,120 @@
     </div>
 </div>
 
-<script>
-    const today = new Date();
-    const defaultStart = new Date(today.getFullYear(), 0, 2);
-    const defaultEnd = new Date(today.getFullYear(), 11, 32);
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
 
-    $(document).ready(function () {
-        $('#startDate').val(defaultStart.toISOString().slice(0, 10));
-        $('#endDate').val(defaultEnd.toISOString().slice(0, 10));
-        fetchUserStats(defaultStart.toISOString(), defaultEnd.toISOString());
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        const defaultStart = new Date(today.getFullYear(), 0, 2);
+        const defaultEnd = new Date(today.getFullYear(), 11, 32);
 
-        $('#startDate, #endDate').on('change', function () {
-            const start = new Date($('#startDate').val());
-            const end = new Date($('#endDate').val());
-            if (start && end && start <= end) {
-                fetchUserStats(start.toISOString(), end.toISOString());
-            }
+        $(document).ready(function () {
+            $('#startDate').val(defaultStart.toISOString().slice(0, 10));
+            $('#endDate').val(defaultEnd.toISOString().slice(0, 10));
+            fetchUserStats(defaultStart.toISOString(), defaultEnd.toISOString());
+
+            $('#startDate, #endDate').on('change', function () {
+                const start = new Date($('#startDate').val());
+                const end = new Date($('#endDate').val());
+                if (start && end && start <= end) {
+                    fetchUserStats(start.toISOString(), end.toISOString());
+                }
+            });
         });
-    });
 
-    function fetchUserStats(start, end) {
-        const url = new URL("https://localhost:7191/api/Dashboard/user");
-        url.searchParams.append("start", start);
-        url.searchParams.append("end", end);
+        async function fetchUserStats(start, end) {
+            try {
+                const url = new URL("https://localhost:7191/api/Dashboard/user");
+                url.searchParams.append("start", start);
+                url.searchParams.append("end", end);
 
-        $.ajax({
-            url: url.toString(),
-            type: 'GET',
-            success: function (res) {
-                console.log(res);
-                $('#totalUsers').text(res.totalUsers);
-                $('#newUsers').text(res.newUsersOverTime.reduce((sum, d) => sum + d.count, 0));
-                $('#activeUsers').text(res.usersWhoCharged);
-                $('#dauMauRatio').text(`${res.daumauPercentage}%`);
+                const response = await fetchWithAuth(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
 
-                renderChart('newUsersChart', res.newUsersOverTime.map(d => d.date), res.newUsersOverTime.map(d => d.count), 'line', 'Số người dùng mới', 'blue', chart => { });
-                renderChart('userVsChargedChart', ['Đăng ký', 'Đã sạc'], [res.totalUsers, res.usersWhoCharged], 'bar', 'Số người dùng', 'green', chart => { });
-                renderPieChart('dauMauChart', ['DAU', 'MAU'], [res.dau, res.mau], chart => { });
+                if (response.ok) {
+                    const res = await response.json();
+                    console.log(res);
+
+                    // Cập nhật thông tin người dùng
+                    $('#totalUsers').text(res.totalUsers);
+                    $('#newUsers').text(res.newUsersOverTime.reduce((sum, d) => sum + d.count, 0));
+                    $('#activeUsers').text(res.usersWhoCharged);
+                    $('#dauMauRatio').text(`${res.daumauPercentage}%`);
+
+                    // Render chart
+                    renderChart('newUsersChart', res.newUsersOverTime.map(d => d.date), res.newUsersOverTime.map(d => d.count), 'line', 'Số người dùng mới', 'blue', chart => { });
+                    renderChart('userVsChargedChart', ['Đăng ký', 'Đã sạc'], [res.totalUsers, res.usersWhoCharged], 'bar', 'Số người dùng', 'green', chart => { });
+                    renderPieChart('dauMauChart', ['DAU', 'MAU'], [res.dau, res.mau], chart => { });
+                } else {
+                    console.error("Lỗi khi lấy dữ liệu người dùng:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu người dùng:", error);
             }
-        });
-    }
-
-    function renderChart(id, labels, data, type, label, color, storeChart) {
-        if (window[id] && typeof window[id].destroy === 'function') {
-            window[id].destroy();
         }
 
-        const ctx = document.getElementById(id).getContext('2d');
-        const options = {
-            plugins: {
-                datalabels: {
-                    anchor: 'end',
-                    align: 'start',
-                    color: 'black',
-                    font: {
-                        weight: 'bold'
-                    },
-                    formatter: function (value) {
-                        return value;
+
+        function renderChart(id, labels, data, type, label, color, storeChart) {
+            if (window[id] && typeof window[id].destroy === 'function') {
+                window[id].destroy();
+            }
+
+            const ctx = document.getElementById(id).getContext('2d');
+            const options = {
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'start',
+                        color: 'black',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        window[id] = new Chart(ctx, {
-            type,
-            data: {
-                labels,
-                datasets: [{
-                    label,
-                    data,
-                    borderColor: color,
-                    backgroundColor: color,
-                    fill: type === 'line' ? false : true
-                }]
-            },
-            options: options,
-            plugins: [ChartDataLabels]
-        });
-        storeChart(window[id]);
-    }
-
-    function renderPieChart(id, labels, data, storeChart) {
-        if (window[id] && typeof window[id].destroy === 'function') {
-            window[id].destroy();
+            window[id] = new Chart(ctx, {
+                type,
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: color,
+                        fill: type === 'line' ? false : true
+                    }]
+                },
+                options: options,
+                plugins: [ChartDataLabels]
+            });
+            storeChart(window[id]);
         }
-        const ctx = document.getElementById(id).getContext('2d');
-        window[id] = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels,
-                datasets: [{
-                    data,
-                    backgroundColor: ['#FF5733', '#33FF57'],
-                }]
+
+        function renderPieChart(id, labels, data, storeChart) {
+            if (window[id] && typeof window[id].destroy === 'function') {
+                window[id].destroy();
             }
-        });
-        storeChart(window[id]);
-    }
+            const ctx = document.getElementById(id).getContext('2d');
+            window[id] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: ['#FF5733', '#33FF57'],
+                    }]
+                }
+            });
+            storeChart(window[id]);
+        }
+    });
 </script>

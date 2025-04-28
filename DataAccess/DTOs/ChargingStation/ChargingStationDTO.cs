@@ -43,11 +43,7 @@ namespace DataAccess.DTOs.ChargingStation
 
     public class UpdateChargingStationDto
     {
-        public int OwnerId { get; set; }
         public string? StationName { get; set; }
-        public string? Address { get; set; }
-        public decimal Longitude { get; set; }
-        public decimal Latitude { get; set; }
         public string? Status { get; set; }
         public double? MaxConsumPower { get; set; }
     }

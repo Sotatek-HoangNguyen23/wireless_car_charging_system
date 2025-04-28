@@ -2,6 +2,7 @@
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Services
 {
@@ -16,7 +17,7 @@ namespace API.Services
             _stationRepository = stationRepository;
         }
 
-        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal userLat, decimal userLng, int page, int pageSize)
+        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize)
         {
             return _stationRepository.GetAllStation(keyword, userLat, userLng, page, pageSize);
         }
@@ -74,11 +75,16 @@ namespace API.Services
 
         public async Task<ChargingStation?> UpdateChargingStation(int stationId, UpdateChargingStationDto stationDto)
         {
+            var station = _stationRepository.GetStationById(stationId);
+            if (station == null)
+            {
+                throw new KeyNotFoundException("Station not found!");
+            }
             return await _stationRepository.UpdateChargingStation(stationId, stationDto);
         }
 
 
-        public async Task<bool> DeleteChargingStation(int stationId)
+        public async Task<ChargingStation?> DeleteChargingStation(int stationId)
         {
             return await _stationRepository.DeleteChargingStation(stationId);
         }
@@ -91,6 +97,12 @@ namespace API.Services
         public async Task<List<ChargingPoint>> AddPoint(int stationId, NewChargingStationDto stationDto)
         {
             var points = new List<ChargingPoint>();
+
+            var stationExists = _stationRepository.GetStationById(stationId);
+            if (stationExists == null)
+            {
+                return new List<ChargingPoint>(); 
+            }
 
             // Lấy danh sách điểm sạc của trạm
             var existingPoints = _pointRepository.GetAllPointsByStation(stationId, 1, int.MaxValue)?.Data ?? new List<ChargingPointDto>();
@@ -140,13 +152,19 @@ namespace API.Services
             return await _pointRepository.UpdateChargingPoint(pointId, pointDto);
         }
 
-        public async Task<bool> DeleteChargingPoint(int pointId)
+        public async Task<ChargingPoint?> DeleteChargingPoint(int pointId)
         {
             return await _pointRepository.DeleteChargingPoint(pointId);
         }
 
         public ChargingStationStatsDto GetStats(int stationId, int? year, int? month)
         {
+            var station = _stationRepository.GetStationById(stationId);
+            if (station == null)
+            {
+                throw new KeyNotFoundException("Station not exist!");
+            }
+
             var sessions = _stationRepository.GetSessionByStation(stationId);
 
             if (year.HasValue)

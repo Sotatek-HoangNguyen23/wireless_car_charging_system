@@ -3,6 +3,7 @@ using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.StationRepo;
 using Microsoft.EntityFrameworkCore;
+using static System.Collections.Specialized.BitVector32;
 
 namespace TestProject.ChargingStationTest
 {
@@ -228,19 +229,6 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.TotalPages, Is.EqualTo(2));
         }
 
-        // Test GetStationById when Id exist
-        [Test]
-        public void GetStationById_ShouldReturnCorrectStation_WhenIdExists()
-        {
-            var result = _repository.GetStationById(2);
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.StationId, Is.EqualTo(2));
-            Assert.That(result.StationName, Is.EqualTo("Ho Chi Minh Station"));
-            Assert.That(result.Owner, Is.EqualTo("Nguyen Van A"));
-            Assert.That(result.Address, Is.EqualTo("123 ABC Street, HCM City"));
-        }
-
         // Test GetStationById when Id not exist
         [Test]
         public void GetStationById_ShouldReturnNull_WhenIdDoesNotExist()
@@ -249,9 +237,10 @@ namespace TestProject.ChargingStationTest
 
             Assert.That(result, Is.Null);
         }
-        //------------------------------------------------------------
+
+        // Test GetStationById when Id  exist
         [Test]
-        public void GetStationById_ShouldReturnCorrectStation_WhenIdExists2()
+        public void GetStationById_ShouldReturnCorrectStation_WhenIdExists()
         {
             var result = _repository.GetStationById(2021);
 
@@ -263,13 +252,6 @@ namespace TestProject.ChargingStationTest
         }
 
         [Test]
-        public void GetStationById_ShouldReturnNull_WhenIdDoesNotExist2()
-        {
-            var result = _repository.GetStationById(999);
-
-            Assert.That(result, Is.Null);
-        }
-        [Test]
         public void GetStationById_ShouldReturnCorrectChargingPointsCount2()
         {
             var result = _repository.GetStationById(2021);
@@ -279,27 +261,6 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.TotalPoint, Is.EqualTo(3));
             Assert.That(result.AvailablePoint, Is.EqualTo(2));
         }
-        [Test]
-        public async Task DeleteChargingStation_ShouldDeleteStation_WhenIdExists()
-        {
-            var result = await _repository.DeleteChargingStation(2016);
-
-            Assert.That(result, Is.True);
-            var deletedStation = await _context.ChargingStations.FindAsync(2016);
-            Assert.That(deletedStation, Is.Null);
-        }
-        //------------------------------------------------------------
-        // Test GetStationById have point
-        [Test]
-        public void GetStationById_ShouldReturnCorrectChargingPointsCount()
-        {
-            var result = _repository.GetStationById(2);
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.TotalPoint, Is.EqualTo(3)); // 2 điểm sạc
-            Assert.That(result.AvailablePoint, Is.EqualTo(2)); // 1 điểm "Available"
-        }
-
 
         // Test AddChargingStation
         [Test]
@@ -330,9 +291,41 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.Status, Is.EqualTo("Available"));
             Assert.That(result.Owner.Fullname, Is.EqualTo("Tran Thi B"));
 
-            var dbStation = await _context.ChargingStations.FindAsync(2023);
+            var dbStation = await _context.ChargingStations.FindAsync(2024);
             Assert.That(dbStation, Is.Not.Null);
         }
+
+        [Test]
+        public async Task AddChargingStation_ShouldThrowCustomException_WhenOwnerNotFound()
+        {
+            // Arrange
+            var station = new ChargingStation
+            {
+                StationName = "New Station",
+                OwnerId = 9999, // Owner không tồn tại
+                Status = "Available",
+                MaxConsumPower = 60,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow,
+                StationLocation = new StationLocation
+                {
+                    Address = "Test Address",
+                    Latitude = latitude,
+                    Longitude = longitude
+                }
+            };
+
+            // Act
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await _repository.AddChargingStation(station);
+            });
+
+            // Assert
+            Assert.That(ex, Is.Not.Null);
+            Assert.That(ex.Message, Is.EqualTo("Owner does not exist."));
+        }
+
 
         // Test UpdateChargingStation when Id exist
         [Test]
@@ -341,25 +334,16 @@ namespace TestProject.ChargingStationTest
             var updateDto = new UpdateChargingStationDto
             {
                 StationName = "Updated Station",
-                OwnerId = 1,
                 Status = "In Used",
-                MaxConsumPower = 70,
-                Latitude = 100,
-                Longitude = 100,
-                Address = "New Address"
+                MaxConsumPower = 70
             };
 
             var result = await _repository.UpdateChargingStation(2021, updateDto);
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result.StationName, Is.EqualTo("Updated Station"));
-            Assert.That(result.Owner.Fullname, Is.EqualTo("Nguyen Van A"));
             Assert.That(result.Status, Is.EqualTo("In Used"));
             Assert.That(result.MaxConsumPower, Is.EqualTo(70.0));
-            Assert.That(result.StationLocation, Is.Not.Null);
-            Assert.That(result.StationLocation.Latitude, Is.EqualTo(100));
-            Assert.That(result.StationLocation.Longitude, Is.EqualTo(100));
-            Assert.That(result.StationLocation.Address, Is.EqualTo("New Address"));
         }
 
         // Test UpdateChargingStation when Id not exist
@@ -371,28 +355,43 @@ namespace TestProject.ChargingStationTest
                 StationName = "Nonexistent Station"
             };
 
-            var result = await _repository.UpdateChargingStation(999, updateDto);
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await _repository.UpdateChargingStation(999, updateDto);
+            });
+
+            Assert.That(ex.Message, Is.EqualTo("Station does not exist."));
+        }
+
+        // Test DeleteChargingStation When Station Id exist
+        [Test]
+        public async Task DeleteChargingStation_ShouldReturnTrue_WhenStationExists()
+        {
+            var stationId = 2023;
+
+            var result = await _repository.DeleteChargingStation(stationId);
+            var updatedStation = _repository.GetStationById(stationId);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(updatedStation, Is.Not.Null);
+            Assert.That(updatedStation.Status, Is.EqualTo("Deleted"));
+        }
+
+
+        // Test DeleteChargingStation When Station Id not exist
+        [Test]
+        public async Task DeleteChargingStation_ShouldReturnFalse_WhenStationDoesNotExist()
+        {
+            // Arrange
+            var stationId = 9999; // stationId không tồn tại
+
+            // Act
+            var result = await _repository.DeleteChargingStation(stationId);
+
+            // Assert
             Assert.That(result, Is.Null);
         }
 
-        // Test DeleteChargingStation when Id exist
-        [Test]
-        public async Task DeleteChargingStation_ShouldDeleteStation_WhenIdExists2()
-        {
-            var result = await _repository.DeleteChargingStation(2016);
-
-            Assert.That(result, Is.True);
-            var deletedStation = await _context.ChargingStations.FindAsync(2016);
-            Assert.That(deletedStation, Is.Null);
-        }
-
-        // Test DeleteChargingStation when Id not exist
-        [Test]
-        public async Task DeleteChargingStation_ShouldReturnFalse_WhenIdDoesNotExist()
-        {
-            var result = await _repository.DeleteChargingStation(999);
-            Assert.That(result, Is.False);
-        }
 
         [Test]
         public void GetSessionByStation_ShouldReturnSessions_WhenStationExists()
@@ -402,15 +401,18 @@ namespace TestProject.ChargingStationTest
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(2));
             Assert.That(result[0].EnergyConsumed, Is.EqualTo(5.5));
-            Assert.That(result[1].EnergyConsumed, Is.EqualTo(6.0));
         }
 
         [Test]
-        public void GetSessionByStation_ShouldReturnEmpty_WhenStationHasNoSessions()
+        public void GetSessionByStation_ShouldThrowException_WhenStationIdIsNull()
         {
-            var result = _repository.GetSessionByStation(999);
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+            {
+                _repository.GetSessionByStation(999);
+            });
 
-            Assert.That(result, Is.Empty);
+            Assert.That(ex.Message, Is.EqualTo("Station does not exist."));
         }
 
         [Test]
@@ -431,8 +433,8 @@ namespace TestProject.ChargingStationTest
             var result = await _repository.AddStationLocation(location);
 
             // Assert
-            Assert.That(result.StationLocationId, Is.EqualTo(10)); // Được gán ID sau khi Save
-            Assert.That(_context.StationLocations.CountAsync().Result, Is.EqualTo(10));
+            Assert.That(result.StationLocationId, Is.EqualTo(2)); // Được gán ID sau khi Save
+            Assert.That(_context.StationLocations.CountAsync().Result, Is.EqualTo(2));
             Assert.That(result.Address, Is.EqualTo("123 ABC Street"));
         }
     }

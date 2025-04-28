@@ -17,13 +17,14 @@ namespace DataAccess.DTOs.UserDTO
         public string Message { get; set; }
         public string Status { get; set; }
         public DateTime? Date { get; set; }
+        public string Response { get; set; }
     }
 
     public class AddFeedbackDto
     {
         public int UserId { get; set; }
         public string? Message { get; set; }
-        public string? Type { get; set; } // "Car" hoặc "Station"
+        public string? Type { get; set; }
         public int? CarId { get; set; }
         public int? StationId { get; set; }
         public int? PointId { get; set; }
@@ -31,6 +32,8 @@ namespace DataAccess.DTOs.UserDTO
 
     public class UpdateFeedbackStatusDto
     {
-        public string Status { get; set; } = "Processed";
+        public string Status { get; set; }
+        public string Response { get; set; }
+
     }
 }

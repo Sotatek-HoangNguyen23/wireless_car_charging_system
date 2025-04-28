@@ -10,6 +10,6 @@ namespace DataAccess.Interfaces
         ChargingPointDto GetPointById(int pointId);
         Task AddChargingPoints(List<ChargingPoint> points);
         Task<ChargingPoint?> UpdateChargingPoint(int pointId, UpdateChargingPointDto pointDto);
-        Task<bool> DeleteChargingPoint(int pointId);
+        Task<ChargingPoint?> DeleteChargingPoint(int pointId);
     }
 }

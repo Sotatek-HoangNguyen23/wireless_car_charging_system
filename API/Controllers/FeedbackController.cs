@@ -1,12 +1,11 @@
 ﻿using API.Services;
 using DataAccess.DTOs.UserDTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class FeedbackController : ControllerBase
@@ -18,6 +17,7 @@ namespace API.Controllers
             _feedbackService = feedbackService;
         }
 
+        [Authorize("Operator")]
         [HttpGet]
         public IActionResult GetFeedbacks(
             [FromQuery] string? search,
@@ -32,30 +32,40 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetFeedback(int userId)
-        {
-            var feedbacks = await _feedbackService.GetFeedbackByUserId(userId);
-            if (feedbacks == null || feedbacks.Count == 0)
-                return NotFound(new { message = "No feedback found" });
-
-            return Ok(feedbacks);
-        }
-
+        [Authorize("Driver")]
         [HttpPost]
         public IActionResult AddFeedback([FromBody] AddFeedbackDto dto)
         {
+            // Kiểm tra Type
+            if (string.IsNullOrWhiteSpace(dto.Type) || (dto.Type != "Car" && dto.Type != "Station"))
+            {
+                return BadRequest(new { message = "Type must be either 'Car' or 'Station'." });
+            }
+
+            // Kiểm tra CarId hoặc StationId tùy theo Type
+            if (dto.Type == "Car" && dto.CarId == 0)
+            {
+                return BadRequest(new { message = "CarId is required when Type is 'Car'." });
+            }
+
+            if (dto.Type == "Station" && dto.StationId == 0)
+            {
+                return BadRequest(new { message = "StationId is required when Type is 'Station'." });
+            }
+
             _feedbackService.AddFeedback(dto);
             return Ok(new { message = "Feedback submitted successfully." });
         }
 
-        [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateFeedbackStatusDto dto)
+        [Authorize("Operator")]
+        [HttpPut("{id}/response")]
+        public async Task<IActionResult> ResolveFeedback(int id, [FromBody] UpdateFeedbackStatusDto dto)
         {
-            var success = await _feedbackService.UpdateFeedbackStatusAsync(id, dto.Status);
-            if (!success) return NotFound(new { message = "Feedback không tồn tại hoặc đã xử lý." });
+            var success = await _feedbackService.ResolveFeedback(id, dto.Status, dto.Response);
+            if (!success)
+                return NotFound(new { message = "The response does not exist or has been processed." });
 
-            return Ok(new { message = "Cập nhật thành công!" });
+            return Ok(new { message = "Feedback ressolved!" });
         }
 
     }

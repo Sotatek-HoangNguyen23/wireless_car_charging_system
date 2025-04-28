@@ -109,10 +109,12 @@
 </div>
 
 
-<script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
     document.addEventListener("DOMContentLoaded", () => {
         $(document).ready(function () {
-            loadFilterOptions()
+            loadFilterOptions();
 
             let currentPage = 1;
             const pageSize = 10;
@@ -124,48 +126,8 @@
                 const branch = $("#searchBrand").val();
                 const status = $("#searchStatus").val();
 
-                $.ajax({
-                    url: "https://localhost:7191/api/Car/all-cars",
-                    type: "GET",
-                    data: { search, type, branch, status, page, pageSize },
-                    success: function (response) {
-                        console.log(response);
-                        renderTable(response.data);
-                        renderPagination(response.totalPages, page);
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi tải xe", xhr);
-                    }
-                });
-            }
-
-            // Hiển thị danh sách feedback vào bảng
-            function renderTable(feedbacks) {
-                const tbody = $("#userTableBody");
-                tbody.empty();
-
-                if (feedbacks.length === 0) {
-                    tbody.append(`<tr><td colspan="10" class="text-center">Không có xe nào</td></tr>`);
-                    return;
-                }
-
-                feedbacks.forEach(f => {
-                    tbody.append(`
-                        <tr>
-                            <td>${f.carId}</td>
-                            <td>${f.carName}</td>
-                            <td>${f.licensePlate}</td>
-                            <td>${f.owner}</td>
-                            <td>${f.type}</td>
-                            <td>${f.brand }</td>
-                            <td>${f.isDeleted}</td>
-                            <td>
-                                <button class="btn btn-info btn-sm view-car-detail" data-car='${JSON.stringify(f)}'>Chi tiết</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-            }
+                loadCars({ search, type, branch, status, page, pageSize });
+            }            
 
             // Xử lý sự kiện khi click vào trang trong phân trang
             $(".pagination").on("click", ".page-link", function (e) {
@@ -183,7 +145,7 @@
                 loadFeedbacks();
             });
 
-            $("#searchType, #searchBrannd, #searchStatus").on("change", function () {
+            $("#searchType, #searchBrand, #searchStatus").on("change", function () {
                 currentPage = 1;
                 loadFeedbacks();
             });
@@ -212,66 +174,127 @@
                 // Hiển thị modal
                 $("#carDetailModal").modal("show");
             });
-
         });
-    });
 
-    function loadFilterOptions() {
-        $.ajax({
-            url: "https://localhost:7191/api/Car/filter-options",
-            method: "GET",
-            success: function (data) {
-                const { brands, types } = data;
+        // Hiển thị danh sách car vào bảng
+        function renderTable(cars) {
+            const tbody = $("#userTableBody");
+            tbody.empty();
 
-                const brandSelect = $("#searchBrand");
-                const typeSelect = $("#searchType");
-
-                // Reset option
-                brandSelect.html('<option value="">Tất cả</option>');
-                typeSelect.html('<option value="">Tất cả</option>');
-
-                // Append brand
-                brands.forEach(b => {
-                    brandSelect.append(`<option value="${b}">${b}</option>`);
-                });
-
-                // Append type
-                types.forEach(t => {
-                    typeSelect.append(`<option value="${t}">${t}</option>`);
-                });
-            },
-            error: function () {
-                alert("Không thể tải dữ liệu filter.");
+            if (cars.length === 0) {
+                tbody.append(`<tr><td colspan="10" class="text-center">Không có xe nào</td></tr>`);
+                return;
             }
-        });
-    }
 
-    // Hiển thị phân trang
-    function renderPagination(totalPages, currentPage) {
-        const pagination = $(".pagination");
-        pagination.empty();
-
-        let paginationHtml = `
-                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
-                        </li>
-                    `;
-
-        for (let i = 1; i <= totalPages; i++) {
-            paginationHtml += `
-                            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
-                            </li>
-                        `;
+            cars.forEach(f => {
+                tbody.append(`
+                    <tr>
+                        <td>${f.carId}</td>
+                        <td>${f.carName}</td>
+                        <td>${f.licensePlate}</td>
+                        <td>${f.owner}</td>
+                        <td>${f.type}</td>
+                        <td>${f.brand }</td>
+                        <td>${f.isDeleted}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm view-car-detail" data-car='${JSON.stringify(f)}'>Chi tiết</button>
+                        </td>
+                    </tr>
+                `);
+            });
         }
 
-        paginationHtml += `
-                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
-                        </li>
-                    `;
+        async function loadCars({ search, type, branch, status, page, pageSize }) {
+            try {
+                const params = new URLSearchParams({ search, type, branch, status, page, pageSize });
+                const url = `https://localhost:7191/api/Car/all-cars?${params.toString()}`;
 
-        pagination.append(paginationHtml);
-    }
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
 
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    renderTable(data.data);
+                    renderPagination(data.totalPages, page);
+                } else {
+                    console.error("Server error:", response.status);
+                    showToast("Không thể tải danh sách xe.");
+                }
+            } catch (error) {
+                console.error("Lỗi tải xe:", error);
+                showToast("Đã xảy ra lỗi khi tải xe.");
+            }
+        }
+
+        async function loadFilterOptions() {
+            try {
+                const url = "https://localhost:7191/api/Car/filter-options";
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    const { brands, types } = data;
+
+                    const brandSelect = $("#searchBrand");
+                    const typeSelect = $("#searchType");
+
+                    // Reset option
+                    brandSelect.html('<option value="">Tất cả</option>');
+                    typeSelect.html('<option value="">Tất cả</option>');
+
+                    // Append brand
+                    brands.forEach(b => {
+                        brandSelect.append(`<option value="${b}">${b}</option>`);
+                    });
+
+                    // Append type
+                    types.forEach(t => {
+                        typeSelect.append(`<option value="${t}">${t}</option>`);
+                    });
+                } else {
+                    console.error("Server error:", response.status);
+                    showToast("Không thể tải dữ liệu bộ lọc.");
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải bộ lọc:", error);
+                showToast("Đã xảy ra lỗi khi tải dữ liệu bộ lọc.");
+            }
+        }
+
+        // Hiển thị phân trang
+        function renderPagination(totalPages, currentPage) {
+            const pagination = $(".pagination");
+            pagination.empty();
+
+            let paginationHtml = `
+                            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
+                            </li>
+                        `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+            }
+
+            paginationHtml += `
+                            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
+                            </li>
+                        `;
+
+            pagination.append(paginationHtml);
+        }       
+    });
 </script>

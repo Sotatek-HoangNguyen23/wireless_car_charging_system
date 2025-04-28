@@ -15,9 +15,81 @@ namespace TestProject.ChargingStationTest
         public void Setup()
         {
             var options = new DbContextOptionsBuilder<WccsContext>()
-                  .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                  .Options;
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
             _context = new WccsContext(options);
+
+            // Create a user (required because ChargingStation has an OwnerId foreign key)
+            var user = new User
+            {
+                UserId = 1,
+                Fullname = "Test User",
+                Email = "test@example.com",
+                PhoneNumber = "0123456789",
+                CreateAt = DateTime.UtcNow
+            };
+
+            // Create a station location
+            var location = new StationLocation
+            {
+                StationLocationId = 1,
+                Address = "Test Address",
+                Latitude = 10.762622M,
+                Longitude = 106.660172M
+            };
+
+            // Create a charging station
+            var station = new ChargingStation
+            {
+                StationId = 1,
+                StationName = "Test Station",
+                OwnerId = 1,
+                StationLocationId = 1,
+                Status = "Available",
+                MaxConsumPower = 50,
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow,
+                Owner = user,
+                StationLocation = location,
+                ChargingPoints = new List<ChargingPoint>()
+            };
+
+            // Create charging points
+            var chargingPoints = new List<ChargingPoint>
+            {
+                new ChargingPoint
+                {
+                    ChargingPointId = 1,
+                    ChargingPointName = "Point 1",
+                    Status = "Available",
+                    MaxPower = 50,
+                    MaxConsumPower = 40,
+                    StationId = 1,
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                },
+                new ChargingPoint
+                {
+                    ChargingPointId = 2,
+                    ChargingPointName = "Point 2",
+                    Status = "In Use",
+                    MaxPower = 60,
+                    MaxConsumPower = 50,
+                    StationId = 1,
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow
+                }
+            };
+
+            _context.ChargingPoints.AddRange(chargingPoints);
+
+            // Add seed data
+            _context.Users.Add(user);
+            _context.StationLocations.Add(location);
+            _context.ChargingStations.Add(station);
+            _context.SaveChanges();
+
             _repository = new ChargingPointRepository(_context);
             // Add initial data
             var station = new ChargingStation
@@ -78,26 +150,39 @@ namespace TestProject.ChargingStationTest
             _context.Dispose();
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _context?.Dispose();
+        }
+
         // Test GetAllPointsByStation
         [Test]
-        public void GetAllPointsByStation_ShouldReturnPagedResult()
+        public void GetAllPointsByStation_ShouldReturnPoints()
         {
-            var result = _repository.GetAllPointsByStation(2, page: 1, pageSize: 10);
+            var result = _repository.GetAllPointsByStation(1, page: 1, pageSize: 10);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Data.Count, Is.EqualTo(3)); 
-            Assert.That(result.TotalPages, Is.EqualTo(1));
+            Assert.That(result.Data.Count, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void GetAllPointsByStation_ShouldReturnNull_WhenStationIdNotExist()
+        {
+            var result = _repository.GetAllPointsByStation(999, page: 1, pageSize: 10);
+
+            Assert.That(result.Data.Count, Is.EqualTo(0));
         }
 
         // Test GetPointById when Id exist
         [Test]
         public void GetPointById_ShouldReturnPoint_WhenIdExists()
         {
-            var result = _repository.GetPointById(4);
+            var result = _repository.GetPointById(1);
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.ChargingPointId, Is.EqualTo(4));
-            Assert.That(result.ChargingPointName, Is.EqualTo("HCM-1"));
+            Assert.That(result.ChargingPointId, Is.EqualTo(1));
+            Assert.That(result.ChargingPointName, Is.EqualTo("Point 1"));
         }
 
         // Test GetPointById when Id exist
@@ -111,33 +196,33 @@ namespace TestProject.ChargingStationTest
 
         // Test AddChargingPoints
         [Test]
-        public async Task AddChargingPoints_ShouldAddPoints()
+        public async Task AddChargingPoints_ShouldAddNewPoint()
         {
             var newPoints = new List<ChargingPoint>
             {
                 new ChargingPoint
                 {
-                    ChargingPointName = "Point Test",
-                    Description = "Slow Charger",
-                    Status = "Busy",
-                    MaxPower = 50,
-                    MaxConsumPower = 40,
+                    ChargingPointName = "New Point",
+                    Status = "Available",
+                    MaxPower = 70,
+                    MaxConsumPower = 60,
+                    StationId = 1,
                     CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow,
-                    StationId = 2
+                    UpdateAt = DateTime.UtcNow
                 }
             };
 
             await _repository.AddChargingPoints(newPoints);
-            var result = _repository.GetPointById(2042);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.ChargingPointName, Is.EqualTo("Point Test"));
+            var addedPoint = _context.ChargingPoints.FirstOrDefault(x => x.ChargingPointName == "New Point");
+
+            Assert.That(addedPoint, Is.Not.Null);
+            Assert.That(addedPoint.MaxPower, Is.EqualTo(70));
         }
 
         // Test GetPointById when Id exist
         [Test]
-        public void AddChargingPoints_ShouldThrowException_WhenEmptyList()
+        public void AddChargingPoints_ShouldThrowException_WhenListIsEmpty()
         {
             var emptyList = new List<ChargingPoint>();
 
@@ -149,22 +234,22 @@ namespace TestProject.ChargingStationTest
 
         // Test UpdateChargingPoint when Id exist
         [Test]
-        public async Task UpdateChargingPoint_ShouldUpdatePoint_WhenIdExists()
+        public async Task UpdateChargingPoint_ShouldUpdate_WhenIdExists()
         {
             var updateDto = new UpdateChargingPointDto
             {
-                ChargingPointName = "Updated Point",
+                ChargingPointName = "Updated Name",
                 Status = "Unavailable",
-                MaxPower = 120
+                MaxPower = 80
             };
 
-            var result = await _repository.UpdateChargingPoint(2042, updateDto);
+            var updatedPoint = await _repository.UpdateChargingPoint(1, updateDto);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.ChargingPointName, Is.EqualTo("Updated Point"));
-            Assert.That(result.Status, Is.EqualTo("Unavailable"));
-            Assert.That(result.MaxPower, Is.EqualTo(120));
+            Assert.That(updatedPoint, Is.Not.Null);
+            Assert.That(updatedPoint.ChargingPointName, Is.EqualTo("Updated Name"));
+            Assert.That(updatedPoint.Status, Is.EqualTo("Unavailable"));
         }
+
 
         // Test UpdateChargingPoint when Id not exist
         [Test]
@@ -182,23 +267,33 @@ namespace TestProject.ChargingStationTest
 
         // Test DeleteChargingPoint when Id exist
         [Test]
-        public async Task DeleteChargingPoint_ShouldDelete_WhenIdExists()
+        public async Task DeleteChargingPoint_ShouldSetStatusToRemoved_WhenIdExists()
         {
-            var result = await _repository.DeleteChargingPoint(2040);
-            var deletedPoint = _repository.GetPointById(2040);
+            // Arrange
+            var pointId = 2; // ChargingPointId có sẵn từ dữ liệu seed
 
-            Assert.That(result, Is.True);
-            Assert.That(deletedPoint, Is.Null);
+            // Act
+            var result = await _repository.DeleteChargingPoint(pointId);
+            var updatedPoint = _repository.GetPointById(pointId);
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(updatedPoint, Is.Not.Null);
+            Assert.That(updatedPoint.Status, Is.EqualTo("Deleted"));
         }
+
 
         // Test DeleteChargingPoint when Id not exist
         [Test]
-        public async Task DeleteChargingPoint_ShouldReturnFalse_WhenIdNotExists()
+        public async Task DeleteChargingPoint_ShouldReturnNull_WhenIdNotExists()
         {
-            var result = await _repository.DeleteChargingPoint(999);
+            // Act
+            var result = await _repository.DeleteChargingPoint(999); // Id không tồn tại
 
-            Assert.That(result, Is.False);
+            // Assert
+            Assert.That(result, Is.Null);
         }
+
 
     }
 }

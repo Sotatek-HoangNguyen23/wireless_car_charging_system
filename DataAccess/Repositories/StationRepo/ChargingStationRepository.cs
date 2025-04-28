@@ -1,6 +1,7 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -40,8 +41,8 @@ namespace DataAccess.Repositories.StationRepo
             {
                 string lowerKeyword = keyword.ToLower();
                 query = query.Where(cs =>
-                    !string.IsNullOrEmpty(cs.StationName) && cs.StationName.ToLower().Contains(lowerKeyword) ||
-                    cs.StationLocation != null && cs.StationLocation.Address.ToLower().Contains(lowerKeyword)
+                    (!string.IsNullOrEmpty(cs.StationName) && EF.Functions.Like(cs.StationName.ToLower(), $"%{lowerKeyword}%")) ||
+                    (cs.StationLocation != null && EF.Functions.Like(cs.StationLocation.Address.ToLower(), $"%{lowerKeyword}%"))
                 );
             }
 
@@ -135,6 +136,11 @@ namespace DataAccess.Repositories.StationRepo
 
         public async Task<ChargingStation> AddChargingStation(ChargingStation station)
         {
+            if (!_context.Users.Any(u => u.UserId == station.OwnerId))
+            {
+                throw new InvalidOperationException("Owner does not exist.");
+            }
+
             _context.ChargingStations.Add(station);
             await _context.SaveChangesAsync();
 
@@ -154,28 +160,15 @@ namespace DataAccess.Repositories.StationRepo
                 .FirstOrDefaultAsync(s => s.StationId == stationId);
 
             if (station == null)
-                return null;
+            {
+                throw new InvalidOperationException("Station does not exist.");
+            }
 
             // Chỉ cập nhật nếu DTO có giá trị (tránh ghi đè null)
             if (!string.IsNullOrEmpty(stationDto.StationName)) station.StationName = stationDto.StationName;
-            if (stationDto.OwnerId != 0)
-            {
-                station.OwnerId = stationDto.OwnerId;
-            }
+
             if (!string.IsNullOrEmpty(stationDto.Status)) station.Status = stationDto.Status;
             if (stationDto.MaxConsumPower.HasValue) station.MaxConsumPower = stationDto.MaxConsumPower;
-
-            if (stationDto.Latitude != 0 || stationDto.Longitude != 0 || !stationDto.Address.IsNullOrEmpty())
-            {
-                if (station.StationLocation == null)
-                {
-                    station.StationLocation = new StationLocation(); // Khởi tạo nếu null
-                }
-
-                if (stationDto.Latitude != 0) station.StationLocation.Latitude = stationDto.Latitude;
-                if (stationDto.Longitude != 0) station.StationLocation.Longitude = stationDto.Longitude;
-                if (!string.IsNullOrEmpty(stationDto.Address)) station.StationLocation.Address = stationDto.Address;
-            }
 
             station.UpdateAt = DateTime.Now;
 
@@ -189,38 +182,37 @@ namespace DataAccess.Repositories.StationRepo
         }
 
 
-        public async Task<bool> DeleteChargingStation(int stationId)
+        public async Task<ChargingStation?> DeleteChargingStation(int stationId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            // Xóa ChargingPoints bằng SQL để giảm tải bộ nhớ
-            await _context.Database.ExecuteSqlRawAsync(
-                "DELETE FROM charging_point WHERE station_id = {0}", stationId);
-
-            // Tìm station để xóa bằng EF → để vẫn giữ được tracking nếu sau này muốn extend logic
             var station = await _context.ChargingStations
                 .FirstOrDefaultAsync(s => s.StationId == stationId);
 
             if (station == null)
             {
-                await transaction.RollbackAsync();
-                return false;
+                return null;
             }
 
-            _context.ChargingStations.Remove(station);
+            station.Status = "Deleted";
+            
             await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
 
-            return true;
+            return station;
         }
-
 
         public List<ChargingSession> GetSessionByStation(int stationId)
         {
-            return _context.ChargingSessions
+            var sessions = _context.ChargingSessions
                 .Where(s => s.ChargingPoint.StationId == stationId)
                 .ToList();
+
+            if (!sessions.Any())
+            {
+                throw new InvalidOperationException("Station does not exist.");
+            }
+
+            return sessions;
         }
+
 
         public async Task<StationLocation> AddStationLocation(StationLocation location)
         {
