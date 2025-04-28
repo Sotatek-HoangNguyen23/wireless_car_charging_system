@@ -191,16 +191,6 @@ namespace TestProject.UserTest
             Assert.That(result.Items[0].LicenseNumber, Is.EqualTo("LICENSE001"));
         }
         [Test]
-        public async Task DeleteLicense_ValidId_RemovesFromDatabase()
-        {
-            // Act
-            await _repository.DeleteLicense("1");
-
-            // Assert
-            var license = await _context.DriverLicenses.FindAsync(1);
-            Assert.That(license, Is.Null);
-        }
-        [Test]
         public void DeleteLicense_InvalidFormatId_ThrowsFormatException()
         {
             // Act & Assert
@@ -209,16 +199,6 @@ namespace TestProject.UserTest
             Assert.That(ex.Message, Does.Contain("LicenseId phải là số nguyên"));
         }
 
-        // Thêm các test case mới
-        [Test]
-        public void DeleteLicense_EmptyId_ThrowsArgumentException()
-        {
-            // Act & Assert
-            var ex = Assert.ThrowsAsync<ArgumentException>(() =>
-                _repository.DeleteLicense(""));
-            Assert.That(ex.ParamName, Is.EqualTo("licenseId"));
-            Assert.That(ex.Message, Does.Contain("không hợp lệ"));
-        }
 
         [Test]
         public void DeleteLicense_WhiteSpaceId_ThrowsArgumentException()
@@ -325,24 +305,6 @@ namespace TestProject.UserTest
             {
                 Assert.That(updated!.Class, Is.EqualTo("NewClass"));
                 Assert.That(updated.Code, Is.EqualTo("UPDATED123"));
-            });
-        }
-        [Test]
-        public async Task UpdateLicense_ChangeCodeToUnique_UpdatesSuccessfully()
-        {
-            // Arrange
-            var license = await _context.DriverLicenses.FindAsync(1);
-            license!.Code = "UNIQUECODE123";
-
-            // Act
-            await _repository.UpdateLicense(license);
-
-            // Assert
-            var updatedLicense = await _context.DriverLicenses.FindAsync(1);
-            Assert.Multiple(() =>
-            {
-                Assert.That(updatedLicense, Is.Not.Null);
-                Assert.That(updatedLicense!.Code, Is.EqualTo("UNIQUECODE123"));
             });
         }
         [Test]

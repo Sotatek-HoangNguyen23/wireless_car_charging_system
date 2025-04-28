@@ -98,7 +98,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Không thể xóa ảnh: {ex.Message}", ex);
+                throw new Exception($"Không thể xóa ảnh: {ex.Message}");
             }
         }
 
@@ -110,20 +110,28 @@ namespace API.Services
             await file.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            using var image = await Image.LoadAsync<Rgba32>(memoryStream);
+            try
+            {
+                // Load có thể ném UnknownImageFormatException, ImageFormatException, ...
+                using var image = await Image.LoadAsync<Rgba32>(memoryStream);
 
-            image.Mutate(ctx => ctx
-                .Resize(new ResizeOptions
-                {
-                    Size = new SixLabors.ImageSharp.Size(image.Width * 2, image.Height * 2),
-                    Mode = ResizeMode.Stretch,
-                    Sampler = KnownResamplers.Lanczos3
-                })
-                .GaussianSharpen(3)
-            );
+                image.Mutate(ctx => ctx
+                    .Resize(new ResizeOptions
+                    {
+                        Size = new SixLabors.ImageSharp.Size(image.Width * 2, image.Height * 2),
+                        Mode = ResizeMode.Stretch,
+                        Sampler = KnownResamplers.Lanczos3
+                    })
+                    .GaussianSharpen(3)
+                );
 
-            // Thử đọc QR code
-            return TryReadQrCode(image);
+                // Thử đọc QR code
+                return TryReadQrCode(image);
+            }
+            catch (ImageFormatException ex)
+            {
+                throw new InvalidImageException("Định dạng ảnh không được hỗ trợ hoặc file đã bị corrupt.");
+            }
         }
         public async Task<string> ReadQrCodeUrl(string url)
         {
@@ -192,10 +200,14 @@ namespace API.Services
                 }
                 return result.Text;
             }
-            catch (Exception e)
+            catch (InvalidImageException e)
             {
-                throw new Exception("Không tìm thấy QR code trong ảnh", e);
+                throw new InvalidImageException("Không tìm thấy QR code trong ảnh");
             }
+            catch (Exception ex)
+            {
+                throw new InvalidImageException("Không thể đọc QR code: " + ex.Message);
+            }   
         }
 
         public void ValidateImage(IFormFile file)

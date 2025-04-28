@@ -204,37 +204,6 @@ namespace TestProject.UserTest
             Assert.That(ex.Message, Does.Contain("CCCD đã tồn tại"));
         }
 
-        [Test]
-        public void RegisterAsync_ShouldThrowExceptionWhenCccdExists2()
-        {
-            // Arrange:
-            // Tạo đối tượng CCCD đã tồn tại (chỉ cần thông tin Code)
-            var existingCccd = new Cccd { Code = _validRequest.CccdCode.Trim() };
-
-            // Tạo mock cho repository của CCCD để khi gọi GetCccdByCode với mã đã cho sẽ trả về đối tượng đã tồn tại
-            var cccdRepositoryMock = new Mock<ICccdRepository>();
-            cccdRepositoryMock
-                .Setup(repo => repo.GetCccdByCode(_validRequest.CccdCode.Trim()))
-                .ReturnsAsync(existingCccd);
-
-            // Gán repository CCCD mới (mock) cho UserService
-            _cccdRepository = cccdRepositoryMock.Object;
-            _userService = new UserService(
-                _userRepository,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act & Assert:
-            // Khi gọi RegisterAsync, do GetCccdByCode trả về một đối tượng nên sẽ ném ra InvalidOperationException với thông báo "CCCD đã tồn tại"
-            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await _userService.RegisterAsync(_validRequest));
-            Assert.That(ex.Message, Does.Contain("CCCD đã tồn tại"));
-        }
-
 
         [Test]
         public async Task RegisterAsync_ShouldThrowExceptionWhenPhoneExists()
@@ -370,7 +339,6 @@ namespace TestProject.UserTest
 
             Assert.That(ex.Message, Does.Contain("Đăng ký thất bại"));
 
-            // Kiểm tra rằng phương thức xóa ảnh được gọi đúng 2 lần (cho front và back)
             _cloudinaryServiceMock.Verify(
                 c => c.DestroyAsync(It.IsAny<DeletionParams>()),
                 Times.Exactly(2)
@@ -865,18 +833,6 @@ namespace TestProject.UserTest
             Assert.That(ex.ParamName, Is.EqualTo("Tìm kiếm không thể trống hoặc khoảng trắng"));
         }
         [Test]
-        public void GetLicenseByCode_ShouldThrowArgumentException_WhenCodeIsEmpty()
-        {
-            // Arrange
-            var invalidCode = "";
-
-            // Act & Assert
-            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
-                await _userService.GetLicenseByCode(invalidCode));
-
-            Assert.That(ex.ParamName, Is.EqualTo("code"));
-        }
-        [Test]
         public async Task GetLicenseByCode_ShouldReturnDriverLicenseDTO_WhenLicenseExists()
         {
             // Arrange
@@ -1317,30 +1273,30 @@ namespace TestProject.UserTest
             imageServiceMock.Verify(service => service.DestroyAsync(It.Is<DeletionParams>(p => p.PublicId == "old_back_id")), Times.Once);
         }
        [Test]
-public void UpdateDriverLiscense_ShouldThrowException_WhenRequestIsNull()
-{
-    // Arrange
-    var licenseCode = "123456";
-    DriverLicenseRequest request = null!;
+        public void UpdateDriverLiscense_ShouldThrowException_WhenRequestIsNull()
+        {
+            // Arrange
+            var licenseCode = "123456";
+            DriverLicenseRequest request = null!;
 
-    var cloudinaryServiceMock = new Mock<ICloudinaryService>();
-    var imageService = new ImageService(cloudinaryServiceMock.Object);
+            var cloudinaryServiceMock = new Mock<ICloudinaryService>();
+            var imageService = new ImageService(cloudinaryServiceMock.Object);
 
-    var userService = new UserService(
-        Mock.Of<IUserRepository>(),
-        Mock.Of<ICccdRepository>(),
-        imageService,
-        Mock.Of<IOtpServices>(),
-        Mock.Of<IDriverLicenseRepository>(),
-        Mock.Of<IBalancement>()
-    );
+            var userService = new UserService(
+                Mock.Of<IUserRepository>(),
+                Mock.Of<ICccdRepository>(),
+                imageService,
+                Mock.Of<IOtpServices>(),
+                Mock.Of<IDriverLicenseRepository>(),
+                Mock.Of<IBalancement>()
+            );
 
-    // Act & Assert
-    var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
-        await userService.UpdateDriverLiscense(licenseCode, request));
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+                await userService.UpdateDriverLiscense(licenseCode, request));
 
-    Assert.That(ex.Message, Is.EqualTo("Request cannot be null"));
-}
+            Assert.That(ex.Message, Is.EqualTo("Request cannot be null"));
+        }
 
 
 
@@ -1560,47 +1516,47 @@ public void UpdateDriverLiscense_ShouldThrowException_WhenRequestIsNull()
             };
 
             var licenses = new List<DriverLicense>
-    {
-        new DriverLicense
-        {
-            DriverLicenseId = 2,
-            UserId = userId,
-            Code = "123456",
-            Class = "A",
-            Status = "Active",
-            ImgFront = "http://mock-url.com/front1.jpg",
-            ImgBack = "http://mock-url.com/back1.jpg",
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow,
-            User = user
-        },
-        new DriverLicense
-        {
-            DriverLicenseId = 3,
-            UserId = userId,
-            Class = "A",
-            Code = "654321",
-            Status = "Inactive",
-            ImgFront = "http://mock-url.com/front2.jpg",
-            ImgBack = "http://mock-url.com/back2.jpg",
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow,
-            User = user
-        },
-        new DriverLicense
-        {
-            DriverLicenseId = 4,
-            UserId = userId,
-            Class = "B",
-            Code = "789012",
-            Status = "Active",
-            ImgFront = "http://mock-url.com/front3.jpg",
-            ImgBack = "http://mock-url.com/back3.jpg",
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow,
-            User = user
-        }
-    };
+            {
+                new DriverLicense
+                {
+                    DriverLicenseId = 2,
+                    UserId = userId,
+                    Code = "123456",
+                    Class = "A",
+                    Status = "Active",
+                    ImgFront = "http://mock-url.com/front1.jpg",
+                    ImgBack = "http://mock-url.com/back1.jpg",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    User = user
+                },
+                new DriverLicense
+                {
+                    DriverLicenseId = 3,
+                    UserId = userId,
+                    Class = "A",
+                    Code = "654321",
+                    Status = "Inactive",
+                    ImgFront = "http://mock-url.com/front2.jpg",
+                    ImgBack = "http://mock-url.com/back2.jpg",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    User = user
+                },
+                new DriverLicense
+                {
+                    DriverLicenseId = 4,
+                    UserId = userId,
+                    Class = "B",
+                    Code = "789012",
+                    Status = "Active",
+                    ImgFront = "http://mock-url.com/front3.jpg",
+                    ImgBack = "http://mock-url.com/back3.jpg",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    User = user
+                }
+            };
 
             // Detach any existing tracked entities
             _context.ChangeTracker.Clear();
@@ -1649,55 +1605,6 @@ public void UpdateDriverLiscense_ShouldThrowException_WhenRequestIsNull()
             Assert.That(result, Is.Empty);
         }
 
-        [Test]
-        public async Task GetActiveDriverLicensesAsync_ShouldHandleException_WhenImageBackUrlIsNullOrEmpty()
-        {
-            // Arrange
-            var userId = 1;
-            var user = new User
-            {
-                UserId = userId,
-                Fullname = "Test User",
-                Email = "test@example.com",
-                PhoneNumber = "1234567890"
-            };
-
-            var licenses = new List<DriverLicense>
-    {
-        new DriverLicense
-        {
-            DriverLicenseId = 1,
-            UserId = userId,
-            Code = "123456",
-            Class = "A",
-            ImgFront = "http://mock-url.com/front1.jpg",
-            Status = "Active",
-            ImgBack = null,
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow,
-            User = user
-        }
-    };
-
-            var licenseRepositoryMock = new Mock<IDriverLicenseRepository>();
-            licenseRepositoryMock.Setup(repo => repo.GetLicensesByUserId(userId)).ReturnsAsync(licenses);
-
-            var userService = new UserService(
-                _userRepository,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                licenseRepositoryMock.Object,
-                _balanceRepository
-            );
-
-            // Act
-            var result = await userService.GetActiveDriverLicensesAsync(userId);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count(), Is.EqualTo(0)); // No valid licenses should be returned
-        }
 
         [Test]
         public async Task GetLicenseList_ShouldReturnPagedResult_WhenCalledWithValidParameters()

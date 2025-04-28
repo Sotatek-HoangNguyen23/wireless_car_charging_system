@@ -1,7 +1,9 @@
 ﻿using DataAccess.DTOs.Auth;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace API.Services
 {
@@ -29,6 +31,14 @@ namespace API.Services
 
         public async Task<string> GenerateOtpAsync(OtpRequest request)
         {
+            if (request.Email.IsNullOrEmpty())
+            {
+                throw new ArgumentNullException("Email là bắt buộc");
+            }
+            else if (!IsValidEmail(request.Email))
+            {
+                throw new ArgumentException("Email không đúng định dạng");
+            }
             try
             {
                 var otp = GenerateSecureOtp();
@@ -56,7 +66,11 @@ namespace API.Services
             }
         }
 
-
+        private bool IsValidEmail(string email)
+        {
+            var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, emailRegex, RegexOptions.IgnoreCase);
+        }
         public async Task<bool> VerifyOtpAsync(string identifier, string inputOtp)
         {
             try
@@ -66,7 +80,7 @@ namespace API.Services
                 var data = await db.HashGetAllAsync(key);
                 if (data.Length == 0)
                 {
-                    return false;
+                    throw new ArgumentException("Không tìm thấy OTP cho email được cung cấp.");
                 }
                 var codeEntry = data.FirstOrDefault(x => x.Name == "Code");
                 var createdEntry = data.FirstOrDefault(x => x.Name == "Created");
@@ -86,7 +100,7 @@ namespace API.Services
 
                 if (otpData.Attempts >= MAX_ATTEMPTS)
                 {
-                    return false;
+                    throw new ArgumentException("OTP đã bị vô hiệu");
                 }
 
                 if (otpData.Code != HashToken(inputOtp))
@@ -102,9 +116,13 @@ namespace API.Services
                 return true;
 
             }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException(e.Message);
+            }
             catch (Exception e)
             {
-                throw new Exception("Error verifying OTP. Error:"+e);
+                throw new Exception(e.Message);
             }
         }
         public async Task<string> genResetPasswordToken(string email)

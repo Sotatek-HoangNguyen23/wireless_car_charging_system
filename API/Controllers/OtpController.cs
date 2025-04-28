@@ -49,7 +49,16 @@ namespace API.Controllers
                 await _emailService.SendEmailAsync(request.Email, "OTP Verification", emailBody);
                 return Ok(new { Message = "OTP created success" });
             }
-            catch
+            catch (ArgumentException ex) 
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ex.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, new ProblemDetails
                 {
@@ -88,7 +97,16 @@ namespace API.Controllers
                     Status = 400
                 });
             }
-            catch
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ex.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, new ProblemDetails
                 {

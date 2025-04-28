@@ -160,6 +160,10 @@ namespace API.Services
                     throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu", ex);
                 }
             }
+            catch (InvalidImageException ex)
+            {
+                throw new Exception("Image khong hop le",ex);
+            }
             catch (Exception ex)
             {
                 // Nếu có lỗi xảy ra, tiến hành xóa ảnh đã upload (nếu có)

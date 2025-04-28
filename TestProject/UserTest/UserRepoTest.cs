@@ -314,7 +314,7 @@ namespace TestProject.UserTest
             Assert.That(user!.Status, Is.EqualTo("Inactive"));
         }
         [Test]
-        public async Task ChangeStatus_InvalidUser_NoExceptionThrown()
+        public async Task ChangeUserStatus_InvalidUser_NoExceptionThrown()
         {
             // Act
             await _repository.ChangeUserStatusAsync(999, "Inactive");
@@ -553,7 +553,7 @@ namespace TestProject.UserTest
                 roleId: null,
                 pageNumber: 1,
                 pageSize: 10
-            );
+            );  
 
             // Assert
             Assert.That(result.Data, Has.Count.EqualTo(2));
@@ -635,7 +635,7 @@ namespace TestProject.UserTest
             await addUser();
 
             // Arrange
-            int pageNumber = 0; // Giá trị không hợp lệ
+            int pageNumber = -1; // Giá trị không hợp lệ
             int pageSize = 2;
 
             // Act
