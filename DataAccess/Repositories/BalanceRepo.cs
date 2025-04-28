@@ -28,8 +28,7 @@ namespace DataAccess.Repositories
         public async Task<Balance> GetBalanceByUserId(int userId)
         {
             
-            return await _context.Balances
-                .FirstOrDefaultAsync(p => p.UserId == userId);
+            return await _context.Balances.FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
         public async Task<BalanceTransaction> GetBalanceTransactionByOrderIdAsync(string orderCode)

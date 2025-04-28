@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <table class="table table-bordered mt-3 text-center">
+        <table class="table table-bordered mt-3 text-center" id="transtable">
             <thead class="table-dark">
                 <tr>
                     <th>Mã giao dịch</th>
@@ -157,16 +157,33 @@
         if (historyDiv.style.display === "block") fetchTransactionHistory();
     }
 
-    async function fetchTransactionHistory() {
+        async function fetchTransactionHistory() {
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
-        let url = `https://localhost:7191/api/Payment/transactions`;
+        let url = `https://localhost:7191/api/Payment/transactions?`;
         if (startDate) url += `&start=${startDate}`;
         if (endDate) url += `&end=${endDate}`;
 
         try {
             const response = await fetchWithAuth(url);
-            const transactions = await response.json();
+
+            // Check if the response is ok
+            if (!response.ok) {
+                throw new Error(`Failed to fetch transactions: ${response.statusText}`);
+            }
+
+            // Get the raw response as text
+            const textResponse = await response.text();
+
+            // If the response is empty, log it and throw an error
+            if (!textResponse) {
+                console.error("Received empty response from the server.");
+                throw new Error("No data returned from the server.");
+            }
+
+            // Try parsing the response as JSON
+            const transactions = JSON.parse(textResponse);
+
             const tableBody = document.getElementById("transactionTable");
             tableBody.innerHTML = "";
 
@@ -175,6 +192,7 @@
                 return;
             }
 
+            // Populate the table with transaction data
             transactions.forEach(tr => {
                 const statusText = tr.status === "PAID" ? "Đã thanh toán" : tr.status;
                 tableBody.innerHTML += `<tr>
@@ -185,8 +203,11 @@
                 </tr>`;
             });
         } catch (error) {
-            console.error("Lỗi khi lấy lịch sử giao dịch", error);
-            transactionHistory.innerHTML = `<h4> Không có dữ liệu<h4>`;
+            console.error("Lỗi khi lấy lịch sử giao dịch:", error);
+            const tableBody = document.getElementById("transactionTable");
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không có dữ liệu.</td></tr>`;
         }
     }
+
+    window.fetchTransactionHistory = fetchTransactionHistory
 </script>

@@ -23,7 +23,6 @@ namespace API.Controllers
         }
 
 
-        [Authorize("Driver")]
         [HttpGet("owner")]
         public ActionResult<List<MyCarsDTO>> GetCarByOwner()
         {
@@ -239,33 +238,33 @@ namespace API.Controllers
         }
 
 
-        [HttpPost("add-session")]
-        public async Task<IActionResult> AddSession([FromBody] ChargingSessionRequest request)
-        {
-            try
-            {
-                // Gọi service để thêm phiên sạc
-                var session = await _carService.AddChargingSession(
-                    request.CarId,
-                    request.PointId,
-                    request.TimeMoment,
-                    request.ChargingTime,
-                    request.Energy,
-                    request.Cost
-                );
+        //[HttpPost("add-session")]
+        //public async Task<IActionResult> AddSession([FromBody] ChargingSessionRequest request)
+        //{
+        //    try
+        //    {
+        //        // Gọi service để thêm phiên sạc
+        //        var session = await _carService.AddChargingSession(
+        //            request.CarId,
+        //            request.PointId,
+        //            request.TimeMoment,
+        //            request.ChargingTime,
+        //            request.Energy,
+        //            request.Cost
+        //        );
 
-                // Trả về thông tin của phiên sạc vừa tạo
-                return Ok(session);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message); // Trả về thông báo lỗi nếu dữ liệu không hợp lệ
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}"); // Trả về lỗi server nếu có vấn đề
-            }
-        }
+        //        // Trả về thông tin của phiên sạc vừa tạo
+        //        return Ok(session);
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(ex.Message); // Trả về thông báo lỗi nếu dữ liệu không hợp lệ
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}"); // Trả về lỗi server nếu có vấn đề
+        //    }
+        //}
 
         [HttpGet("{carId}/stats")]
         public IActionResult GetCarStats(int carId, int? year)

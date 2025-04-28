@@ -24,7 +24,7 @@ namespace DataAccess.DTOs
     public class AddCarRequest
     {
         public int CarModelId { get; set; }
-        public int UserId { get; set; }
+        
         public string LicensePlate { get; set; }
         public string CarName { get; set; }
     }

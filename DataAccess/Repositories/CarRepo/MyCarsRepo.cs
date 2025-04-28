@@ -200,8 +200,7 @@ namespace DataAccess.Repositories.CarRepo
         public void addCar(int carModel, int userId, string licensePlate, string carName)
         {
             //code here
-            using (var transaction = _context.Database.BeginTransaction())
-            {
+            
                 try
                 {
                     var car = new Car
@@ -229,14 +228,14 @@ namespace DataAccess.Repositories.CarRepo
                     _context.UserCars.Add(userCar);
                     _context.SaveChanges();
 
-                    transaction.Commit();
+                    //transaction.Commit();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                   // transaction.Rollback();
                     throw new Exception("Error add car: " + ex.Message);
                 }
-            }
+            
         }
 
         public void editCar(int carModel, int carId, string licensePlate, string carName)

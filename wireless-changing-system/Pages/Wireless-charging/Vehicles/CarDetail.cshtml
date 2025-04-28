@@ -68,6 +68,24 @@
         </div>
     </div>
 </div>
+<!-- Confirm Delete Car Modal -->
+<div class="modal fade" id="confirmDeleteCarModal" tabindex="-1" aria-labelledby="confirmDeleteCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 shadow-sm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteCarModalLabel">Xác nhận xóa xe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa xe này không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
@@ -215,21 +233,30 @@
         if (carId) window.location.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
     };
 
-    async function deleteCar(carId) {
-        if (!confirm("Bạn có chắc chắn muốn xóa xe này?")) return;
+        function deleteCar(carId) {
+        const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteCarModal'));
+        confirmModal.show();
 
-        try {
-            const response = await fetchWithAuth(`https://localhost:7191/api/Car/Delete/${carId}`, {
-                method: 'DELETE'
-            });
+        // Xử lý sự kiện khi bấm nút "Xóa"
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
-            if (!response.ok) throw new Error(await response.text());
-            window.location.href = "/wireless-charging/vehicles/mycars";
-        } catch (error) {
-            console.error("Delete Car Error:", error);
-            alert("Xóa xe thất bại");
-        }
+        // Để tránh gán sự kiện nhiều lần nếu user mở/đóng modal nhiều lần
+        confirmDeleteBtn.onclick = async function () {
+            try {
+                const response = await fetchWithAuth(`https://localhost:7191/api/Car/Delete/${carId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                window.location.href = "/wireless-charging/vehicles/mycars";
+            } catch (error) {
+                console.error("Delete Car Error:", error);
+                const deleteCarFailedModal = new bootstrap.Modal(document.getElementById('deleteCarFailedModal'));
+                deleteCarFailedModal.show();
+            }
+        };
     }
+
 </script>
 
 <style>
