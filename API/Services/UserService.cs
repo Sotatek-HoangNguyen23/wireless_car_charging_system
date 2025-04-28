@@ -1,7 +1,6 @@
 ﻿using Azure.Core;
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet.Core;
-using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
@@ -9,6 +8,7 @@ using DataAccess.Models;
 using Org.BouncyCastle.Asn1.Ocsp;
 using DataAccess.Repositories.StationRepo;
 using System.Text.RegularExpressions;
+using DataAccess.DTOs.CarDTO;
 
 namespace API.Services
 {
@@ -444,7 +444,7 @@ namespace API.Services
                 throw new ArgumentException("Địa chỉ tối đa 250 ký tự");
         }
 
-        public async Task ChangePasswordAsync(ChangePassDTO passDTO)
+        public async Task ChangePasswordAsync(int userId, ChangePassDTO passDTO)
         {
             if (string.IsNullOrWhiteSpace(passDTO.Password) ||
                 string.IsNullOrWhiteSpace(passDTO.NewPassword) ||
@@ -461,7 +461,7 @@ namespace API.Services
                 throw new ArgumentException("New password and confirmation do not match.");
             }
 
-            var user = await _userRepository.GetUserById(passDTO.UserId);
+            var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found.");
@@ -867,28 +867,6 @@ namespace API.Services
         public async Task ChangeUserStatusAsync(int userId, string newStatus)
         {
             await _userRepository.ChangeUserStatusAsync(userId, newStatus);
-        }
-
-        public PagedResult<FeedbackDto> GetFeedbacks(string? search, DateTime? startDate, DateTime? endDate, int page, int pageSize)
-        {
-            if (page <= 0)
-            {
-                throw new ArgumentException("Page number must be greater than zero", nameof(page));
-            }
-            if (pageSize <= 0)
-            {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
-            }
-            return _userRepository.GetFeedbacks(search, startDate, endDate, page, pageSize);
-        }
-
-        public async Task<List<Feedback>> GetFeedbackByUserId(int userId)
-        {
-            if (userId <= 0)
-            {
-                throw new ArgumentException("Invalid user ID.");
-            }
-            return await _userRepository.GetFeedbackByUserId(userId);
         }
         public async Task DeleteUserReal(int userId)
         {

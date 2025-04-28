@@ -3,6 +3,8 @@ using CloudinaryDotNet.Actions;
 using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
+
+using DataAccess.DTOs.CarDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories;
@@ -673,7 +675,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = ""
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Passwords khong the trong."));
         }
 
@@ -687,7 +689,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = "weak"
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Password is not strong enough"));
         }
 
@@ -701,7 +703,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = "DifferentPassword123!"
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("New password and confirmation do not match."));
         }
 
@@ -710,7 +712,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "CurrentPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -726,7 +728,7 @@ namespace TestProject.UserTest
                 _licenseRepository,
                 _balanceRepository
             );
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("User not found."));
         }
 
@@ -735,7 +737,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "WrongPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -753,7 +755,7 @@ namespace TestProject.UserTest
                 _balanceRepository
             );
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Mật khẩu hiện tại không đúng."));
         }
 
@@ -763,7 +765,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "CurrentPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -782,7 +784,7 @@ namespace TestProject.UserTest
                 _balanceRepository
             );
 
-            await userService.ChangePasswordAsync(passDTO);
+            await userService.ChangePasswordAsync(1,passDTO);
 
             userRepositoryMock.Verify(repo => repo.UpdateUser(It.Is<User>(u => u.UserId == 1 && BCrypt.Net.BCrypt.Verify("NewPassword123!", u.PasswordHash, false, BCrypt.Net.HashType.SHA384))), Times.Once);
         }
@@ -1966,209 +1968,6 @@ namespace TestProject.UserTest
 
             // Assert: Xác nhận rằng phương thức ChangeUserStatusAsync trên repository đã được gọi đúng 1 lần với userId và newStatus mong đợi.
             userRepositoryMock.Verify(repo => repo.ChangeUserStatusAsync(userId, newStatus), Times.Once);
-        }
-        [Test]
-        public void GetFeedbacks_ShouldReturnPagedResult_WhenCalledWithValidParameters()
-        {
-            // Arrange
-            var search = "test";
-            var startDate = new DateTime(2023, 1, 1);
-            var endDate = new DateTime(2023, 12, 31);
-            var page = 1;
-            var pageSize = 10;
-
-            var feedbacks = new List<FeedbackDto>
-                {
-                    new FeedbackDto { Id = 1, User = "User1", Message = "Feedback1", Date = new DateTime(2023, 6, 1) },
-                    new FeedbackDto { Id = 2, User = "User2", Message = "Feedback2", Date = new DateTime(2023, 7, 1) }
-                };
-            var pagedResult = new PagedResult<FeedbackDto>(feedbacks, 2, pageSize);
-
-            var userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(repo => repo.GetFeedbacks(search, startDate, endDate, page, pageSize))
-                              .Returns(pagedResult);
-
-            var userService = new UserService(
-                userRepositoryMock.Object,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act
-            var result = userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Data.Count, Is.EqualTo(2));
-            Assert.That(result.TotalPages, Is.EqualTo(1));
-            Assert.That(result.Data.First().Message, Is.EqualTo("Feedback1"));
-        }
-
-        [Test]
-        public void GetFeedbacks_ShouldReturnEmptyPagedResult_WhenNoFeedbacksExist()
-        {
-            // Arrange
-            var search = "nonexistent";
-            var startDate = new DateTime(2023, 1, 1);
-            var endDate = new DateTime(2023, 12, 31);
-            var page = 1;
-            var pageSize = 10;
-
-            var pagedResult = new PagedResult<FeedbackDto>(new List<FeedbackDto>(), 0, pageSize);
-
-            var userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(repo => repo.GetFeedbacks(search, startDate, endDate, page, pageSize))
-                              .Returns(pagedResult);
-
-            var userService = new UserService(
-                userRepositoryMock.Object,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act
-            var result = userService.GetFeedbacks(search, startDate, endDate, page, pageSize);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Data.Count, Is.EqualTo(0));
-            Assert.That(result.TotalPages, Is.EqualTo(0));
-        }
-
-        [Test]
-        public void GetFeedbacks_ShouldThrowArgumentException_WhenPageNumberIsInvalid()
-        {
-            // Arrange
-            var search = "test";
-            var startDate = new DateTime(2023, 1, 1);
-            var endDate = new DateTime(2023, 12, 31);
-            var page = 0; // Invalid page number
-            var pageSize = 10;
-
-            var userService = new UserService(
-                Mock.Of<IUserRepository>(),
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act & Assert
-            var ex = Assert.Throws<ArgumentException>(() =>
-                userService.GetFeedbacks(search, startDate, endDate, page, pageSize));
-            Assert.That(ex.Message, Does.Contain("Page number must be greater than zero"));
-        }
-
-        [Test]
-        public void GetFeedbacks_ShouldThrowArgumentException_WhenPageSizeIsInvalid()
-        {
-            // Arrange
-            var search = "test";
-            var startDate = new DateTime(2023, 1, 1);
-            var endDate = new DateTime(2023, 12, 31);
-            var page = 1;
-            var pageSize = 0; // Invalid page size
-
-            var userService = new UserService(
-                Mock.Of<IUserRepository>(),
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act & Assert
-            var ex = Assert.Throws<ArgumentException>(() =>
-                userService.GetFeedbacks(search, startDate, endDate, page, pageSize));
-            Assert.That(ex.Message, Does.Contain("Page size must be greater than zero"));
-        }
-
-        [Test]
-        public async Task GetFeedbackByUserId_ShouldReturnFeedbacks_WhenUserIdIsValid()
-        {
-            // Arrange
-            var userId = 1;
-            var feedbacks = new List<Feedback>
-    {
-        new Feedback { FeedbackId = 1, UserId = userId, Message = "Feedback 1", CreatedAt = DateTime.UtcNow },
-        new Feedback { FeedbackId = 2, UserId = userId, Message = "Feedback 2", CreatedAt = DateTime.UtcNow }
-    };
-
-            var userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(repo => repo.GetFeedbackByUserId(userId)).ReturnsAsync(feedbacks);
-
-            var userService = new UserService(
-                userRepositoryMock.Object,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act
-            var result = await userService.GetFeedbackByUserId(userId);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count, Is.EqualTo(2));
-            Assert.That(result.First().Message, Is.EqualTo("Feedback 1"));
-        }
-
-        [Test]
-        public void GetFeedbackByUserId_ShouldThrowArgumentException_WhenUserIdIsInvalid()
-        {
-            // Arrange
-            var invalidUserId = 0;
-
-            var userService = new UserService(
-                Mock.Of<IUserRepository>(),
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act & Assert
-            var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
-                await userService.GetFeedbackByUserId(invalidUserId));
-            Assert.That(ex.Message, Is.EqualTo("Invalid user ID."));
-        }
-
-        [Test]
-        public async Task GetFeedbackByUserId_ShouldReturnEmptyList_WhenNoFeedbacksExist()
-        {
-            // Arrange
-            var userId = 1;
-            var feedbacks = new List<Feedback>();
-
-            var userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(repo => repo.GetFeedbackByUserId(userId)).ReturnsAsync(feedbacks);
-
-            var userService = new UserService(
-                userRepositoryMock.Object,
-                _cccdRepository,
-                _imageService,
-                _otpServices,
-                _licenseRepository,
-                _balanceRepository
-            );
-
-            // Act
-            var result = await userService.GetFeedbackByUserId(userId);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count, Is.EqualTo(0));
         }
 
     }

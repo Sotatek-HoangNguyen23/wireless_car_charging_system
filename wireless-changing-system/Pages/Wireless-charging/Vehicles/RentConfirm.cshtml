@@ -3,7 +3,7 @@
 @{
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="mb-0">Xác nhận thuê xe</h3>
+            <h3 class="mb-0">Danh sách thuê/ cho thuê</h3>
         </div>
 
         <div id="rentConfirmContainer" class="row">
@@ -42,18 +42,18 @@
     </div>
 }
 
-<script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
     document.addEventListener("DOMContentLoaded", async function () {
         await loadRentRequests();
     });
 
-           async function loadRentRequests() {
-        const driverId = sessionStorage.getItem("userId");
-        const apiUrl = `https://localhost:7191/api/Car/rent-requests/${driverId}`;
+        async function loadRentRequests() {
+        const apiUrl = `https://localhost:7191/api/Car/rent-requests`;
         const container = document.getElementById("rentConfirmContainer");
 
         try {
-            const response = await fetch(apiUrl);
+            const response = await fetchWithAuth(apiUrl);
 
             if (response.status === 404) {
                 container.innerHTML = `<p class="text-center text-muted fs-5">Không có yêu cầu </p>`;
@@ -71,7 +71,7 @@
                 return;
             }
 
-            container.innerHTML = ""; // Xóa dữ liệu cũ
+            container.innerHTML = ""; // Clear old data
 
             data.forEach(item => {
                 const isAllowedToCharge = item.isAllowedToCharge ?? false;
@@ -105,6 +105,7 @@
 
 
 
+
     let selectedCar = null;
 
     function showRentModal(item) {
@@ -122,6 +123,7 @@
         var myModal = new bootstrap.Modal(document.getElementById('rentConfirmModal'));
         myModal.show();
     }
+    window.showRentModal = showRentModal;
 
     document.getElementById("confirmRentButton").addEventListener("click", async function () {
         if (!selectedCar) return;
@@ -134,7 +136,7 @@
         };
 
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetchWithAuth(apiUrl, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody)

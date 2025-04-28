@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35327.3
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34729.46
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wireless-charging-system", "wireless-changing-system\wireless-charging-system.csproj", "{77F06510-A78B-41A6-AB5A-67B186FF6DD6}"
 EndProject
@@ -10,6 +10,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{CBF2546C-73EB-4BDA-B19D-53B5AD1F74E2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject", "TestProject\TestProject.csproj", "{A84DDD9A-E02A-4AC1-8B5A-36E998B6B28C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "[Arduino]Barie", "[Arduino]Barie\[Arduino]Barie.csproj", "{42EF31A6-226A-4130-97F0-0BA1D81B233B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "[Arduino]ChargingPoint1", "[Arduino]ChargingPoint1\[Arduino]ChargingPoint1.csproj", "{CDB698DB-862B-487E-A88F-013A5859920C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "[Arduino]ChargingPoint 2", "[Arduino] Charging Point 2\[Arduino]ChargingPoint 2.csproj", "{E701894F-EF5A-494B-A156-5AC81A46B6A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +39,18 @@ Global
 		{A84DDD9A-E02A-4AC1-8B5A-36E998B6B28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A84DDD9A-E02A-4AC1-8B5A-36E998B6B28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A84DDD9A-E02A-4AC1-8B5A-36E998B6B28C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42EF31A6-226A-4130-97F0-0BA1D81B233B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42EF31A6-226A-4130-97F0-0BA1D81B233B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42EF31A6-226A-4130-97F0-0BA1D81B233B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42EF31A6-226A-4130-97F0-0BA1D81B233B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDB698DB-862B-487E-A88F-013A5859920C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDB698DB-862B-487E-A88F-013A5859920C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDB698DB-862B-487E-A88F-013A5859920C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDB698DB-862B-487E-A88F-013A5859920C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E701894F-EF5A-494B-A156-5AC81A46B6A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E701894F-EF5A-494B-A156-5AC81A46B6A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E701894F-EF5A-494B-A156-5AC81A46B6A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E701894F-EF5A-494B-A156-5AC81A46B6A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -70,6 +70,8 @@ builder.Services.AddDbContext<WccsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("value")), ServiceLifetime.Scoped);
 
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<PaymentService>();
+
 builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IOtpServices, OtpServices>();

@@ -5,12 +5,15 @@
     <div class="container d-flex justify-content-center align-items-center">
         <div class="row w-100 mt-3">
         <h3>Thông tin người dùng</h3>
-            <div class="col-md-8 profile-content">
-                <button class="btn btn-primary mb-3" id="change-password-btn">Đổi mật khẩu</button>
+            
 
             <div class="d-flex justify-content-center mb-3">
                 <button class="btn btn-outline-primary" id="change-password-btn">
                     <i class="bi bi-key-fill me-2"></i>Đổi mật khẩu
+                </button>
+
+                <button class="btn btn-outline-primary mx-3" id="add-driver-license-btn">
+                    Thêm bằng lái xe
                 </button>
             </div>
 
@@ -92,19 +95,24 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
         document.addEventListener("DOMContentLoaded", function () {
-            const userId = sessionStorage.getItem("userId");
-            if (!userId) {
-                alert("User chưa đăng nhập!");
-                return;
-            }
+            // const userId = sessionStorage.getItem("userId");
+            // if (!userId) {
+            //     alert("User chưa đăng nhập!");
+            //     return;
+            // }
 
-            document.getElementById("change-password-btn").addEventListener("click", function () {
-                window.location.href = "https://localhost:5216/wireless-charging/profiles/changepassword";
+        document.getElementById("add-driver-license-btn").addEventListener("click", function () {
+                window.location.href = "/wireless-charging/profiles/driverlisense";
             });
 
-            fetch(`https://localhost:7191/api/Auth/profile/${userId}`)
+        document.getElementById("change-password-btn").addEventListener("click", function () {
+            window.location.href = "/wireless-charging/profiles/changepassword";
+        });
+
+            fetchWithAuth(`https://localhost:7191/api/User/profile`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("fullname").value = data.fullname;
@@ -139,7 +147,7 @@
                     address: document.getElementById("address").value
                 };
 
-                fetch(`https://localhost:7191/api/Auth/profile/${userId}`, {
+                fetchWithAuth(`https://localhost:7191/api/User/profile`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(updatedData)
@@ -158,4 +166,4 @@
             });
         });
     </script>
-}
+

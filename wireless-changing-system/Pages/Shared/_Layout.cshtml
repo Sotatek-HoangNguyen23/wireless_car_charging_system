@@ -61,7 +61,7 @@
                         </li>
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
-                            <a class="nav-link" href="https://localhost:5216/wireless-charging/vehicles/mycars">Xe của tôi</a>
+                            <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
                         </li>
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/payment/depositmoney">Nạp tiền</a>
@@ -69,6 +69,10 @@
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/feedback">Phản hồi của người dùng</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/vehicles/rentconfirm">Danh sách thuê</a>
                         </li>
                     </ul>
 
@@ -150,7 +154,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js-cookie/js.cookie.min.js"></script>
     <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
     <script>
         // Tách logic cập nhật UI thành hàm riêng

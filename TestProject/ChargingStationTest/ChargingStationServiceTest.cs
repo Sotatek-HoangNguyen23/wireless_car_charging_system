@@ -7,12 +7,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TestProject.ChargingStationTest
 {
+    [TestFixture]
     public class ChargingStationServiceTest
     {
         private WccsContext _context;
         private ChargingStationService _service;
         private IChargingStationRepository _stationRepository;
         private IChargingPointRepository _pointRepository;
+        private const decimal latitude = 10;
+        private const decimal longitude = 10;
 
         [SetUp]
         public void Setup()
@@ -127,6 +130,7 @@ namespace TestProject.ChargingStationTest
                     UpdateAt = DateTime.UtcNow
                 }
             };
+        }
 
         [TearDown]
         public void TearDown()
@@ -213,7 +217,7 @@ namespace TestProject.ChargingStationTest
             };
 
             var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-        await _service.UpdateChargingStation(999, updateDto));  
+        await _service.UpdateChargingStation(999, updateDto));
 
             Assert.That(ex.Message, Is.EqualTo("Station not found!"));
         }
@@ -309,9 +313,9 @@ namespace TestProject.ChargingStationTest
                 ChargingPointName = "Updated Point",
                 Status = "In Use"
             };
-           
-            var result = await _service.UpdateChargingPoint(1, updateDto); 
-            
+
+            var result = await _service.UpdateChargingPoint(1, updateDto);
+
             Assert.That(result, Is.Not.Null);
             Assert.That(result.ChargingPointName, Is.EqualTo("Updated Point"));
             Assert.That(result.Status, Is.EqualTo("In Use"));
@@ -340,14 +344,14 @@ namespace TestProject.ChargingStationTest
             var stationId = 1;
             var year = 2025;
             var month = 4;
-            
+
             var result = _service.GetStats(stationId, year, month);
 
-            
+
             Assert.That(result, Is.Not.Null);
             Assert.That(result.TotalEnergyConsumed, Is.EqualTo(11.5));
             Assert.That(result.TotalRevenue, Is.EqualTo(22.0));
-            Assert.That(result.TotalChargingSessions, Is.EqualTo(2)); 
+            Assert.That(result.TotalChargingSessions, Is.EqualTo(2));
             Assert.That(result.AverageChargingTime, Is.EqualTo(30));
 
             Assert.That(result.ChartData.Count, Is.EqualTo(1));
@@ -358,11 +362,11 @@ namespace TestProject.ChargingStationTest
         public void GetStats_ShouldReturnEmptyStats_WhenNoSessionsMatchFilter()
         {
             var stationId = 1;
-            var year = 2023; 
+            var year = 2023;
             var month = 1;
-            
+
             var result = _service.GetStats(stationId, year, month);
-            
+
             Assert.That(result.TotalEnergyConsumed, Is.EqualTo(0));
             Assert.That(result.TotalRevenue, Is.EqualTo(0));
             Assert.That(result.TotalChargingSessions, Is.EqualTo(0));

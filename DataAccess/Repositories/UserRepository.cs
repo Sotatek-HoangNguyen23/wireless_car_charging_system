@@ -1,5 +1,5 @@
-﻿using DataAccess.DTOs;
-using DataAccess.DTOs.Auth;
+﻿using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.CarDTO;
 using DataAccess.DTOs.UserDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
@@ -195,6 +195,61 @@ namespace DataAccess.Repositories
                 user.Status = newStatus;
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteUserReal(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("ID người dùng không hợp lệ", nameof(userId));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Load user và tất cả dữ liệu liên quan
+                var user = await _context.Users
+                    .Include(u => u.RefreshTokens)
+                    .Include(u => u.Balances)
+                    .Include(u => u.Cccds)
+                    .Include(u => u.Feedbacks)
+                    .Include(u => u.ChargingSessions)
+                    .Include(u => u.DriverLicenses)
+                    .Include(u => u.Payments)
+                    .Include(u => u.UserCars)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    throw new ArgumentException("Người dùng không tồn tại", nameof(userId));
+
+                // Xóa theo thứ tự để tránh conflict FK
+                _context.RefreshTokens.RemoveRange(user.RefreshTokens);
+                _context.Payments.RemoveRange(user.Payments);
+                _context.ChargingSessions.RemoveRange(user.ChargingSessions);
+                _context.UserCars.RemoveRange(user.UserCars);
+                _context.DriverLicenses.RemoveRange(user.DriverLicenses);
+                _context.Feedbacks.RemoveRange(user.Feedbacks);
+                _context.Cccds.RemoveRange(user.Cccds);
+                _context.Balances.RemoveRange(user.Balances);
+
+                // Xóa user
+                _context.Users.Remove(user);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Ghi log thành công
+            }
+            catch (DbUpdateException ex)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException($"Không thể xóa user {userId} do lỗi database", ex);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
         }
     }

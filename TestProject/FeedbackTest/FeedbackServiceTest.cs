@@ -116,7 +116,7 @@ namespace TestProject.FeedbackTest
         public void GetFeedbacks_FilterByStatus_ReturnsCorrectResult()
         {
             // Act
-            var result = _feedbackService.GetFeedbacks(null, null, "Resolved", null, null, 1, 10);
+            var result = _feedbackService.GetFeedbacks(null, null, "Processed", null, null, 1, 10);
 
             // Assert
             Assert.That(result.Data.Count, Is.EqualTo(1)); // Chỉ có 1 feedback với trạng thái "Resolved"

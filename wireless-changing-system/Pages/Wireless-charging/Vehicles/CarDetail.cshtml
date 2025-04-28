@@ -1,197 +1,272 @@
 ﻿@page
 @model wireless_changing_system.Pages.Wireless_charging.Vehicles.CarDetailModel
 @{
-    <div class="container py-4">
-        <!--<a href="/wireless-charging/vehicles/mycars" class="text-decoration-none text-dark">
-            <i class="bi bi-caret-left-fill"></i>
-            <span class="fs-5"> Previous</span>
-        </a>
-        -->
-        <div class="card rounded-5 shadow-sm mt-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="card-title mb-0" id="car-name">VF 9 ECO</h3>
-                    <div>
-                        <button class="btn btn-outline-danger me-2 del-btn">Xóa xe</button>
-                        <button class="btn btn-outline-secondary" onclick="navigateToEditCar()">Sửa </button>
+    Layout = "_Layout";
+}
 
+<div class="container py-4">
+    <div class="card rounded-5 shadow-sm mt-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="card-title mb-0" id="car-name">VF 9 ECO</h3>
+                <div>
+                    <button class="btn btn-outline-danger me-2 del-btn">Xóa xe</button>
+                    <button class="btn btn-outline-secondary" onclick="navigateToEditCar()">Sửa</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Real-time Status Section -->
+                <div id="real-time-status" class="col-12 col-md-6 mb-3" style="display: none;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-circle-fill status-indicator" style="font-size: 20px;"></i>
+                        <span class="fw-bold ms-2 me-2">Trạng thái:</span>
+                        <i class="bi bi-battery-charging fs-1"></i>
+                        <span id="charging-status" class="ms-2 fs-3">0%</span>
+                        <button class="btn btn-outline-success mx-3" onclick="navigateToChargingAnalysis()">Xem chi tiết</button>
+                    </div>
+
+                    <div class="mb-3">
+                        <i class="bi bi-geo-alt"></i><span class="fw-bold">Trạm sạc:</span>
+                        <p id="station-location" class="mb-0"></p>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div id="real-time-status" class="col-12 col-md-6 mb-0">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-circle-fill" style="color: #00ff00; font-size: 20px;"></i>
-
-                            <span class="fw-bold ms-2 me-2">Đang sạc:</span>
-
-                            <i class="bi bi-battery-charging fs-1"></i>
-
-                            <span id="charging-status" class="ms-2 fs-3">70%</span>
-
-                            <button class="btn btn-outline-success mx-3" onclick="navigateToChargingAnalysis()">Xem chi tiết</button>
-                        </div>
-                       
-
-                        <div class="mb-3">
-                            <i class="bi bi-geo-alt"></i><span class="fw-bold">Trạm sạc:</span>
-                            <p id="station-location" class="mb-0"></p>
-                        </div>
-
-
+                <!-- Car Details Section -->
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Loại:</span> <span id="car-type"></span></p>
                     </div>
-                    <div class="col-12 col-md-6 m-0">
-                        <!--<div>
-                            <img id="car-image" src="" alt="Car Image" class="img-fluid rounded" style="width: 100%; max-width: 300px;">
-                        </div>-->
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Loại:</span> <span id="car-type"></span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Hãng:</span> <span id="car-brand"></span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Biển số:</span> <span id="car-license-plate"></span></p>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Số chỗ:</span> <span id="car-seat"></span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Màu:</span> <span id="car-color"></span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Quãng đường trung bình:</span> <span id="car-average-range"></span></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="mb-0"><span class="fw-bold">Loại sạc:</span> <span id="car-charging-standard"></span></p>
-                        </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Hãng:</span> <span id="car-brand"></span></p>
                     </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Biển số:</span> <span id="car-license-plate"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Số chỗ:</span> <span id="car-seat"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Màu:</span> <span id="car-color"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Quãng đường trung bình:</span> <span id="car-average-range"></span></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-0"><span class="fw-bold">Loại sạc:</span> <span id="car-charging-standard"></span></p>
+                    </div>
+                </div>
 
-                    
-                    <div>
-                        <button class="btn btn-primary btn-lg" onclick="navigateToRentPage()">CHO THUÊ</button>
-
+                <!-- Action Buttons -->
+                <div class="col-12">
+                    <div class="d-flex gap-2">
+                        <button id="rent-btn" class="btn btn-primary btn-lg" onclick="navigateToRentPage()">CHO THUÊ</button>
                         <button class="btn btn-outline-primary btn-lg" onclick="navigateToChargingHistory()">Lịch sử sạc</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+<!-- Confirm Delete Car Modal -->
+<div class="modal fade" id="confirmDeleteCarModal" tabindex="-1" aria-labelledby="confirmDeleteCarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 shadow-sm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteCarModalLabel">Xác nhận xóa xe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa xe này không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const carId = getCarIdFromUrl();
-            if (!carId) {
-                console.error("Car ID is missing in the URL.");
-                return;
-            }
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
 
-            fetchCarDetails(carId);
-            fetchRealTimeStatus(carId);
+    // SignalR Connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:7191/realtimeHub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
 
-            document.querySelector(".del-btn").addEventListener("click", () => deleteCar(carId));
-        });
-                function navigateToChargingAnalysis() {
-            const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `https://localhost:5216/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
-            } else {
-                console.error("Car ID is missing.");
+    // Start SignalR connection
+    async function startConnection() {
+        try {
+            await connection.start();
+            console.log("SignalR Connected");
+        } catch (err) {
+            console.error("SignalR Connection Error:", err);
+            setTimeout(() => startConnection(), 5000);
+        }
+    }
+
+    // Handle connection events
+    connection.onclose(async () => {
+        console.log("SignalR Connection Closed");
+        await startConnection();
+    });
+
+    // Receive updates from server
+    connection.on("ReceiveUpdate", () => {
+        const carId = getCarIdFromUrl();
+        if (carId) fetchRealTimeStatus(carId);
+    });
+
+    // Initial setup
+        document.addEventListener("DOMContentLoaded", async () => {
+        const carId = getCarIdFromUrl();
+        if (!carId) {
+            console.error("Missing car ID");
+            return;
+        }
+
+        await startConnection();
+        fetchCarDetails(carId);
+        fetchRealTimeStatus(carId);
+        checkRentalStatus(carId); // Thêm dòng này
+
+        document.querySelector(".del-btn").addEventListener("click", () => deleteCar(carId));
+    });
+
+
+    // Helper functions
+    function getCarIdFromUrl() {
+        return new URLSearchParams(window.location.search).get('carId');
+    }
+
+    async function fetchCarDetails(carId) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
+            if (!response.ok) throw new Error(await response.text());
+
+            const car = await response.json();
+            updateCarDetails(car);
+        } catch (error) {
+            console.error("Fetch Car Details Error:", error);
+        }
+    }
+
+    function updateCarDetails(car) {
+        document.getElementById('car-name').textContent = car.carName;
+        document.getElementById('car-brand').textContent = car.brand;
+        document.getElementById('car-license-plate').textContent = car.licensePlate;
+        document.getElementById('car-type').textContent = car.type;
+        document.getElementById('car-seat').textContent = car.seatNumber;
+        document.getElementById('car-color').textContent = car.color;
+        document.getElementById('car-average-range').textContent = `${car.averageRange}km`;
+        document.getElementById('car-charging-standard').textContent = car.chargingStandard;
+    }
+
+    async function fetchRealTimeStatus(carId) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/real-time-status/${carId}`);
+            if (!response.ok) throw new Error(await response.text());
+
+            const data = await response.json();
+            updateRealTimeUI(data);
+        } catch (error) {
+            console.error("Fetch Real-time Status Error:", error);
+            document.getElementById("real-time-status").style.display = "none";
+        }
+    }
+        async function checkRentalStatus(carId) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/is-being-rented?carId=${carId}`);
+            if (!response.ok) throw new Error(await response.text());
+
+            const isBeingRented = await response.json();
+           const rentBtn = document.getElementById("rent-btn");
+
+
+            if (isBeingRented) {
+                rentBtn.textContent = "ĐANG ĐƯỢC THUÊ";
+                rentBtn.classList.remove("btn-primary");
+                rentBtn.classList.add("btn-danger");
+                rentBtn.disabled = true;
+                rentBtn.onclick = null;
             }
+        } catch (error) {
+            console.error("Rental Status Fetch Error:", error);
         }
-        function getCarIdFromUrl() {
-            return new URLSearchParams(window.location.search).get('carId');
+    }
+
+    function updateRealTimeUI(data) {
+        const realTimeSection = document.getElementById("real-time-status");
+        const statusIndicator = realTimeSection.querySelector(".status-indicator");
+
+        if (data.status === "Charging") {
+            realTimeSection.style.display = "block";
+            statusIndicator.style.color = "#00ff00";
+            document.getElementById("charging-status").textContent = `${data.batteryLevel}%`;
+            document.getElementById("station-location").textContent =
+                `${data.stationName || 'Chưa xác định'}, ${data.address || 'Chưa có địa chỉ'}`;
+        } else {
+            realTimeSection.style.display = "none";
         }
-                function navigateToRentPage() {
-            const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `/wireless-charging/vehicles/rent?carId=${carId}`;
-            } else {
-                console.error("Car ID is missing.");
-            }
-        }
-        async function fetchCarDetails(carId) {
+    }
+
+    // Navigation functions
+    window.navigateToChargingAnalysis = () => {
+        const carId = getCarIdFromUrl();
+        if (carId) window.location.href = `/wireless-charging/vehicles/charginganalysis?carId=${carId}`;
+    };
+
+    window.navigateToRentPage = () => {
+        const carId = getCarIdFromUrl();
+        if (carId) window.location.href = `/wireless-charging/vehicles/rent?carId=${carId}`;
+    };
+
+    window.navigateToEditCar = () => {
+        const carId = getCarIdFromUrl();
+        if (carId) window.location.href = `/wireless-charging/vehicles/editcar?carId=${carId}`;
+    };
+
+    window.navigateToChargingHistory = () => {
+        const carId = getCarIdFromUrl();
+        if (carId) window.location.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
+    };
+
+        function deleteCar(carId) {
+        const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteCarModal'));
+        confirmModal.show();
+
+        // Xử lý sự kiện khi bấm nút "Xóa"
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+        // Để tránh gán sự kiện nhiều lần nếu user mở/đóng modal nhiều lần
+        confirmDeleteBtn.onclick = async function () {
             try {
-                const response = await fetch(`https://localhost:7191/api/Car/detail/${carId}`);
-                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-
-                const car = await response.json();
-                updateCarDetails(car);
-            } catch (error) {
-                console.error("Error fetching car details:", error);
-            }
-        }
-
-        function updateCarDetails(car) {
-            document.getElementById('car-name').textContent = car.carName;
-           // document.getElementById('car-image').src = car.img || 'https://via.placeholder.com/300';
-            document.getElementById('car-brand').textContent = car.brand;
-            document.getElementById('car-license-plate').textContent = car.licensePlate;
-            document.getElementById('car-type').textContent = car.type;
-            document.getElementById('car-seat').textContent = car.seatNumber;
-            document.getElementById('car-color').textContent = car.color;
-            document.getElementById('car-average-range').textContent = `${car.averageRange}km`;
-            document.getElementById('car-charging-standard').textContent = car.chargingStandard;
-        }
-
-        async function fetchRealTimeStatus(carId) {
-            try {
-                const response = await fetch(`https://localhost:7191/api/Car/real-time-status/${carId}`);
-                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-
-                const data = await response.json();
-                updateRealTimeStatus(data);
-            } catch (error) {
-                console.error("Error fetching real-time status:", error);
-                document.getElementById("real-time-status").style.display = "none";
-            }
-        }
-
-        function updateRealTimeStatus(data) {
-            if (data.message === "Not found") {
-                document.getElementById("real-time-status").style.display = "none";
-            } else {
-                document.getElementById("charging-status").textContent = `${data.batteryLevel}%`;
-                document.getElementById("station-location").textContent = `${data.stationName}, ${data.address}`;
-            }
-        }
-
-        function navigateToChargingHistory() {
-            const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
-            } else {
-                console.error("Car ID is missing.");
-            }
-        }
-
-        async function deleteCar(carId) {
-            if (!confirm("Are you sure you want to delete this car?")) return;
-
-            try {
-                const response = await fetch(`https://localhost:7191/api/Car/Delete/${carId}`, {
+                const response = await fetchWithAuth(`https://localhost:7191/api/Car/Delete/${carId}`, {
                     method: 'DELETE'
                 });
 
-                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-
+                if (!response.ok) throw new Error(await response.text());
                 window.location.href = "/wireless-charging/vehicles/mycars";
             } catch (error) {
-                console.error("Error deleting car:", error);
+                console.error("Delete Car Error:", error);
+                const deleteCarFailedModal = new bootstrap.Modal(document.getElementById('deleteCarFailedModal'));
+                deleteCarFailedModal.show();
             }
-        }
+        };
+    }
 
-                function navigateToEditCar() {
-            const carId = getCarIdFromUrl();
-            if (carId) {
-                window.location.href = `/wireless-charging/vehicles/editcar?carId=${carId}`;
-            } else {
-                console.error("Car ID is missing.");
-            }
-        }
-    </script>
-}
+</script>
 
+<style>
+    .status-indicator {
+        transition: color 0.3s ease;
+    }
 
-
+    #real-time-status {
+        transition: all 0.3s ease;
+        
+        padding-left: 1rem;
+    }
+</style>

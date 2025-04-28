@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.DTOs
+namespace DataAccess.DTOs.CarDTO
 {
     public class MyCarsDTO
     {
@@ -24,7 +24,7 @@ namespace DataAccess.DTOs
     public class AddCarRequest
     {
         public int CarModelId { get; set; }
-        public int UserId { get; set; }
+
         public string LicensePlate { get; set; }
         public string CarName { get; set; }
     }
@@ -69,10 +69,21 @@ namespace DataAccess.DTOs
         public DateTime? EndDate { get; set; }
     }
 
-    public class ConfirmRentDto{
+    public class ConfirmRentDto
+    {
         public int UserId { get; set; }
         public int CarId { get; set; }
         public string Role { get; set; }
+    }
+
+    public class ChargingSessionRequest
+    {
+        public int CarId { get; set; }
+        public int PointId { get; set; }
+        public string TimeMoment { get; set; } = string.Empty;
+        public string ChargingTime { get; set; } = string.Empty;
+        public string Energy { get; set; } = string.Empty;
+        public string Cost { get; set; } = string.Empty;
     }
 
 }
