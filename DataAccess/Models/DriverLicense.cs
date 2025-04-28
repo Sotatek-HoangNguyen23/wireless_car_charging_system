@@ -20,6 +20,7 @@ public partial class DriverLicense
     public string? Code { get; set; }
 
     public string? Status { get; set; }
+
     public string? Class { get; set; }
 
     public DateTime? CreateAt { get; set; }

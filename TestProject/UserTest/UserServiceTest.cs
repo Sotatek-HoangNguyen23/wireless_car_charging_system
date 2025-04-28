@@ -3,6 +3,8 @@ using CloudinaryDotNet.Actions;
 using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.UserDTO;
+
+using DataAccess.DTOs.CarDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories;
@@ -673,7 +675,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = ""
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Passwords khong the trong."));
         }
 
@@ -687,7 +689,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = "weak"
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Password is not strong enough"));
         }
 
@@ -701,7 +703,7 @@ namespace TestProject.UserTest
                 ConfirmNewPassword = "DifferentPassword123!"
             };
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(() => _userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("New password and confirmation do not match."));
         }
 
@@ -710,7 +712,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "CurrentPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -726,7 +728,7 @@ namespace TestProject.UserTest
                 _licenseRepository,
                 _balanceRepository
             );
-            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("User not found."));
         }
 
@@ -735,7 +737,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "WrongPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -753,7 +755,7 @@ namespace TestProject.UserTest
                 _balanceRepository
             );
 
-            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await userService.ChangePasswordAsync(passDTO));
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await userService.ChangePasswordAsync(1,passDTO));
             Assert.That(ex.Message, Is.EqualTo("Mật khẩu hiện tại không đúng."));
         }
 
@@ -763,7 +765,7 @@ namespace TestProject.UserTest
         {
             var passDTO = new ChangePassDTO
             {
-                UserId = 1,
+                
                 Password = "CurrentPassword123!",
                 NewPassword = "NewPassword123!",
                 ConfirmNewPassword = "NewPassword123!"
@@ -782,7 +784,7 @@ namespace TestProject.UserTest
                 _balanceRepository
             );
 
-            await userService.ChangePasswordAsync(passDTO);
+            await userService.ChangePasswordAsync(1,passDTO);
 
             userRepositoryMock.Verify(repo => repo.UpdateUser(It.Is<User>(u => u.UserId == 1 && BCrypt.Net.BCrypt.Verify("NewPassword123!", u.PasswordHash, false, BCrypt.Net.HashType.SHA384))), Times.Once);
         }

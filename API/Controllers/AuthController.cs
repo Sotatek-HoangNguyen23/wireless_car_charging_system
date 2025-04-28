@@ -1,6 +1,7 @@
 ﻿using API.Services;
 using DataAccess.DTOs;
 using DataAccess.DTOs.Auth;
+using DataAccess.DTOs.CarDTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -249,38 +250,6 @@ namespace API.Controllers
         }
 
 
-        [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePassDTO passDTO)
-        {
-            try
-            {
-                await _userService.ChangePasswordAsync(passDTO);
-                return Ok(new { Message = "Password changed successfully" });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { Message = "Internal server error" });
-            }
-        }
-
-
-        [HttpGet("get-users-by-email-phone")]
-        public async Task<IActionResult> GetUsersByEmailPhone([FromQuery] string search)
-        {
-            var users = await _userService.GetUsersByEmailOrPhoneAsync(search);
-            if (users == null || users.Count == 0)
-            {
-                return NotFound("Không tìm thấy người dùng nào.");
-            }
-            return Ok(users);
-        }
+        
     }
 }

@@ -13,7 +13,7 @@ namespace API.Services
         private readonly IBalancement _balanceRepo;
         private readonly PayOS _payOS;
         private readonly WccsContext _wccsContext;
-        public PaymentService()
+        //public PaymentService();
         public PaymentService(IBalancement balancement)
         {
 

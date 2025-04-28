@@ -444,7 +444,7 @@ namespace API.Services
                 throw new ArgumentException("Địa chỉ tối đa 250 ký tự");
         }
 
-        public async Task ChangePasswordAsync(ChangePassDTO passDTO)
+        public async Task ChangePasswordAsync(int userId, ChangePassDTO passDTO)
         {
             if (string.IsNullOrWhiteSpace(passDTO.Password) ||
                 string.IsNullOrWhiteSpace(passDTO.NewPassword) ||

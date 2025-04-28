@@ -1,6 +1,7 @@
 ﻿using API.Services;
 using DataAccess.DTOs.CarDTO;
 using DataAccess.DTOs.UserDTO;
+using DataAccess.DTOs.Auth;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
