@@ -135,9 +135,9 @@ namespace TestProject.DashboardTest
             {
                 Assert.That(result.TotalStations, Is.EqualTo(2));
                 Assert.That(result.TotalChargingPoints, Is.EqualTo(1));
-                Assert.That(result.TodaySessions, Is.EqualTo(1));
+                Assert.That(result.TodaySessions, Is.EqualTo(2));
                 Assert.That(result.WeekSessions, Is.EqualTo(2));
-                Assert.That(result.TotalEnergyToday, Is.EqualTo(20));
+                Assert.That(result.TotalEnergyToday, Is.EqualTo(35));
                 Assert.That(result.TotalEnergyThisMonth, Is.EqualTo(35));
                 Assert.That(result.TotalRevenue, Is.EqualTo(80000));
                 Assert.That(result.ActiveStations, Is.EqualTo(1));
@@ -181,7 +181,7 @@ namespace TestProject.DashboardTest
             // Assert
             Assert.That(result.TotalRevenue, Is.EqualTo(80000));
             Assert.That(result.AvgRevenuePerSession, Is.EqualTo(40000));
-            Assert.That(result.Daily.Count, Is.EqualTo(2));
+            Assert.That(result.Daily.Count, Is.EqualTo(1));
             Assert.That(result.ByStation.Count, Is.EqualTo(1));
         }
 

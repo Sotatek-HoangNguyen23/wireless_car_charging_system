@@ -34,12 +34,12 @@
 
     <div class="mt-3">
         <a class="btn btn-danger" href="/">Quay lại</a>
-        <button class="btn btn-primary" onclick="submitFeedback()">Gửi Feedback</button>    
+        <button id="submitBtn" class="btn btn-primary">Gửi Feedback</button>
     </div>
 </div>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
     let currentUserId = null;
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -51,7 +51,7 @@
             console.log("User ID:", currentUserId);
         } else {
             console.error("Không tìm thấy userId trong token");
-        }
+        }     
 
         document.getElementById("feedbackType").addEventListener("change", function () {
             let type = this.value;
@@ -59,127 +59,159 @@
             targetDiv.innerHTML = "";
 
             if (type === "Car") {
-                $.get("https://localhost:7191/api/Car/owner?userId=" + currentUserId, function (cars) {
-                    let selectHtml = `
+                loadCarSelect(targetDiv);
+            } else if (type === "Station") {
+                let page = 1;
+                const pageSize = 20;
+                let allStations = [];
+
+                fetchStations(targetDiv, pageSize);
+
+                fetchStations();
+            }
+        });
+
+        document.getElementById("submitBtn").addEventListener("click", submitFeedback);
+    })
+
+    async function loadCarSelect(targetDiv) {
+            try {
+                const url = "https://localhost:7191/api/Car/owner";
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const cars = await response.json();
+                    const selectHtml = `
                         <label for="carSelect">Chọn Xe <label style="color: red">*</label></label>
                         <select id="carSelect" class="form-control" required>
                             <option value="">-- Chọn xe --</option>
                             ${cars.map(c => `<option value="${c.carId}">${c.licensePlate}</option>`).join('')}
                         </select>
-                        <div id="carSelectError" class="invalid-feedback"></div>`;
+                        <div id="carSelectError" class="invalid-feedback"></div>
+                    `;
                     targetDiv.innerHTML = selectHtml;
-                });
-            } else if (type === "Station") {
-                let page = 1;
-                const pageSize = 5;
-                let allStations = [];
-
-                function fetchStations() {
-                    $.ajax({
-                        url: `https://localhost:7191/api/ChargingStation?page=${page}&pageSize=${pageSize}`,
-                        method: 'GET',
-                        success: function (stations) {
-                            if (stations && stations.data && stations.data.length > 0) {
-                                allStations = allStations.concat(stations.data);
-                                page++;
-                                fetchStations(); // tiếp tục gọi trang tiếp theo
-                            } else {
-                                console.log("Tất cả trạm đã load:", allStations);
-
-                                let selectHtml = `
-                                <label for="stationSelect">Chọn Trạm sạc <label style="color: red">*</label></label>
-                                <select id="stationSelect" class="form-control" required>
-                                    <option value="">-- Chọn trạm --</option>
-                                    ${allStations.map(s => `<option value="${s.stationId}">${s.stationName}</option>`).join('')}
-                                </select>
-                                <div id="stationSelectError" class="invalid-feedback"></div>
-                                <div id="pointSelectWrapper" class="mt-2"></div>`;
-
-                                targetDiv.innerHTML = selectHtml;
-
-                                // Sự kiện khi chọn 1 trạm
-                                document.getElementById("stationSelect").addEventListener("change", function () {
-                                    let stationId = this.value;
-                                    if (!stationId) return;
-
-                                    let pointPage = 1;
-                                    let allPoints = [];
-
-                                    function fetchPoints() {
-                                        $.ajax({
-                                            url: `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${pointPage}&pageSize=${pageSize}`,
-                                            method: 'GET',
-                                            success: function (data) {
-                                                if (data.points.data && data.points.data.length > 0) {
-                                                    allPoints = allPoints.concat(data.points.data);
-                                                    pointPage++;
-                                                    fetchPoints(); // tiếp tục gọi
-                                                } else {
-                                                    console.log("Tất cả trụ đã load:", allPoints);
-
-                                                    let pointHtml = `
-                                                    <label for="pointSelect">Chọn Trụ sạc</label>
-                                                    <select id="pointSelect" class="form-control">
-                                                        <option value="">-- Chọn trụ --</option>
-                                                        ${allPoints.map(p => `<option value="${p.chargingPointId}">${p.chargingPointName}</option>`).join('')}
-                                                    </select>`;
-
-                                                    document.getElementById("pointSelectWrapper").innerHTML = pointHtml;
-                                                }
-                                            },
-                                            error: function (err) {
-                                                console.error("Lỗi khi gọi API trụ:", err);
-                                            }
-                                        });
-                                    }
-
-                                    fetchPoints(); // gọi lần đầu
-                                });
-                            }
-                        },
-                        error: function (err) {
-                            console.error("Lỗi khi gọi API trạm:", err);
-                        }
-                    });
+                } else {
+                    console.error("Không thể tải danh sách xe:", response.status);
                 }
-
-                fetchStations();
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách xe:", error);
             }
-        });
-    })
+        }
 
-    function submitFeedback() {
-        let type = document.getElementById("feedbackType").value;
-        let message = document.getElementById("feedbackMessage").value;
-        let carId = type === "Car" ? document.getElementById("carSelect")?.value : null;
-        let stationId = type === "Station" ? document.getElementById("stationSelect")?.value : null;
-        let pointId = type === "Station" ? document.getElementById("pointSelect")?.value : null;
+        async function fetchStations(targetDiv, pageSize = 20) {
+            let allStations = [];
+            let page = 1;
 
-        if (validateAllFields()) {
-            $.ajax({
-                url: "https://localhost:7191/api/Feedback",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    userId: currentUserId,
-                    type: type,
-                    message: message,
-                    carId: carId || null,
-                    stationId: stationId || null,
-                    pointId: pointId || null
-                }),
-                success: function () {
-                    showSuccessToast("Gửi feedback thành công!");
-                    clearForm();
-                },
-                error: function () {
-                    showToast("Có lỗi xảy ra.");
+            async function loadStations() {
+                const url = `https://localhost:7191/api/ChargingStation?page=${page}&pageSize=${pageSize}`;
+                const response = await fetchWithAuth(url, { method: 'GET' });
+                if (response.ok) {
+                    const stations = await response.json();
+                    if (stations.data && stations.data.length > 0) {
+                        allStations = allStations.concat(stations.data);
+                        page++;
+                        await loadStations(); // đệ quy gọi tiếp
+                    }
+                } else {
+                    console.error("Lỗi khi load trạm:", response.status);
                 }
+            }
+
+            await loadStations(); // Bắt đầu gọi đệ quy
+
+            // Sau khi load xong tất cả trạm
+            console.log("Tất cả trạm đã load:", allStations);
+            const selectHtml = `
+            <label for="stationSelect">Chọn Trạm sạc <label style="color: red">*</label></label>
+            <select id="stationSelect" class="form-control" required>
+                <option value="">-- Chọn trạm --</option>
+                ${allStations.map(s => `<option value="${s.stationId}">${s.stationName}</option>`).join('')}
+            </select>
+            <div id="stationSelectError" class="invalid-feedback"></div>
+            <div id="pointSelectWrapper" class="mt-2"></div>`;
+            targetDiv.innerHTML = selectHtml;
+
+            // Sự kiện chọn trạm -> gọi điểm sạc
+            document.getElementById("stationSelect").addEventListener("change", async function () {
+                const stationId = this.value;
+                if (!stationId) return;
+
+                let allPoints = [];
+                let pointPage = 1;
+
+                async function loadPoints() {
+                    const url = `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=${pointPage}&pageSize=${pageSize}`;
+                    const response = await fetchWithAuth(url, { method: 'GET' });
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.points && data.points.data && data.points.data.length > 0) {
+                            allPoints = allPoints.concat(data.points.data);
+                            pointPage++;
+                            await loadPoints(); // đệ quy gọi tiếp
+                        }
+                    } else {
+                        console.error("Lỗi khi load trụ sạc:", response.status);
+                    }
+                }
+
+                await loadPoints(); // gọi lần đầu
+
+                console.log("Tất cả trụ đã load:", allPoints);
+                const pointHtml = `
+                <label for="pointSelect">Chọn Trụ sạc</label>
+                <select id="pointSelect" class="form-control">
+                    <option value="">-- Chọn trụ --</option>
+                    ${allPoints.map(p => `<option value="${p.chargingPointId}">${p.chargingPointName}</option>`).join('')}
+                </select>`;
+                document.getElementById("pointSelectWrapper").innerHTML = pointHtml;
             });
-        } else {
+        }
+
+    async function submitFeedback() {
+        const type = document.getElementById("feedbackType").value;
+        const message = document.getElementById("feedbackMessage").value;
+        const carId = type === "Car" ? document.getElementById("carSelect")?.value : null;
+        const stationId = type === "Station" ? document.getElementById("stationSelect")?.value : null;
+        const pointId = type === "Station" ? document.getElementById("pointSelect")?.value : null;
+
+        if (!validateAllFields()) {
             showToast("Vui lòng điền đầy đủ thông tin.");
-        }       
+            return;
+        }
+
+        try {
+            const payload = {
+                userId: currentUserId,
+                type,
+                message,
+                carId: carId || null,
+                stationId: stationId || null,
+                pointId: pointId || null
+            };
+
+            const response = await fetchWithAuth("https://localhost:7191/api/Feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                showSuccessToast("Gửi feedback thành công!");
+                clearForm();
+            } else {
+                showToast("Có lỗi xảy ra.");
+                console.error("Server error:", response.status);
+            }
+        } catch (error) {
+            console.error("Error submitting feedback:", error);
+            showToast("Có lỗi xảy ra.");
+        }
     }
+
 
     function clearForm() {
         document.getElementById("feedbackType").value = "";

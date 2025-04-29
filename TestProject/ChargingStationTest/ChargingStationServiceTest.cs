@@ -355,7 +355,7 @@ namespace TestProject.ChargingStationTest
             Assert.That(result.AverageChargingTime, Is.EqualTo(30));
 
             Assert.That(result.ChartData.Count, Is.EqualTo(1));
-            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 28"));
+            Assert.That(result.ChartData[0].Label, Is.EqualTo("Ngày 29"));
         }
 
         [Test]

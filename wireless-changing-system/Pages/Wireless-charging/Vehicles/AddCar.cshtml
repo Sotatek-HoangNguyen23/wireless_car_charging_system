@@ -8,12 +8,12 @@
             <div class="card-body">
                 <div class="mb-4">
                     <label class="form-label fw-bold">Đặt tên xe của bạn</label>
-                    <input type="text" class="form-control" placeholder="Đặt tên xe" />
+                    <input type="text" class="form-control" placeholder="Name your car" />
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold"><span class="text-danger">*</span>Biển số xe</label>
-                    <input type="text" class="form-control" placeholder="Biển số xe" />
+                    <input type="text" class="form-control" placeholder="Enter license plate" />
                 </div>
 
                 <div class="mb-4 position-relative">
@@ -201,10 +201,10 @@
             }
 
             const result = await response.json();
-            alert('Car added successfully!');
+            showSuccessToast('Car added successfully!');
             window.location.href = '/wireless-charging/vehicles/mycars';
         } catch (error) {
-            alert('Error: ' + error.message);
+            showToast('Error: ' + error.message);
         }
     }
 
@@ -213,7 +213,7 @@
         const licensePlate = document.querySelector('input[placeholder="Enter license plate"]').value;
 
         if (!licensePlate || !selectedCarModelId) {
-            alert('Please fill in all required fields and select a car model.');
+            showToast('Please fill in all required fields and select a car model.');
             return;
         }
 
