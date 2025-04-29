@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 
 namespace DataAccess.Models;
@@ -26,11 +24,15 @@ public partial class WccsContext : DbContext
 
     public virtual DbSet<CarModel> CarModels { get; set; }
 
+    public virtual DbSet<Cccd> Cccds { get; set; }
+
     public virtual DbSet<ChargingPoint> ChargingPoints { get; set; }
 
     public virtual DbSet<ChargingSession> ChargingSessions { get; set; }
 
     public virtual DbSet<ChargingStation> ChargingStations { get; set; }
+
+    public virtual DbSet<DriverLicense> DriverLicenses { get; set; }
 
     public virtual DbSet<Feedback> Feedbacks { get; set; }
 
@@ -52,17 +54,14 @@ public partial class WccsContext : DbContext
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseSqlServer(config.GetConnectionString("value"));
-        }
-
+        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Balance>(entity =>
         {
-            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B5F99638B");
+            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B6080899F");
 
             entity.ToTable("balance");
 
@@ -80,17 +79,20 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<BalanceTransaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AF1312925B");
+            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AF1E842AC2");
 
             entity.ToTable("balance_transactions");
 
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
             entity.Property(e => e.Amount).HasColumnName("amount");
             entity.Property(e => e.BalanceId).HasColumnName("balance_id");
+            entity.Property(e => e.OrderCode)
+                .HasMaxLength(10)
+                .HasColumnName("order_code");
+            entity.Property(e => e.Status).HasMaxLength(10);
             entity.Property(e => e.TransactionDate).HasColumnName("transaction_date");
             entity.Property(e => e.TransactionType)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("transaction_type");
 
             entity.HasOne(d => d.Balance).WithMany(p => p.BalanceTransactions)
@@ -101,7 +103,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Car>(entity =>
         {
-            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB3D0FFF3DE");
+            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB370606937");
 
             entity.ToTable("car");
 
@@ -109,13 +111,11 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.CarModelId).HasColumnName("car_model_id");
             entity.Property(e => e.CarName)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("car_name");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.LicensePlate)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("license_plate");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
@@ -127,7 +127,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<CarModel>(entity =>
         {
-            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B23777E1D795E");
+            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B23773FE23A84");
 
             entity.ToTable("car_model");
 
@@ -136,15 +136,12 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.BatteryCapacity).HasColumnName("battery_capacity");
             entity.Property(e => e.Brand)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("brand");
             entity.Property(e => e.ChargingStandard)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("charging_standard");
             entity.Property(e => e.Color)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("color");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
             entity.Property(e => e.Img)
@@ -155,32 +152,65 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.SeatNumber).HasColumnName("seat_number");
             entity.Property(e => e.Type)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("type");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
         });
 
+        modelBuilder.Entity<Cccd>(entity =>
+        {
+            entity.HasKey(e => e.CccdId).HasName("PK__cccd__E47A6DF11E5AF1D6");
+
+            entity.ToTable("cccd");
+
+            entity.Property(e => e.CccdId).HasColumnName("cccd_id");
+            entity.Property(e => e.Code)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.CreateAt).HasColumnName("create_at");
+            entity.Property(e => e.ImgBack)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_back");
+            entity.Property(e => e.ImgBackPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_backPubblicId");
+            entity.Property(e => e.ImgFront)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_front");
+            entity.Property(e => e.ImgFrontPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_frontPubblicId");
+            entity.Property(e => e.UpdateAt).HasColumnName("update_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Cccds)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__cccd__user_id__7C4F7684");
+        });
+
         modelBuilder.Entity<ChargingPoint>(entity =>
         {
-            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F5953724D441B8");
+            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F5953704532DEE");
 
             entity.ToTable("charging_point");
 
             entity.Property(e => e.ChargingPointId).HasColumnName("charging_point_id");
             entity.Property(e => e.ChargingPointName)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("charging_point_name");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("description");
             entity.Property(e => e.MaxPower).HasColumnName("max_power");
             entity.Property(e => e.StationId).HasColumnName("station_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
@@ -192,7 +222,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<ChargingSession>(entity =>
         {
-            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDC34558B5D");
+            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDC0D18C915");
 
             entity.ToTable("charging_session");
 
@@ -205,7 +235,6 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.StartTime).HasColumnName("start_time");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
@@ -227,7 +256,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<ChargingStation>(entity =>
         {
-            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E929736AB8");
+            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E95DF1D3D7");
 
             entity.ToTable("charging_station");
 
@@ -237,11 +266,9 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.StationLocationId).HasColumnName("station_location_id");
             entity.Property(e => e.StationName)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("station_name");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
@@ -256,28 +283,97 @@ public partial class WccsContext : DbContext
                 .HasConstraintName("FK__charging___stati__5535A963");
         });
 
+        modelBuilder.Entity<DriverLicense>(entity =>
+        {
+            entity.HasKey(e => e.DriverLicenseId).HasName("PK__driver_l__5EB6C89F42D37B76");
+
+            entity.ToTable("driver_license");
+
+            entity.Property(e => e.DriverLicenseId).HasColumnName("driver_license_id");
+            entity.Property(e => e.Class)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("class");
+            entity.Property(e => e.Code)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.CreateAt).HasColumnName("create_at");
+            entity.Property(e => e.ImgBack)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_back");
+            entity.Property(e => e.ImgBackPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_backPubblicId");
+            entity.Property(e => e.ImgFront)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_front");
+            entity.Property(e => e.ImgFrontPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_frontPubblicId");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.UpdateAt).HasColumnName("update_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.DriverLicenses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__driver_li__user___7F2BE32F");
+        });
+
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8C99931A3D");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8CF9B3C3A7");
 
             entity.ToTable("feedback");
 
             entity.Property(e => e.FeedbackId).HasColumnName("feedback_id");
+            entity.Property(e => e.CarId).HasColumnName("car_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.Message)
                 .HasMaxLength(1000)
                 .HasColumnName("message");
+            entity.Property(e => e.PointId).HasColumnName("point_id");
+            entity.Property(e => e.Response)
+                .HasMaxLength(1000)
+                .HasColumnName("response");
+            entity.Property(e => e.StationId).HasColumnName("station_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+            entity.Property(e => e.Type)
+                .HasMaxLength(20)
+                .HasColumnName("type");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Car).WithMany(p => p.Feedbacks)
+                .HasForeignKey(d => d.CarId)
+                .HasConstraintName("FK__feedback__car_id__76969D2E");
+
+            entity.HasOne(d => d.Point).WithMany(p => p.Feedbacks)
+                .HasForeignKey(d => d.PointId)
+                .HasConstraintName("FK__feedback__point___787EE5A0");
+
+            entity.HasOne(d => d.Station).WithMany(p => p.Feedbacks)
+                .HasForeignKey(d => d.StationId)
+                .HasConstraintName("FK__feedback__statio__797309D9");
 
             entity.HasOne(d => d.User).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__feedback__user_i__76969D2E");
+                .HasConstraintName("FK__feedback__user_i__778AC167");
         });
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EAA55A74D8");
+            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EAD0146172");
 
             entity.ToTable("payment");
 
@@ -286,11 +382,9 @@ public partial class WccsContext : DbContext
             entity.Property(e => e.PaymentDate).HasColumnName("payment_date");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("payment_method");
             entity.Property(e => e.PaymentStatus)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("payment_status");
             entity.Property(e => e.SessionId).HasColumnName("session_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -308,17 +402,60 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<RealTimeDatum>(entity =>
         {
-            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B41DF6B01");
+            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B1157BA97");
 
             entity.ToTable("real_time_data");
 
             entity.Property(e => e.DataId).HasColumnName("data_id");
-            entity.Property(e => e.BatteryLevel).HasColumnName("battery_level");
+            entity.Property(e => e.BatteryLevel)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("battery_level");
+            entity.Property(e => e.BatteryVoltage)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("battery_voltage");
             entity.Property(e => e.CarId).HasColumnName("car_id");
-            entity.Property(e => e.ChargingPower).HasColumnName("charging_power");
+            entity.Property(e => e.ChargingCurrent)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("charging_current");
+            entity.Property(e => e.ChargingPower)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("charging_power");
+            entity.Property(e => e.ChargingTime)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("charging_time");
             entity.Property(e => e.ChargingpointId).HasColumnName("chargingpoint_id");
-            entity.Property(e => e.Temperature).HasColumnName("temperature");
-            entity.Property(e => e.Timestamp).HasColumnName("timestamp");
+            entity.Property(e => e.Cost)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("cost");
+            entity.Property(e => e.EndTime).HasColumnName("end_time");
+            entity.Property(e => e.EnergyConsumed)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("energy_consumed");
+            entity.Property(e => e.LicensePlate)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("license_plate");
+            entity.Property(e => e.Powerpoint)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("powerpoint");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.Temperature)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("temperature");
+            entity.Property(e => e.TimeMoment).HasColumnName("Time_moment");
 
             entity.HasOne(d => d.Car).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.CarId)
@@ -333,7 +470,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E17B01E625D");
+            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E17BE5EB670");
 
             entity.ToTable("refresh_tokens");
 
@@ -355,32 +492,29 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CCC2E41F45");
+            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CC64736BD9");
 
             entity.ToTable("roles");
 
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.RoleName)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("role_name");
         });
 
         modelBuilder.Entity<StationLocation>(entity =>
         {
-            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE79594E976");
+            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE7BD48A73B");
 
             entity.ToTable("station_location");
 
             entity.Property(e => e.StationLocationId).HasColumnName("station_location_id");
             entity.Property(e => e.Address)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("address");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("description");
             entity.Property(e => e.Latitude)
                 .HasColumnType("decimal(9, 6)")
@@ -393,38 +527,36 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F25594E71");
+            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370FB24E0180");
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6B64BDBC68").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6B632764FD").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E61648E2ACEE5").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__users__AB6E61649E285DE1").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Address)
+                .HasMaxLength(255)
+                .HasColumnName("address");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
             entity.Property(e => e.Dob).HasColumnName("dob");
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("email");
             entity.Property(e => e.Fullname)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("fullname");
             entity.Property(e => e.Gender).HasColumnName("gender");
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("password_hash");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("phone_number");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
@@ -436,15 +568,13 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<UserCar>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D4E7495AE3");
+            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D4E4D91218");
 
             entity.ToTable("user_car");
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.CarId).HasColumnName("car_id");
-            entity.Property(e => e.Role)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.Property(e => e.Role).HasMaxLength(50);
 
             entity.HasOne(d => d.Car).WithMany(p => p.UserCars)
                 .HasForeignKey(d => d.CarId)

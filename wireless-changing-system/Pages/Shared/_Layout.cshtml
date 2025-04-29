@@ -1,53 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - wireless_changing_system</title>
+    <title>@ViewData["Title"] - Hệ Thống Sạc Không Dây</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/bootstrap-icons/font/bootstrap-icons.css">
- 
+    <link rel="stylesheet" href="~/bootstrap-icons/font/bootstrap-icons.css" />
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark ">
             <div class="container">
-                <!-- Brand/Logo -->
+                <!-- Logo -->
                 <a class="navbar-brand" href="/">
                     <img src="/img/logo.png"
-                         alt="Wireless Charging System Logo"
+                         alt="Logo Hệ Thống Sạc Không Dây"
                          width="40"
                          height="40"
                          class="img-fluid">
                 </a>
 
-                <!-- Toggle Button cho mobile -->
+                <!-- Nút toggle cho mobile -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Navigation Items -->
+                <!-- Các mục điều hướng -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <!-- Left-aligned navigation -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#">Home Page</a>
+                            <a class="nav-link active" href="/">Trang Chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Changing Station</a>
+                            <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Trạm Sạc</a>
+                        </li>
+
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator, Station Owner">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Quản Lý
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/wireless-charging/chargingstation/stationlist">Quản lý trạm sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/carlist">Quản lý xe</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Quản lý người dùng</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Quản lý phản hồi</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator, Station Owner">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Thống kê
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/overview">Tổng quan</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/revenue">Doanh thu</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/session">Thống kê phiên sạc</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/user">Thống kê người dùng</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
+                        </li>
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/payment/depositmoney">Nạp tiền</a>
+                        </li>  
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/feedback">Phản hồi của người dùng</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Driver">
+                            <a class="nav-link" href="/wireless-charging/vehicles/rentconfirm">Danh sách thuê</a>
                         </li>
                     </ul>
 
-                    <!-- Right-aligned buttons -->
-                    <div class="d-flex">
-                        <a href="#" class="btn btn-outline-secondary me-2 text-white">Sign in</a>
-                        <a href="#" class="btn btn-primary">Register</a>
+                    <!-- Phần xác thực -->
+                    <div class="d-flex" id="authSection">
+                        <a href="/wireless-charging/auth" class="btn btn-outline-secondary me-2">Đăng Nhập</a>
+                        <a href="/wireless-charging/auth/register" class="btn btn-primary">Đăng Ký</a>
+                    </div>
+
+                    <!-- Phần người dùng -->
+                    <div class="d-none" id="userSection">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="" alt="Ảnh đại diện" class="rounded-circle" width="30" height="30" id="userAvatar">
+                                <span class="ms-2" id="userName"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="/wireless-charging/profiles">Hồ Sơ</a></li>
+                                <li><a class="dropdown-item" id="logoutBtn" href="#">Đăng Xuất</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -68,21 +120,107 @@
                 </a>
                 <a href="#" target="_blank" aria-label="YouTube">
                     <i class="bi bi-youtube"></i>
-                </a> 
+                </a>
                 <a href="#" target="_blank" aria-label="Linkedin">
                     <i class="bi bi-linkedin"></i>
                 </a>
             </div>
             <p class="copyright">
-                &copy; 2025 - wireless_changing_system - <a asp-area="" asp-page="/Privacy">Privacy</a>
+                &copy; 2025 - Hệ Thống Sạc Không Dây - <a asp-area="" asp-page="/Privacy">Chính Sách Riêng Tư</a>
             </p>
         </div>
-       
     </footer>
-    
+
+    <div id="error-toast" class="custom-toast">
+        <div class="toast-progress"></div>
+        <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+        <div class="toast-content">
+            <strong>Lỗi!</strong>
+            <p class="mb-0"></p>
+        </div>
+    </div>
+    <div id="success-toast" class="custom-toast success-toast">
+        <div class="toast-progress"></div>
+        <i class="bi bi-check-circle-fill toast-icon"></i>
+        <div class="toast-content">
+            <strong>Thành công!</strong>
+            <p class="mb-0"></p>
+        </div>
+    </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/chart.js/chart.umd.js"></script>
+    <script src="~/lib/chartjs-plugin-datalabels/chartjs-plugin-datalabels.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js-cookie/js.cookie.min.js"></script>
+    <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script>
+        // Tách logic cập nhật UI thành hàm riêng
+        function updateUserInterface() {
+            const accessToken = sessionStorage.getItem("accessToken");
+            const role = sessionStorage.getItem("role");
+            const fullName = sessionStorage.getItem("fullName");
+            const avatarUrl = sessionStorage.getItem("avatar_url"); 
+
+            // Cập nhật menu theo role
+            const menuItems = document.querySelectorAll('.role-based-menu');
+            menuItems.forEach(item => {
+                const requiredRoles = item.getAttribute('data-required-role').split(',');
+                item.classList.toggle('d-none', !requiredRoles.some(r => r.trim() === role));
+            });
+
+            // Cập nhật thông tin user
+            if (accessToken) {
+                document.getElementById("userName").textContent = fullName || '';
+                document.getElementById("userAvatar").src = avatarUrl || "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0";
+                document.getElementById("authSection").classList.add("d-none");
+                document.getElementById("userSection").classList.remove("d-none");
+            } else {
+                document.getElementById("authSection").classList.remove("d-none");
+                document.getElementById("userSection").classList.add("d-none");
+            }
+        }
+
+        // Lắng nghe các sự kiện cần cập nhật UI
+        document.addEventListener("DOMContentLoaded", updateUserInterface);
+        window.addEventListener('userDataUpdated', updateUserInterface); 
+        function showSuccessToast(message) {
+            const toast = document.getElementById('success-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+        function showToast(message) {
+            const toast = document.getElementById('error-toast');
+            toast.querySelector('.toast-content p').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+        function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            );
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+    </script>
+    <script type="module">
+        import { logout } from '/js/apiClient.js';
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault();
+            logout();
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

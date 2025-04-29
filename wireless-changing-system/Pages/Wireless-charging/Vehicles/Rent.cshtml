@@ -1,0 +1,173 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Vehicles.RentModel
+@{
+    <div>
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">Cho thuê xe</h3>
+            </div>
+
+            <div id="cars-container" class="row">
+                <div class="mb-4">
+                    <h5> <i class="bi bi-calendar-event"></i> Khoảng thời gian</h5>
+                    <div class="d-flex gap-2">
+                        <input type="date" id="startDate" class="form-control" style="max-width: 180px;" />
+                        <input type="date" id="endDate" class="form-control" style="max-width: 180px;" />
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">
+                        <h5><i class="bi bi-person-add"></i> Người thuê</h5>
+                    </label>
+                    <input type="text" id="search-input" class="form-control" placeholder="Nhập SĐT hoặc email" />
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="searchUsers()">Tìm <i class="bi bi-search"></i></button>
+                </div>
+                <div class="mb-4 info-search mt-3" id="user-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận thuê xe -->
+    <div class="modal fade" id="rentConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận cho thuê</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Người thuê:</strong> <span id="confirmFullname"></span></p>
+                    <p><strong>Email:</strong> <span id="confirmEmail"></span></p>
+                    <p><strong>SĐT:</strong> <span id="confirmPhone"></span></p>
+                    <p><strong>Thời gian thuê:</strong> <span id="confirmDate"></span></p>
+                    <p><strong>Biển số xe:</strong> <span id="confirmLicensePlate"></span></p>
+                    <p><strong>Loại xe:</strong> <span id="confirmType"></span></p>
+                    <p><strong>Màu sắc:</strong> <span id="confirmColor"></span></p>
+                    <p><strong>Hãng xe:</strong> <span id="confirmBrand"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="confirmRentBtn" onclick="confirmRent()">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    async function searchUsers() {
+        let searchValue = document.getElementById("search-input").value.trim();
+        if (!searchValue) {
+            showPopup("Vui lòng nhập số điện thoại hoặc email!", "warning");
+            return;
+        }
+
+        let apiUrl = `https://localhost:7191/api/User/get-users-by-email-phone?search=${encodeURIComponent(searchValue)}`;
+
+        try {
+            let response = await fetchWithAuth(apiUrl);
+            if (!response.ok) {
+                throw new Error("Không tìm thấy người dùng nào!");
+            }
+
+            let users = await response.json();
+            displayUserList(users);
+        } catch (error) {
+            showPopup(error.message, "danger");
+            document.getElementById("user-list").innerHTML = "";
+        }
+    }
+
+    window.searchUsers = searchUsers;
+
+    function displayUserList(users) {
+        let userListHtml = `<h5 class="fw-bold">Thông tin tìm kiếm</h5><div class="row">`;
+
+        users.forEach(user => {
+            userListHtml += `
+                <div class="col-md-4">
+                    <div class="card p-3 mb-1">
+                        <input type="hidden" id="user-id-${user.userId}" value="${user.userId}" />
+                        <h6 id="user-fullname-${user.userId}" class="fw-bold"><i class="bi bi-person"></i> ${user.fullname}</h6>
+                        <p id="user-email-${user.userId}"><strong><i class="bi bi-envelope-at"></i></strong> ${user.email}</p>
+                        <p id="user-phone-${user.userId}"><strong><i class="bi bi-telephone"></i></strong> ${user.phoneNumber}</p>
+                        <button class="btn btn-primary" onclick="showRentPopup(${user.userId})">Cho thuê</button>
+                    </div>
+                </div>`;
+        });
+
+        userListHtml += `</div>`;
+        document.getElementById("user-list").innerHTML = userListHtml;
+    }
+
+    async function showRentPopup(userId) {
+        let startDate = document.getElementById("startDate").value;
+        let endDate = document.getElementById("endDate").value;
+
+        if (!startDate || !endDate) {
+            showPopup("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.", "warning");
+            return;
+        }
+
+        let carId = new URLSearchParams(window.location.search).get('carId');
+        let response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
+        let car = await response.json();
+
+        let selectedUserId = document.getElementById(`user-id-${userId}`).value;
+        document.getElementById("confirmRentBtn").dataset.userId = selectedUserId;
+        document.getElementById("confirmFullname").textContent = document.getElementById(`user-fullname-${userId}`).textContent;
+        document.getElementById("confirmEmail").textContent = document.getElementById(`user-email-${userId}`).innerText.trim();
+        document.getElementById("confirmPhone").textContent = document.getElementById(`user-phone-${userId}`).innerText.trim();
+        document.getElementById("confirmDate").textContent = `${startDate} đến ${endDate}`;
+        document.getElementById("confirmLicensePlate").textContent = car.licensePlate;
+        document.getElementById("confirmType").textContent = car.type;
+        document.getElementById("confirmColor").textContent = car.color;
+        document.getElementById("confirmBrand").textContent = car.brand;
+
+        let modal = new bootstrap.Modal(document.getElementById("rentConfirmModal"));
+        modal.show();
+    }
+
+    function showPopup(message, type) {
+        let popup = document.createElement("div");
+        popup.className = `alert alert-${type} fixed-top text-center`;
+        popup.style.zIndex = "1050";
+        popup.innerHTML = message;
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            popup.remove();
+        }, 3000);
+    }
+
+    window.showRentPopup = showRentPopup;
+
+    async function confirmRent() {
+        let userId = document.getElementById("confirmRentBtn").dataset.userId;
+        let carId = new URLSearchParams(window.location.search).get('carId');
+        let startDate = document.getElementById("startDate").value;
+        let endDate = document.getElementById("endDate").value;
+
+        let response = await fetchWithAuth("https://localhost:7191/api/Car/send-rent-request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, carId, startDate, endDate })
+        });
+
+        if (response.ok) {
+            showPopup("Đã cấp quyền cho mượn xe. Chờ bên phía người thuê xác nhận!", "success");
+            let rentModal = bootstrap.Modal.getInstance(document.getElementById("rentConfirmModal"));
+            if (rentModal) {
+                rentModal.hide();
+            }
+        } else {
+            showPopup("Lỗi khi thuê xe!", "danger");
+        }
+    }
+
+    window.confirmRent = confirmRent;
+</script>

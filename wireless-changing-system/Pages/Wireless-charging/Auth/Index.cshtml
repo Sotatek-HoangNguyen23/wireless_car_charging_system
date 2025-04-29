@@ -2,85 +2,150 @@
 @model wireless_changing_system.Pages.Wireless_charging.Auth.IndexModel
 @{
 }
+
 <div class="container min-vh-100 d-flex align-items-center justify-content-center">
     <div class="row g-5 w-100 ">
         <!-- Left Side - Logo & Slogan -->
         <div class="col-md-6 d-flex flex-column justify-content-center align-items-center text-center d-none d-md-block">
             <img src="/img/logo.png" alt="Logo" class="mb-4 LoginLogo" style="max-width: 250px;">
-            <h1 class="display-5 fw-bold text-primary ">Wireless Charging System</h1>
-            <p class="lead text-muted ">Smart Charging Solutions for the Future</p>
+            <h1 class="display-5 fw-bold text-primary ">Hệ Thống Sạc Không Dây</h1>
+            <p class="lead text-muted ">Giải Pháp Sạc Thông Minh Cho Tương Lai</p>
         </div>
 
         <!-- Right Side - Login Form -->
         <div class="col-md-6">
             <div class="login-card shadow p-4 bg-white rounded-3">
-                <h2 class="mb-4 text-center">Welcome Back</h2>
+                <h2 class="mb-4 text-center">Chào Mừng Trở Lại</h2>
 
                 <form id="loginForm">
                     <div class="mb-3">
-                        <input type="text" id="emailInput"
+                        <input type="email" id="emailInput"
                                class="form-control form-control-lg"
-                               placeholder="Email or Phone number">
+                               placeholder="Email" required>
                     </div>
 
                     <div class="mb-3">
                         <input type="password" id="passwordInput"
                                class="form-control form-control-lg"
-                               placeholder="Password">
+                               placeholder="Mật khẩu" required>                 
                     </div>
 
                     <button type="submit"
+                            id="loginButton"
                             class="btn btn-primary btn-lg w-100 mb-3 fw-bold">
-                        Login
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        Đăng Nhập
                     </button>
 
+
                     <div class="text-center mb-3">
-                        <a href="#" class="text-decoration-none text-secondary">
-                            Forgot Password?
+                        <a href="./auth/forgot-password" class="text-decoration-none text-secondary">
+                            Quên Mật Khẩu?
                         </a>
                     </div>
 
                     <div class="border-top my-4"></div>
 
                     <button type="button"
-                            class="btn btn-outline-success btn-lg w-100">
-                        Create New Account
+                            class="btn btn-outline-success btn-lg w-100"
+                            onclick="window.location.href='./auth/register'">
+                        Tạo Tài Khoản Mới
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill"></i>  
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0">Đã xảy ra lỗi he thong</p>
+    </div>
+</div>
 <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = document.getElementById('loginButton');
+    const loginSpinner = document.getElementById('loginSpinner');
+
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Bật spinner và disable button
+      loginSpinner.classList.remove('d-none');
+      loginButton.disabled = true;
 
       const email = document.getElementById('emailInput').value;
       const password = document.getElementById('passwordInput').value;
-
       const loginData = { email, password };
 
       try {
         const response = await fetch('https://localhost:7191/api/auth/login', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(loginData)
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Login failed');
+          const errorText = await response.json();
+          throw new Error(errorText.detail || 'Đăng nhập thất bại');
         }
 
         const result = await response.json();
         sessionStorage.setItem("accessToken", result.accessToken);
-        console.log('Login successful:', result);
+        sessionStorage.setItem("fullName", result.fullname);
+        sessionStorage.setItem("role", result.role);
+        sessionStorage.setItem("avatar_url", "https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0");
+        window.location.href = '/';
+        console.log('Đăng nhập thành công:', result);
 
       } catch (error) {
-        console.error('Error calling login API:', error);
+        sessionStorage.clear();
+        showToast(error.message);
+        console.error('Lỗi:', error);
+      } finally {
+        // Tắt spinner và enable button
+        loginSpinner.classList.add('d-none');
+        loginButton.disabled = false;
       }
     });
+    function showToast(message = null) {
+        const toast = document.getElementById('error-toast');
+        if (message) {
+            toast.querySelector('.toast-content p').textContent = message;
+        }
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 5000);
+    }
+     function updateUserUI() {
+        const fullName = sessionStorage.getItem('fullName');
+        const avatarUrl = sessionStorage.getItem('avatar_url');
+
+        // Cập nhật tên user
+        const userNameElements = document.querySelectorAll('.user-fullname');
+        userNameElements.forEach(element => {
+            element.textContent = fullName || 'Guest';
+        });
+
+        // Cập nhật avatar
+        const avatarElements = document.querySelectorAll('.user-avatar');
+        avatarElements.forEach(element => {
+            element.src = avatarUrl || 'https://th.bing.com/th/id/R.b3a1e1a27386019b0be253c09cb3701b?rik=rCmgbtux1pK1rA&pid=ImgRaw&r=0';
+        });
+    }
+
+    // Gọi hàm khi trang tải xong
+    document.addEventListener('DOMContentLoaded', updateUserUI);
+        window.addEventListener('userDataUpdated', updateUserUI);
+</script>
+<script type="module">
+    import { logout } from '/js/apiClient.js';
+     document.getElementById("logoutBtn").addEventListener("click", function(e) {
+         e.preventDefault();
+         logout();
+     });
 </script>

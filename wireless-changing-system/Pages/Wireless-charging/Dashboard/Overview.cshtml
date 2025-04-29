@@ -1,0 +1,76 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Dashboard.OverviewModel
+@{
+}
+
+<!-- Thêm Bootstrap & FontAwesome -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container mt-5">
+    <h2 class="mb-4">📊 Tổng quan hệ thống</h2>
+
+    <div class="row g-4" id="overview">
+        <!-- Cards sẽ được tạo ở đây -->
+    </div>
+</div>
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener("DOMContentLoaded", () => {
+        $(document).ready(function () {
+            loadSystemOverview();
+        });
+    });
+
+    async function loadSystemOverview() {
+        try {
+            const url = 'https://localhost:7191/api/dashboard/system-overview';
+            const options = {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            };
+
+            const response = await fetchWithAuth(url, options);
+            if (response.ok) {
+                const data = await response.json();
+                const cards = [
+                    { label: 'Tổng trạm sạc', value: data.totalStations, icon: 'fa-charging-station', color: 'primary' },
+                    { label: 'Tổng điểm sạc', value: data.totalChargingPoints, icon: 'fa-plug', color: 'info' },
+                    { label: 'Phiên sạc hôm nay', value: data.todaySessions, icon: 'fa-bolt', color: 'success' },
+                    { label: 'Phiên sạc tuần này', value: data.weekSessions, icon: 'fa-calendar-week', color: 'secondary' },
+                    { label: 'kWh hôm nay', value: data.totalEnergyToday, icon: 'fa-battery-full', color: 'warning' },
+                    { label: 'kWh tháng này', value: data.totalEnergyThisMonth, icon: 'fa-chart-line', color: 'dark' },
+                    { label: 'Tổng doanh thu', value: data.totalRevenue + ' VND', icon: 'fa-coins', color: 'success' },
+                    { label: 'Trạm hoạt động', value: data.activeStations, icon: 'fa-check-circle', color: 'primary' },
+                    { label: 'Trạm offline', value: data.offlineStations, icon: 'fa-times-circle', color: 'danger' },
+                ];
+
+                cards.forEach(function (c) {
+                    $('#overview').append(`
+                        <div class="col-md-4">
+                            <div class="card shadow-sm border-start border-${c.color} border-4 h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        <i class="fa-solid ${c.icon} fa-2x text-${c.color}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 text-muted">${c.label}</h6>
+                                        <h5 class="mb-0 fw-bold">${c.value}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+            } else {
+                console.error('Error fetching data:', response.status);
+            }
+        } catch (err) {
+            console.error('Error loading system overview:', err);
+        }
+    }
+</script>
+

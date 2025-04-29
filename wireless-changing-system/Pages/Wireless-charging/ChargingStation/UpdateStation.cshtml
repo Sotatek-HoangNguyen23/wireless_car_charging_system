@@ -1,0 +1,113 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.ChargingStation.UpdateStationModel
+@{
+}
+
+
+    <div class="container">
+        <h1 class="text-center my-4">Cập nhật trạm sạc</h1>
+        <div class="form-container">
+            <!-- Station Name và Owner -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="stationName" class="form-label fw-bolder">Tên trạm sạc</label>
+                    <input type="text" class="form-control" id="stationName">
+                </div>
+                <div class="col-md-6">
+                    <label for="status" class="form-label fw-bolder">Trạng thái</label>
+                    <select class="form-select" id="status">
+                        <option value="Active">Hoạt động</option>
+                        <option value="Inactive">Không hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Nút Submit -->
+            <div class="text-center">
+                <button id="btn-update" type="submit" class="btn btn-primary">Cập nhật</button>
+                <a class="btn btn-danger" href="/wireless-charging/chargingstation/stationlist">Hủy</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">        
+        import { fetchWithAuth } from '/js/apiClient.js';
+
+        document.addEventListener("DOMContentLoaded", function () {
+            $(document).ready(function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                let stationId = urlParams.get('stationId');
+
+                if (!stationId) {
+                    showToast("Không tìm thấy ID trạm sạc.");
+                    window.location.href = "wireless-charging/chargingstation/stationlist";
+                    return;
+                }
+
+                // Gọi API để lấy dữ liệu hiện có
+                loadStationDetail(stationId);
+
+                // Khi nhấn Update
+                $("#btn-update").click(function () {
+                    const updateChargingStationDto = {
+                        stationName: $("#stationName").val(),
+                        status: $("#status").val()
+                    };
+
+                    updateStation(stationId, updateChargingStationDto);
+                });
+            });
+        });
+
+        async function loadStationDetail(stationId) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/Detail/${stationId}?page=1&pageSize=1`;
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+
+                    $("#stationName").val(data.station.stationName || '');
+                    $("#status").val(data.station.status || 'Active');
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi tải dữ liệu trạm sạc:", errorText);
+                    showToast("Lỗi khi tải dữ liệu trạm sạc.");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Lỗi khi tải dữ liệu trạm sạc.");
+            }
+        }
+
+        async function updateStation(stationId, updateChargingStationDto) {
+            try {
+                const url = `https://localhost:7191/api/ChargingStation/${stationId}`;
+                const options = {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateChargingStationDto)
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    showSuccessToast("Cập nhật thành công!");
+                    setTimeout(function () {
+                        window.location.replace(`/wireless-charging/chargingstation/stationdetail?stationId=${encodeURIComponent(stationId)}`);
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Lỗi khi cập nhật:", errorText);
+                    showToast("Cập nhật thất bại!");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showToast("Cập nhật thất bại!");
+            }
+        }
+    </script>

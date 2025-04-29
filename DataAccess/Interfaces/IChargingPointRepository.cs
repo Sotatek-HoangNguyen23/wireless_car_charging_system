@@ -1,6 +1,6 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Models;
-using DataAccess.Repositories;
+using DataAccess.Repositories.StationRepo;
 
 namespace DataAccess.Interfaces
 {
@@ -8,8 +8,8 @@ namespace DataAccess.Interfaces
     {
         PagedResult<ChargingPointDto>? GetAllPointsByStation(int stationId, int page, int pageSize);
         ChargingPointDto GetPointById(int pointId);
-        //void SaveChargingPoint(NewChargingPointDto s);
-        void UpdateChargingPoint(UpdateChargingPointDto s);
-        void DeleteChargingPoint(int pointId);
+        Task AddChargingPoints(List<ChargingPoint> points);
+        Task<ChargingPoint?> UpdateChargingPoint(int pointId, UpdateChargingPointDto pointDto);
+        Task<ChargingPoint?> DeleteChargingPoint(int pointId);
     }
 }

@@ -1,0 +1,167 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Vehicles.RentConfirmModel
+@{
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">Danh sách thuê/ cho thuê</h3>
+        </div>
+
+        <div id="rentConfirmContainer" class="row">
+            <!-- Cards xe thuê sẽ được render vào đây -->
+        </div>
+    </div>
+
+    <!-- Modal Popup -->
+    <div class="modal fade" id="rentConfirmModal" tabindex="-1" aria-labelledby="rentConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rentConfirmLabel">Chi tiết thuê xe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Chủ xe:</strong> <span id="modalOwnerName"></span></p>
+                    <p><strong>SĐT:</strong> <span id="modalOwnerPhone"></span></p>
+                    <p><strong>Biển số:</strong> <span id="modalLicensePlate"></span></p>
+                    <p><strong>Loại xe:</strong> <span id="modalType"></span></p>
+                    <p><strong>Màu sắc:</strong> <span id="modalColor"></span></p>
+                    <p><strong>Hãng xe:</strong> <span id="modalBrand"></span></p>
+                    <p><strong>Thời gian thuê:</strong> <span id="modalStartDate"></span> - <span id="modalEndDate"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="confirmRentButton">Xác nhận thuê</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup thông báo thuê thành công -->
+    <div id="successPopup" class="alert alert-success text-center position-fixed top-50 start-50 translate-middle d-none" style="z-index: 1050;">
+        Thuê xe thành công!
+    </div>
+}
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+    document.addEventListener("DOMContentLoaded", async function () {
+        await loadRentRequests();
+    });
+
+        async function loadRentRequests() {
+        const apiUrl = `https://localhost:7191/api/Car/rent-requests`;
+        const container = document.getElementById("rentConfirmContainer");
+
+        try {
+            const response = await fetchWithAuth(apiUrl);
+
+            if (response.status === 404) {
+                container.innerHTML = `<p class="text-center text-muted fs-5">Không có yêu cầu </p>`;
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Lỗi khi lấy dữ liệu: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<p class="text-center text-muted fs-5">Không có yêu cầu thuê xe</p>`;
+                return;
+            }
+
+            container.innerHTML = ""; // Clear old data
+
+            data.forEach(item => {
+                const isAllowedToCharge = item.isAllowedToCharge ?? false;
+                const buttonHtml = isAllowedToCharge
+                    ? `<span class="badge bg-success fs-6">ĐANG THUÊ</span>`
+                    : `<button class="btn btn-primary" onclick='showRentModal(${JSON.stringify(item)})'>Xác nhận thuê</button>`;
+
+                const card = `
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm p-3">
+                            <p class="card-title"><strong>Chủ xe: </strong>${item.ownerName}</p>
+                            <p class="m-0">SĐT: ${item.ownerPhone}</p>
+                            <p class="m-0"><strong>Biển số:</strong> ${item.licensePlate}</p>
+                            <p class="m-0"><strong>Thời gian:</strong>
+                                ${new Date(item.startDate).toLocaleDateString()} -
+                                ${new Date(item.endDate).toLocaleDateString()}
+                            </p>
+                            <div class="mt-2">
+                                ${buttonHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        } catch (error) {
+            console.error("Lỗi:", error);
+            container.innerHTML = `<p class="text-center text-danger fs-5">Lỗi khi tải dữ liệu</p>`;
+        }
+    }
+
+
+
+
+    let selectedCar = null;
+
+    function showRentModal(item) {
+        selectedCar = item;
+
+        document.getElementById("modalOwnerName").innerText = item.ownerName;
+        document.getElementById("modalOwnerPhone").innerText = item.ownerPhone;
+        document.getElementById("modalLicensePlate").innerText = item.licensePlate;
+        document.getElementById("modalType").innerText = item.type;
+        document.getElementById("modalColor").innerText = item.color;
+        document.getElementById("modalBrand").innerText = item.brand;
+        document.getElementById("modalStartDate").innerText = new Date(item.startDate).toLocaleDateString();
+        document.getElementById("modalEndDate").innerText = new Date(item.endDate).toLocaleDateString();
+
+        var myModal = new bootstrap.Modal(document.getElementById('rentConfirmModal'));
+        myModal.show();
+    }
+    window.showRentModal = showRentModal;
+
+    document.getElementById("confirmRentButton").addEventListener("click", async function () {
+        if (!selectedCar) return;
+
+        const apiUrl = "https://localhost:7191/api/Car/confirm-rental";
+        const requestBody = {
+            userId: selectedCar.driverId,
+            carId: selectedCar.carId,
+            role: "Renter"
+        };
+
+        try {
+            const response = await fetchWithAuth(apiUrl, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                var myModalEl = document.getElementById('rentConfirmModal');
+                var modal = bootstrap.Modal.getInstance(myModalEl);
+                modal.hide(); // Tắt popup
+
+                showSuccessPopup(); // Hiện popup "Thuê thành công"
+
+                await loadRentRequests(); // Cập nhật danh sách
+            }
+        } catch (error) {
+            console.error("Lỗi khi xác nhận thuê xe:", error);
+        }
+    });
+
+    function showSuccessPopup() {
+        const popup = document.getElementById("successPopup");
+        popup.classList.remove("d-none");
+
+        setTimeout(() => {
+            popup.classList.add("d-none");
+        }, 3000);
+    }
+</script>

@@ -22,15 +22,31 @@ namespace API.Services
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest request)
         {
-            if (request.Password == null || request.Email == null)
+            if (request.Password.IsNullOrEmpty())
             {
-                throw new ArgumentException("Email and Password cannot be null");
+                throw new ArgumentException("Password không thể trống hoặc khoảng trắng",nameof(request.Password));
             }
-            var user = await _userRepository.GetUserByEmail(request.Email);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            var user = await _userRepository.GetUserByEmail(request.Email);
+            if (request.Email.Length > 225) 
             {
-                return null; // Authentication failed
+                throw new ArgumentException("Email không được vượt quá 225 ký tự.", nameof(request.Email));
+            }
+            if (request.Password.Length > 100) 
+            {
+                throw new ArgumentException("Password không được vượt quá 100 ký tự.", nameof(request.Password));
+            }
+            if (user == null)
+            {
+                throw new ArgumentException("Tai khoan khong ton tai");
+            }
+            if ( !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                throw new ArgumentException("Mat khau sai"); // Authentication failed
+            }
+            if (user.Status == "Inactive")
+            {
+                throw new ArgumentException("Tài khoản của bạn đã bị khóa.Vui lòng vào email để kích hoạt tài khoản");
             }
 
             var AccessToken = GenerateAccessToken(user);
@@ -43,6 +59,10 @@ namespace API.Services
 
         public async Task<AuthenticateResponse> RefreshToken(string oldRefreshToken)
         {
+            if (string.IsNullOrEmpty(oldRefreshToken))
+            {
+                throw new ArgumentException("Refresh token không thể trống hoặc khoảng trắng", nameof(oldRefreshToken));
+            }
             var oldTokenHash = HashToken(oldRefreshToken);
             var refreshToken = await _authRepository.FindRefreshToken(oldTokenHash);
 
@@ -52,26 +72,31 @@ namespace API.Services
             }
             if (refreshToken.Revoked == true)
             {
-                throw new ArgumentException("Refresh token has been revoked");
+                throw new ArgumentException("Refresh token da bi thu hoi");
             }
             if (refreshToken.ExpiresAt < DateTime.UtcNow)
             {
-                throw new ArgumentException("Refresh token has expired");
+                throw new ArgumentException("Refresh token da het han");
             }
             await RevokeRefreshToken(oldRefreshToken);
             var user = await _userRepository.GetUserById(refreshToken.UserId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("User khong ton tai");
             }
 
-            var newAccessToken =  GenerateAccessToken(user);
+            var newAccessToken = GenerateAccessToken(user);
             string newRefreshToken = await GenerateRefreshToken();
 
             await _authRepository.SaveRefreshToken(HashToken(newRefreshToken), user);
 
             return new AuthenticateResponse(user, newAccessToken, newRefreshToken);
         }
+        public async Task Logout(string refreshToken)
+        {
+            await RevokeRefreshToken(refreshToken);
+        }
+
         private async Task<string> GenerateRefreshToken()
         {
             var refreshToken = await GetUniqueToken();
@@ -121,7 +146,7 @@ namespace API.Services
             var audience = _configuration["Jwt:Audience"];
             //The issuer of the token (e.g., the URL of your authorization server).
             var issuer = _configuration["Jwt:Issuer"];
-            var privateKey = _configuration["Jwt:Key"];
+            var privateKey = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(privateKey))
             {
                 throw new ArgumentException("JWT private key cannot be null or empty");

@@ -1,5 +1,5 @@
 {
-  "version": "3.0",
+  "version": "1.0",
   "defaultProvider": "cdnjs",
   "libraries": [
     {
@@ -9,6 +9,22 @@
     {
       "library": "bootstrap-icons@1.11.3",
       "destination": "wwwroot/bootstrap-icons/"
+    },
+    {
+      "library": "js-cookie@3.0.5",
+      "destination": "wwwroot/js-cookie/"
+    },
+    {
+      "library": "jquery@3.7.1",
+      "destination": "wwwroot/lib/jquery/"
+    },
+    {
+      "library": "chartjs-plugin-datalabels@2.2.0",
+      "destination": "wwwroot/lib/chartjs-plugin-datalabels/"
+    },
+    {
+      "library": "Chart.js@4.4.1",
+      "destination": "wwwroot/lib/Chart.js/"
     }
   ]
 }

@@ -1,0 +1,300 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Management.CarListModel
+@{
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Quản lí xe</h2>
+
+    <!-- Thanh Search -->
+    <div class="filter-section p-2  rounded">
+        <div class="row">
+            <!-- Ô nhập Search -->
+            <div class="col-md-3">
+                <label for="searchName" class="form-label">Tìm kiếm</label>
+                <input type="text" class="form-control" id="searchName" placeholder="Nhập tên hoặc biển số" />
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchType" class="form-label">Loại xe</label>
+                <select id="searchType" class="form-control">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchBrand" class="form-label">Hãng xe</label>
+                <select id="searchBrand" class="form-control">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="searchStatus" class="form-label">Trạng thái</label>
+                <select id="searchStatus" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="Processed">Đã xử lí</option>
+                    <option value="Pending">Chờ xử lí</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="stationOwner">
+            <div class="table-responsive">
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên xe</th>
+                            <th>Biển số</th>
+                            <th>Chủ sở hữu</th>
+                            <th>Loại xe</th>
+                            <th>Hãng xe</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phân trang -->
+    <nav>
+        <ul class="pagination justify-content-center mt-3"></ul>
+    </nav>
+</div>
+
+<!-- Modal xem chi tiết xe -->
+<div class="modal fade" id="carDetailModal" tabindex="-1" aria-labelledby="carDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="carDetailModalLabel">Chi tiết xe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Phần chi tiết Car -->
+                <h6>Thông tin xe</h6>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Tên xe</th><td id="carNameDetail"></td></tr>
+                        <tr><th>Biển số</th><td id="licensePlateDetail"></td></tr>
+                        <tr><th>Chủ sở hữu</th><td id="ownerDetail"></td></tr>
+                        <tr><th>Email</th><td id="emailDetail"></td></tr>
+                        <tr><th>Trang thái</th><td id="licensePlateDetail"></td></tr>                      
+                    </tbody>
+                </table>
+
+                <!-- Phần chi tiết Car Model -->
+                <h6>Thông tin dòng xe</h6>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Hãng</th><td id="brandDetail"></td></tr>
+                        <tr><th>Loại</th><td id="typeDetail"></td></tr>
+                        <tr><th>Màu sắc</th><td id="colorDetail"></td></tr>
+                        <tr><th>Số ghế</th><td id="seatNumberDetail"></td></tr>
+                        <tr><th>Dung lượng pin</th><td id="batteryCapacityDetail"></td></tr>
+                        <tr><th>Công suất sạc tối đa</th><td id="maxChargingPowerDetail"></td></tr>
+                        <tr><th>Tiêu chuẩn sạc</th><td id="chargingStandardDetail"></td></tr>
+                        <tr><th>Quãng đường trung bình</th><td id="averageRangeDetail"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener("DOMContentLoaded", () => {
+        $(document).ready(function () {
+            loadFilterOptions();
+
+            let currentPage = 1;
+            const pageSize = 10;
+
+            // Gọi API để load feedback
+            function loadFeedbacks(page = 1) {
+                const search = $("#searchName").val();
+                const type = $("#searchType").val();
+                const branch = $("#searchBrand").val();
+                const status = $("#searchStatus").val();
+
+                loadCars({ search, type, branch, status, page, pageSize });
+            }            
+
+            // Xử lý sự kiện khi click vào trang trong phân trang
+            $(".pagination").on("click", ".page-link", function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data("page"));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadFeedbacks(page);
+                }
+            });
+
+            // Xử lý sự kiện tìm kiếm
+            $("#searchName").on("input change", function () {
+                currentPage = 1;
+                loadFeedbacks();
+            });
+
+            $("#searchType, #searchBrand, #searchStatus").on("change", function () {
+                currentPage = 1;
+                loadFeedbacks();
+            });
+
+            loadFeedbacks();
+
+            $(document).on("click", ".view-car-detail", function () {
+                const car = $(this).data("car");
+
+                // Thông tin xe
+                $("#carNameDetail").text(car.carName);
+                $("#licensePlateDetail").text(car.licensePlate);
+                $("#ownerDetail").text(car.owner);
+                $("#emailDetail").text(car.email);
+
+                // Thông tin model
+                $("#brandDetail").text(car.brand);
+                $("#typeDetail").text(car.type);
+                $("#colorDetail").text(car.color);
+                $("#seatNumberDetail").text(car.seatNumber);
+                $("#chargingStandardDetail").text(car.chargingStandard);
+                $("#maxChargingPowerDetail").text(car.maxChargingPower);
+                $("#batteryCapacityDetail").text(car.batteryCapacity);
+                $("#averageRangeDetail").text(car.averageRange);
+
+                // Hiển thị modal
+                $("#carDetailModal").modal("show");
+            });
+        });
+
+        // Hiển thị danh sách car vào bảng
+        function renderTable(cars) {
+            const tbody = $("#userTableBody");
+            tbody.empty();
+
+            if (cars.length === 0) {
+                tbody.append(`<tr><td colspan="10" class="text-center">Không có xe nào</td></tr>`);
+                return;
+            }
+
+            cars.forEach(f => {
+                tbody.append(`
+                    <tr>
+                        <td>${f.carId}</td>
+                        <td>${f.carName}</td>
+                        <td>${f.licensePlate}</td>
+                        <td>${f.owner}</td>
+                        <td>${f.type}</td>
+                        <td>${f.brand }</td>
+                        <td>${f.isDeleted}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm view-car-detail" data-car='${JSON.stringify(f)}'>Chi tiết</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        async function loadCars({ search, type, branch, status, page, pageSize }) {
+            try {
+                const params = new URLSearchParams({ search, type, branch, status, page, pageSize });
+                const url = `https://localhost:7191/api/Car/all-cars?${params.toString()}`;
+
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    renderTable(data.data);
+                    renderPagination(data.totalPages, page);
+                } else {
+                    console.error("Server error:", response.status);
+                    showToast("Không thể tải danh sách xe.");
+                }
+            } catch (error) {
+                console.error("Lỗi tải xe:", error);
+                showToast("Đã xảy ra lỗi khi tải xe.");
+            }
+        }
+
+        async function loadFilterOptions() {
+            try {
+                const url = "https://localhost:7191/api/Car/filter-options";
+                const options = {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const response = await fetchWithAuth(url, options);
+                if (response.ok) {
+                    const data = await response.json();
+                    const { brands, types } = data;
+
+                    const brandSelect = $("#searchBrand");
+                    const typeSelect = $("#searchType");
+
+                    // Reset option
+                    brandSelect.html('<option value="">Tất cả</option>');
+                    typeSelect.html('<option value="">Tất cả</option>');
+
+                    // Append brand
+                    brands.forEach(b => {
+                        brandSelect.append(`<option value="${b}">${b}</option>`);
+                    });
+
+                    // Append type
+                    types.forEach(t => {
+                        typeSelect.append(`<option value="${t}">${t}</option>`);
+                    });
+                } else {
+                    console.error("Server error:", response.status);
+                    showToast("Không thể tải dữ liệu bộ lọc.");
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải bộ lọc:", error);
+                showToast("Đã xảy ra lỗi khi tải dữ liệu bộ lọc.");
+            }
+        }
+
+        // Hiển thị phân trang
+        function renderPagination(totalPages, currentPage) {
+            const pagination = $(".pagination");
+            pagination.empty();
+
+            let paginationHtml = `
+                            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage - 1}">Trước</a>
+                            </li>
+                        `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+            }
+
+            paginationHtml += `
+                            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPage + 1}">Sau</a>
+                            </li>
+                        `;
+
+            pagination.append(paginationHtml);
+        }       
+    });
+</script>

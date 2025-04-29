@@ -1,0 +1,208 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Dashboard.SessionModel
+@{
+}
+
+<h4 class="mt-5">Thống kê phiên sạc</h4>
+
+<div class="container mt-4">
+    <!-- Filter -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Từ ngày</label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">Đến ngày</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label for="stationFilter" class="form-label">Trạm sạc</label>
+            <select id="stationFilter" class="form-select">
+                <option value="">Tất cả các trạm</option>
+                <!-- Các option trạm sẽ được load từ DB -->
+            </select>
+        </div>
+    </div>
+
+    <!-- Tổng quan -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-3">
+            <div class="p-3 bg-light border rounded shadow-sm">
+                <h6>Tổng số phiên sạc</h6>
+                <h5 id="totalSession"></h5>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-light border rounded shadow-sm">
+                <h6>Thời gian trung bình mỗi phiên</h6>
+                <h5 id="avgDuration">-- phút</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-light border rounded shadow-sm">
+                <h6>Năng lượng tiêu thụ</h6>
+                <h5 id="totalEnergy">-- kWh</h5>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="p-3 bg-light border rounded shadow-sm">
+                <h6>Lượt sạc thất bại</h6>
+                <h5 id="failedSessions">--</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="mb-3">Số lượt sạc theo ngày</h5>
+            <canvas id="dailyChart"></canvas>
+        </div>
+        <div class="col-md-12 mt-4">
+            <h5>Số lượt sạc theo tuần</h5>
+            <canvas id="weeklyChart"></canvas>
+        </div>
+        <div class="col-md-12 mt-4">
+            <h5>Số lượt sạc theo tháng</h5>
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        const defaultStart = new Date(today.getFullYear(), 0, 2);
+        const defaultEnd = new Date(today.getFullYear(), 11, 32);
+
+        let dailyChart, weeklyChart, monthlyChart;
+
+        $(document).ready(function () {
+            $('#startDate').val(defaultStart.toISOString().slice(0, 10));
+            $('#endDate').val(defaultEnd.toISOString().slice(0, 10));
+
+            fetchSessionData(defaultStart.toISOString(), defaultEnd.toISOString(), "");
+
+            $('#startDate, #endDate, #stationFilter').on('change', function () {
+                const start = new Date($('#startDate').val());
+                const end = new Date($('#endDate').val());
+                const stationId = $('#stationFilter').val();
+
+                if (start && end && start <= end) {
+                    fetchSessionData(start.toISOString(), end.toISOString(), stationId);
+                }
+            });
+
+            loadStationFilter();
+        });
+
+        async function loadStationFilter() {
+            try {
+                const url = "https://localhost:7191/api/ChargingStation?page=1&pageSize=100";
+                const response = await fetchWithAuth(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const stationFilter = $("#stationFilter");
+                    stationFilter.empty();
+                    stationFilter.append(`<option value="">Tất cả các trạm</option>`);
+
+                    data.data.forEach(station => {
+                        stationFilter.append(`
+                                <option value="${station.stationId}">${station.stationName}</option>
+                            `);
+                    });
+                } else {
+                    console.error("Lỗi khi lấy danh sách trạm sạc:", response.statusText);
+                    $("#stationFilter").html(`<option disabled selected>Không thể tải danh sách trạm sạc</option>`);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách trạm sạc:", error);
+                $("#stationFilter").html(`<option disabled selected>Không thể tải danh sách trạm sạc</option>`);
+            }
+        }
+
+        async function fetchSessionData(start, end, stationId) {
+            try {
+                const url = new URL("https://localhost:7191/api/Dashboard/charging-sessions");
+                url.searchParams.append("start", start);
+                url.searchParams.append("end", end);
+                if (stationId) {
+                    url.searchParams.append("stationId", stationId);
+                }
+
+                const response = await fetchWithAuth(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+
+                    // Cập nhật số liệu tổng quan
+                    $('#totalSession').text(res.totalSession);
+                    $('#avgDuration').text(res.avgDuration.toFixed(2) + ' phút');
+                    $('#totalEnergy').text(res.totalEnergy.toFixed(2) + ' kWh');
+                    $('#failedSessions').text(res.failedSessions);
+
+                    renderChart('dailyChart', res.daily.map(d => d.date.split('T')[0]), res.daily.map(d => d.sessionCount), 'line', 'Lượt sạc', 'blue', chart => dailyChart = chart);
+                    renderChart('weeklyChart', res.weekly.map(d => `Tuần ${d.weekNumber}/${d.year}`), res.weekly.map(d => d.sessionCount), 'bar', 'Lượt sạc', 'yellow', chart => weeklyChart = chart);
+                    renderChart('monthlyChart', res.monthly.map(d => `${d.month}/${d.year}`), res.monthly.map(d => d.sessionCount), 'bar', 'Lượt sạc', 'orange', chart => monthlyChart = chart);
+                } else {
+                    console.error("Lỗi khi lấy dữ liệu phiên sạc:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu phiên sạc:", error);
+            }
+        }
+
+        function renderChart(id, labels, data, type, label, color, storeChart) {
+            if (window[id] && typeof window[id].destroy === 'function') {
+                window[id].destroy();
+            }
+
+            const ctx = document.getElementById(id).getContext('2d');
+            const options = {
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'start',
+                        color: 'black',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value) {
+                            return value;
+                        }
+                    }
+                }
+            };
+
+            window[id] = new Chart(ctx, {
+                type,
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: color,
+                        fill: type === 'line' ? false : true
+                    }]
+                },
+                options: options,
+                plugins: [ChartDataLabels]
+            });
+            storeChart(window[id]);
+        }
+    });
+</script>

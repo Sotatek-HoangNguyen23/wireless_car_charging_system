@@ -1,4 +1,7 @@
-﻿namespace DataAccess.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace DataAccess.Models;
 
 public partial class ChargingPoint
 {
@@ -21,6 +24,8 @@ public partial class ChargingPoint
     public double? MaxConsumPower { get; set; }
 
     public virtual ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();
+
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
     public virtual ICollection<RealTimeDatum> RealTimeData { get; set; } = new List<RealTimeDatum>();
 

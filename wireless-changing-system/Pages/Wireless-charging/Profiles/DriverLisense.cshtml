@@ -1,0 +1,865 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Profiles.DriverLisenseModel
+@{
+}
+<style>
+    .driver-license-container {
+        margin: 2rem auto;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        max-width: 900px;
+        border-radius: 8px;
+    }
+
+    .driver-license-header {
+        background: #007bff;
+        color: #fff;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px;
+    }
+
+    .license-view {
+        margin-top: 1rem;
+    }
+
+    /* ========= [2] STYLES CHO LICENSE-ITEM VÀ THẺ GPLX ========= */
+    .license-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+
+    .license-card {
+        width: 530px;
+        height: 270px;
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #fefefe;
+        position: relative;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+
+    .license-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 0.85rem;
+    }
+
+    .license-card-header-left {
+        text-transform: uppercase;
+        line-height: 1.3;
+        margin-right: 10px;
+    }
+
+    .license-card-header-center {
+        text-align: center;
+        line-height: 1.2;
+        font-size: 0.9rem;
+        font-weight: 600;
+        min-width: 100px;
+    }
+
+    .license-card-title {
+        text-align: center;
+        margin: 5px 0;
+        color: #c00;
+    }
+
+        .license-card-title h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .license-card-title small {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #333;
+        }
+
+    .license-card-main {
+        margin-top: 5px;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .photo-hint {
+        font-size: 0.7rem;
+        margin-top: 3px;
+        color: #555;
+    }
+
+    .license-card-info {
+        flex: 1;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .info-row {
+        margin-bottom: 4px;
+    }
+
+    .label {
+        font-weight: 500;
+        color: #444;
+        min-width: 100px;
+        display: inline-block;
+    }
+
+    .value {
+        font-weight: 600;
+        color: #000;
+    }
+
+    .info-row-inline {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 4px;
+    }
+
+    /* ========= [3] MEDIA QUERY - MOBILE ========= */
+    @@media (max-width: 576px) {
+        .license-card {
+            width: 95%;
+            height: auto;
+        }
+
+        .license-card-header {
+            flex-wrap: wrap;
+        }
+
+        .license-card-header-left,
+        .license-card-header-center {
+            width: 100%;
+            text-align: center;
+        }
+
+        .license-card-main {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .license-item {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+
+    .license-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 10px;
+        min-width: 120px;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-action:active {
+        transform: translateY(0);
+    }
+
+    @@media (max-width: 576px) {
+        .license-actions {
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-action {
+            width: auto;
+            height: 70px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+            .btn-action i {
+                margin-right: 4px;
+            }
+    }
+
+    @@media (max-width: 400px) {
+        .btn-action span {
+            display: none;
+        }
+
+        .btn-action i {
+            margin-right: 0;
+            font-size: 1.1rem;
+        }
+    }
+
+    .image-preview {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        min-height: 200px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 10px;
+        background-color: #f8f9fa; 
+        min-height: 200px;
+    }
+
+    .preview-image {
+        display: block !important;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 180px;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .preview-text {
+        color: #6c757d;
+        font-style: italic;
+        position: absolute;
+        pointer-events: none;
+    }
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 0.25em solid #007bff;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner 0.75s linear infinite;
+    }
+
+    @@keyframes spinner {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="driver-license-container">
+        <div class="driver-license-header">
+            <div>
+                <h3 class="mb-0">BẰNG LÁI XE VIỆT NAM</h3>
+                <small>DRIVING LICENSE</small>
+            </div>
+            <div>
+                <button class="btn btn-light" id="btnAddLisense">Thêm mới +</button>
+            </div>
+        </div>
+
+        <!-- license-item -->
+        <div class="license-view" id="licenseView">
+        </div>
+    </div>
+</div>
+<!-- modal -->
+<div class="modal fade" id="licenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm mới bằng lái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="licenseForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <input type="hidden" name="licenseNumber" required>
+                    <input type="hidden" name="class" required>
+                    <div class="mb-3">
+                        <label class="form-label">Mặt trước</label>
+                        <input type="file" class="form-control" name="frontImage" accept="image/*" required
+                               id="frontImageInput">
+                        <div class="image-preview mt-2" id="frontPreview"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mặt sau</label>
+                        <input type="file" class="form-control" name="backImage" accept="image/*" required
+                               id="backImageInput">
+                        <div class="image-preview mt-2" id="backPreview"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- modal update -->
+<div class="modal fade" id="updateLicenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật bằng lái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="updateLicenseForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="loading-overlay" id="updateLoadingOverlay">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <input type="hidden" name="licenseNumber" required>
+                    <input type="hidden" name="class" required>
+                    <div class="mb-3">
+                        <label class="form-label">Mặt trước</label>
+                        <input type="file" class="form-control" name="frontImage" accept="image/*"
+                               id="updateFrontImageInput">
+                        <div class="image-preview mt-2" id="updateFrontPreview"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mặt sau</label>
+                        <input type="file" class="form-control" name="backImage" accept="image/*"
+                               id="updateBackImageInput">
+                        <div class="image-preview mt-2" id="updateBackPreview"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="error-toast" class="custom-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-exclamation-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Lỗi!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+
+<div id="success-toast" class="custom-toast success-toast">
+    <div class="toast-progress"></div>
+    <i class="bi bi-check-circle-fill toast-icon"></i>
+    <div class="toast-content">
+        <strong>Thành công!</strong>
+        <p class="mb-0"></p>
+    </div>
+</div>
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadDriverLicenses();
+        setupEventListeners();
+       
+    });
+
+    async function loadDriverLicenses() {
+        try {
+            const response = await fetchWithAuth('https://localhost:7191/api/user/driver-licenses/users');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail);
+            }
+            const licenses = await response.json();
+            renderLicenses(licenses);
+        } catch (error) {
+            showToast(error.message);
+        }
+    }
+
+
+
+    function renderLicenses(licenses) {
+        const container = document.getElementById('licenseView');
+        container.innerHTML = ''; // Xóa nội dung cũ
+        if (!licenses || licenses.length === 0) {
+              const emptyMessage = document.createElement('div');
+              emptyMessage.className = 'text-center py-5';
+              emptyMessage.innerHTML = `
+                  <i class="bi bi-file-earmark-excel fs-1 text-muted"></i>
+                  <h5 class="mt-3 text-secondary">Không có bằng lái nào được tìm thấy</h5>
+                  <p class="text-muted">Vui lòng thêm mới bằng lái của bạn</p>
+              `;
+              container.appendChild(emptyMessage);
+              return;
+          }
+        licenses.forEach(license => {
+            const licenseItem = document.createElement('div');
+            licenseItem.className = 'license-item';
+
+            // Tạo thẻ license-card
+            const card = document.createElement('div');
+            card.className = 'license-card';
+            console.log(license);
+            // Ví dụ: Thêm header card
+            card.innerHTML = `
+                <div class="license-card-header">
+                    <div class="license-card-header-left"><strong>BỘ GTVT</strong></div>
+                    <div class="license-card-header-center">
+                        <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                        <div>Độc lập - Tự do - Hạnh phúc</div>
+                    </div>
+                </div>
+                <div class="license-card-title">
+                    <h4>GIẤY PHÉP LÁI XE</h4>
+                    <small>DRIVER'S LICENSE</small>
+                </div>
+                <div class="license-card-header-center">
+                    Số No: ${license.licenseNumber || 'N/A'}
+                </div>
+                <div class="license-card-main">
+                    <div class="license-card-info">
+                        <div class="info-row">
+                            <span class="label">Họ tên/Full name:</span>
+                            <span class="value">${license.fullName || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Ngày sinh/Date of Birth:</span>
+                            <span class="value">${license.dateOfBirth || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Quốc tịch/Nationality:</span>
+                            <span class="value">${license.nationality || 'VIỆT NAM'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Nơi cư trú/Address:</span>
+                            <span class="value">${license.address || 'N/A'}</span>
+                        </div>
+                        <div class="info-row-inline">
+                            <div>
+                                <span class="label">Hạng/Class:</span>
+                                <span class="value">${license.class || 'N/A'}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Tạo phần action cho license
+        const actions = document.createElement('div');
+        actions.className = 'license-actions';
+
+        // Tạo nút Cập nhật
+        const updateBtn = document.createElement('button');
+        updateBtn.className = 'btn btn-warning btn-action mb-2';
+        updateBtn.innerHTML = `<i class="bi bi-pencil-square"></i> Cập nhật`;
+        updateBtn.addEventListener('click', () => openUpdateModal(license.licenseNumber));
+
+        // Tạo nút Xóa
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-action';
+        deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Xóa`;
+        deleteBtn.addEventListener('click', () => {
+                deleteLicense(license.licenseNumber);
+        });
+
+        // Thêm nút vào actions
+        actions.appendChild(updateBtn);
+        actions.appendChild(deleteBtn);
+
+        licenseItem.appendChild(card);
+        licenseItem.appendChild(actions);
+        container.appendChild(licenseItem);
+        });
+    }
+
+    async function deleteLicense(licenseCode) {
+        if (!confirm('Bạn có chắc chắn muốn xóa bằng lái này?')) return;
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/user/driver-licenses/${licenseCode}`, {
+                method: 'DELETE'
+            });
+             const result = await response.json(); 
+              if (!response.ok) {
+                  throw new Error(result.detail || 'Lỗi không xác định');
+              }
+            await loadDriverLicenses();
+        } catch (error) {
+            showToast(error.message);
+        }
+    }
+     let isFrontQRValid = false;
+     let isBackQRValid = false;
+    // Update 
+       async function openUpdateModal(licenseCode) {
+            isFrontQRValid = false;
+            isBackQRValid = false;
+            try {
+                const response = await fetchWithAuth(
+                    `https://localhost:7191/api/user/driver-licenses/${licenseCode}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Lỗi không xác định');
+                }
+
+                const result = await response.json();
+
+            // Khởi tạo modal
+            const modal = new bootstrap.Modal('#updateLicenseModal');
+            const form = document.getElementById('updateLicenseForm');
+
+            // Reset form và hiển thị dữ liệu hiện tại
+            form.reset();
+            form.elements.licenseNumber.value = result.licenseNumber;
+            form.elements.class.value = result.class;
+
+            // Xử lý ảnh (nếu cần)
+            document.getElementById('updateFrontPreview').innerHTML = result.frontImageUrl
+                ? `<img src="${result.frontImageUrl}" class="preview-image">`
+                : '<div class="preview-text">Chưa có ảnh được chọn</div>';
+
+            document.getElementById('updateBackPreview').innerHTML = result.backImageUrl
+                ? `<img src="${result.backImageUrl}" class="preview-image">`
+                : '<div class="preview-text">Chưa có ảnh được chọn</div>';
+
+            // Xử lý sự kiện thay đổi ảnh
+            document.getElementById('updateFrontImageInput').addEventListener('change', (e) => {
+                previewImage(e.target, 'updateFrontPreview', true);
+            });
+
+            document.getElementById('updateBackImageInput').addEventListener('change', (e) => {
+                previewImage(e.target, 'updateBackPreview', true);
+            });
+
+            // Xử lý submit form
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                 if (!isBackQRValid) {
+                    console.log('QR không hợp lệ');
+                    showToast('Ảnh không rõ vui lòng chọn ảnh hợp lệ');
+                    return;
+              }
+                const loadingOverlay = document.getElementById('updateLoadingOverlay');
+
+                try {
+                    loadingOverlay.style.display = 'flex';
+                    const formData = new FormData(form);
+                    const backImg=form.elements.backImage.files[0];
+                    const fontImg=form.elements.backImage.files[0];
+                    if (!backImg || !fontImg) {
+                        showToast('Vui lòng chọn ảnh');
+                        loadingOverlay.style.display = 'none';
+                        return;
+                    }
+                    formData.append('LicenseBackImage', backImg);
+                    formData.append('LicenseFrontImage', fontImg);
+
+                    // Gửi yêu cầu cập nhật
+                    const response = await fetchWithAuth(`https://localhost:7191/api/user/driver-licenses/${licenseCode}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+
+                 const result = await response.json(); 
+
+                  if (!response.ok) {
+                      console.error(result);
+                      throw new Error(result.detail || 'Lỗi không xác định');
+                  }
+                    loadingOverlay.style.display = 'none';
+                    modal.hide();
+                    showSuccessToast('Cập nhật bằng lái thành công');
+                    await loadDriverLicenses();
+                } catch (error) {
+                    loadingOverlay.style.display = 'none';
+                    showToast(error.message);
+                }
+            };
+
+            modal.show();
+        } catch (error) {
+            showToast(error.message);
+        }
+    }
+
+    // Stub hàm thiết lập sự kiện
+      function setupEventListeners() {
+        const btnAdd = document.getElementById('btnAddLisense');
+        btnAdd.addEventListener('click', () => openLicenseModal());
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('frontImageInput').addEventListener('change', (e) => {
+            previewImage(e.target, 'frontPreview');
+        });
+        document.getElementById('backImageInput').addEventListener('change', (e) => {
+            previewImage(e.target, 'backPreview');
+        });
+    });
+    function openLicenseModal() {
+            isFrontQRValid = false;
+            isBackQRValid = false;
+            const modal = new bootstrap.Modal('#licenseModal');
+            const form = document.getElementById('licenseForm');
+
+            // Reset form khi mở modal
+
+            form.reset();
+            document.getElementById('frontPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+            document.getElementById('backPreview').innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+
+            modal.show();
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            if (!isBackQRValid) {
+                console.log('QR không hợp lệ');
+                showToast('Ảnh không rõ vui lòng chọn ảnh hợp lệ');
+                return;
+            }
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            const formData = new FormData(form);
+
+            const backImg=form.elements.backImage.files[0];
+            const fontImg=form.elements.backImage.files[0];
+            if (!backImg || !fontImg) {
+                showToast('Vui lòng chọn ảnh');
+                loadingOverlay.style.display = 'none';
+                return;
+            }
+            formData.append('LicenseBackImage', backImg);
+            formData.append('LicenseFrontImage', fontImg);
+            try {
+                const response = await fetchWithAuth('https://localhost:7191/api/user/driver-licenses', {
+                    method: 'POST',
+                    body: formData
+                });
+
+            const result = await response.json(); // Đọc response trước khi kiểm tra status
+
+              if (!response.ok) {
+                  throw new Error(result.detail || 'Lỗi không xác định');
+              }
+               loadingOverlay.style.display = 'none';
+                modal.hide();
+                showSuccessToast('Thêm mới bằng lái thành công');
+                await loadDriverLicenses();
+            } catch (error) {
+                loadingOverlay.style.display = 'none';
+                showToast(error.message);
+            }
+        };
+    }
+
+
+      function previewImage(input, previewId,isUpdate= false) {
+        const preview = document.getElementById(previewId);
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                console.log('File loaded successfully');
+                preview.innerHTML = '';
+
+                // Tạo ảnh preview
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('preview-image');
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '200px';
+
+                // Nút xóa ảnh
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '×';
+                removeBtn.className = 'btn btn-danger btn-sm preview-remove';
+                removeBtn.onclick = () => {
+                    input.value = '';
+                    preview.innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+                    if (previewId === 'frontPreview') isFrontQRValid = false;
+                    else isBackQRValid = false;
+                };
+
+                // Validate QR code
+                try {
+                    const qrResult = await validateQRCode(file);
+                   if (previewId === 'backPreview' || previewId === 'updateBackPreview') {
+                        if (!qrResult.isValid) {
+                            showToast(qrResult.message || 'QR code không hợp lệ');
+                        }
+                    }
+
+                    if (previewId === 'frontPreview') {
+                        isFrontQRValid = qrResult.isValid;
+                    } else {
+                        isBackQRValid = qrResult.isValid;
+                    }
+                    const form = isUpdate
+                                ? document.getElementById('updateLicenseForm')
+                                : document.getElementById('licenseForm');
+                    if (qrResult.isValid && qrResult.data && previewId==="backPreview") {
+                        form.elements.licenseNumber.value = qrResult.data.licenseNumber;
+                        form.elements.class.value = qrResult.data.class;
+                    }
+                } catch (error) {
+                    if (previewId === 'frontPreview') isFrontQRValid = false;
+                    else isBackQRValid = false;
+                    if (previewId === 'backPreview' || previewId === 'updateBackPreview') {
+                        showToast(error.message);
+                    }
+
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
+            };
+
+            reader.onerror = (error) => {
+                console.error('Error reading file:', error);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '<div class="preview-text">Chưa có ảnh được chọn</div>';
+            if (previewId === 'frontPreview') isFrontQRValid = false;
+            else isBackQRValid = false;
+        }
+      }
+    async function validateQRCode(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetchWithAuth('https://localhost:7191/api/Images/read-qr', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                return { isValid: false, message: error.detail || 'Lỗi đọc QR code' };
+            }
+
+            const resultQR = await response.json();
+            const qrData = parseQRData(resultQR.result);
+                        console.log(qrData);
+
+            return {
+                isValid: !!resultQR.result,
+                message: resultQR.result ? 'QR hợp lệ' : 'Không tìm thấy thông tin QR',
+                data: qrData
+            };
+        } catch (error) {
+            return { isValid: false, message: error.message };
+        }
+    }
+
+    function parseQRData(qrString) {
+        if (!qrString) return {};
+
+        const parts = qrString.split('\r\n');
+        return {
+            licenseNumber: parts[0]?.trim() || '',
+            fullName: parts[1]?.trim() || '',
+            dateOfBirth: parts[2] ? convertDateFormat(parts[2].trim()) : '',
+            class: parts[3]?.trim() || '',
+            address: parts[4]?.trim() || ''
+        };
+    }
+
+    function convertDateFormat(dateString) {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    function showSuccessToast(message) {
+        const toast = document.getElementById('success-toast');
+        toast.querySelector('.toast-content p').textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+      function showToast(message) {
+        const toast = document.getElementById('error-toast');
+        const progress = toast.querySelector('.toast-progress');
+        const messageElement = toast.querySelector('.toast-content p');
+
+        toast.classList.remove('show');
+        progress.style.animation = 'none';
+
+        // Cập nhật nội dung
+        messageElement.textContent = message;
+
+        // Kích hoạt hiệu ứng
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+            progress.style.animation = 'progress 5s linear forwards';
+        });
+
+        // Tự động ẩn
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 5000);
+    }
+</script>

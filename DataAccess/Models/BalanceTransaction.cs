@@ -11,6 +11,10 @@ public partial class BalanceTransaction
 
     public double? Amount { get; set; }
 
+    public string? OrderCode { get; set; }
+
+    public string? Status { get; set; }
+
     public string? TransactionType { get; set; }
 
     public DateTime? TransactionDate { get; set; }

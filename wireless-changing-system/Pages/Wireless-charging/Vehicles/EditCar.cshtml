@@ -1,0 +1,288 @@
+﻿@page
+@model wireless_changing_system.Pages.Wireless_charging.Vehicles.EditCarModel
+@{
+}
+
+<div class="container py-4">
+    <h1 class="mb-4"><i class="bi bi-pencil-square"></i> Sửa thông tin xe</h1>
+
+    <div class="card rounded-5 shadow-sm">
+        <div class="card-body">
+            <div class="mb-4">
+                <label class="form-label fw-bold">Tên xe</label>
+                <input id="carNameInput" type="text" class="form-control" placeholder="" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold"><span class="text-danger">*</span>Biển số xe</label>
+                <input id="licensePlateInput" type="text" class="form-control" placeholder="" />
+            </div>
+
+            <div class="mb-4 position-relative">
+                <label class="form-label fw-bold"><span class="text-danger">*</span>Loại xe</label>
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Find your car model..." />
+                    <span id="clearSearch" class="input-group-text bg-transparent border-0 position-absolute end-0 top-50 translate-middle-y" style="cursor: pointer; display: none;">
+                        <i class="bi bi-x-circle"></i>
+                    </span>
+                </div>
+                <div id="suggestions" class="list-group mt-2" style="display: none;"></div>
+            </div>
+
+            <div id="carModelDetails" style="display: none;">
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Màu:</label> <span id="selectedColor"></span></div>
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Số chỗ ngồi:</label> <span id="selectedSeatNumber"></span></div>
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Hãng:</label> <span id="selectedBrand"></span></div>
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Chuẩn sạc:</label> <span id="selectedChargingStandard"></span></div>
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Quãng đường trung bình:</label> <span id="selectedAverageRange"></span></div>
+                <div class="mb-1"><label class="form-label fw-bold mb-0">Công suất tối đa:</label> <span id="selectedMaxChargingPower"></span></div>
+                <div class="mb-1">
+                    <img id="selectedImage" src="" alt="Car Image" class="img-thumbnail" style="width: 500px; height: auto;" />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center">
+                <button id="btn-edit" class="btn btn-primary">
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Cập nhật thành công</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    Thông tin xe đã được cập nhật thành công.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="goToDetailBtn">Thông tin xe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const carId = urlParams.get('carId');
+
+    const suggestionsContainer = document.getElementById('suggestions');
+    const carModelDetails = document.getElementById('carModelDetails');
+    const clearSearch = document.getElementById('clearSearch');
+
+    const carNameInput = document.getElementById('carNameInput');
+    const licensePlateInput = document.getElementById('licensePlateInput');
+    const searchInput = document.getElementById('searchInput');
+    const selectedColor = document.getElementById('selectedColor');
+    const selectedSeatNumber = document.getElementById('selectedSeatNumber');
+    const selectedBrand = document.getElementById('selectedBrand');
+    const selectedChargingStandard = document.getElementById('selectedChargingStandard');
+    const selectedAverageRange = document.getElementById('selectedAverageRange');
+    const selectedMaxChargingPower = document.getElementById('selectedMaxChargingPower');
+    const selectedImage = document.getElementById('selectedImage');
+
+    let selectedCarModelId = null;
+
+    async function fetchCarDetails(carId) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch car details');
+            }
+            const carDetails = await response.json();
+            return carDetails;
+        } catch (error) {
+            console.error('Error fetching car details:', error);
+            return null;
+        }
+    }
+
+    function fillCarDetails(carDetails) {
+        if (!carDetails) return;
+
+        carNameInput.value = carDetails.carName || '';
+        licensePlateInput.value = carDetails.licensePlate || '';
+        searchInput.value = carDetails.type || '';
+
+        selectedColor.textContent = carDetails.color || '';
+        selectedSeatNumber.textContent = carDetails.seatNumber || '';
+        selectedBrand.textContent = carDetails.brand || '';
+        selectedChargingStandard.textContent = carDetails.chargingStandard || '';
+        selectedAverageRange.textContent = carDetails.averageRange || '';
+        selectedMaxChargingPower.textContent = carDetails.maxChargingPower || '';
+        selectedImage.src = carDetails.img || '';
+
+        selectedCarModelId = carDetails.carModelId;
+
+        carModelDetails.style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        if (!carId) {
+            alert('Car ID is missing.');
+            return;
+        }
+
+        const carDetails = await fetchCarDetails(carId);
+        if (carDetails) {
+            fillCarDetails(carDetails);
+        } else {
+            alert('Failed to load car details.');
+        }
+    });
+
+    async function fetchCarModels(searchTerm) {
+        try {
+            const response = await fetchWithAuth(`https://localhost:7191/api/Car/car-models?search=${searchTerm}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch car models');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching car models:', error);
+            return [];
+        }
+    }
+
+    function displaySuggestions(models) {
+        if (models.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        const suggestionsHTML = models.map(model => `
+            <div class="list-group-item list-group-item-action"
+                data-model-id="${model.carModelId}"
+                data-type="${model.type}"
+                data-color="${model.color}"
+                data-seat-number="${model.seatNumber}"
+                data-brand="${model.brand}"
+                data-charging-standard="${model.chargingStandard}"
+                data-average-range="${model.averageRange}"
+                data-max-charging-power="${model.maxChargingPower}"
+                data-img="${model.img}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">${model.type}</h6>
+                        <small class="text-muted">${model.color}</small>
+                    </div>
+                    <img src="${model.img}" alt="${model.type}" class="img-thumbnail" style="width: 70px; height: auto;">
+                </div>
+            </div>
+        `).join('');
+
+        suggestionsContainer.innerHTML = suggestionsHTML;
+        suggestionsContainer.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', async function () {
+        const searchTerm = this.value.trim();
+
+        if (searchTerm.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            carModelDetails.style.display = 'none';
+            clearSearch.style.display = 'none';
+            return;
+        }
+
+        clearSearch.style.display = 'block';
+
+        const carModels = await fetchCarModels(searchTerm);
+        displaySuggestions(carModels);
+    });
+
+    suggestionsContainer.addEventListener('click', function (event) {
+        const selectedItem = event.target.closest('.list-group-item');
+        if (selectedItem) {
+            const type = selectedItem.getAttribute('data-type');
+            const color = selectedItem.getAttribute('data-color');
+            const seatNumber = selectedItem.getAttribute('data-seat-number');
+            const brand = selectedItem.getAttribute('data-brand');
+            const chargingStandard = selectedItem.getAttribute('data-charging-standard');
+            const averageRange = selectedItem.getAttribute('data-average-range');
+            const maxChargingPower = selectedItem.getAttribute('data-max-charging-power');
+            const img = selectedItem.getAttribute('data-img');
+
+            selectedCarModelId = selectedItem.getAttribute('data-model-id');
+
+            searchInput.value = type;
+
+            selectedColor.textContent = color;
+            selectedSeatNumber.textContent = seatNumber;
+            selectedBrand.textContent = brand;
+            selectedChargingStandard.textContent = chargingStandard;
+            selectedAverageRange.textContent = averageRange;
+            selectedMaxChargingPower.textContent = maxChargingPower;
+            selectedImage.src = img;
+
+            carModelDetails.style.display = 'block';
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    clearSearch.addEventListener('click', function () {
+        searchInput.value = '';
+        suggestionsContainer.style.display = 'none';
+        carModelDetails.style.display = 'none';
+        clearSearch.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    document.getElementById('btn-edit').addEventListener('click', async function () {
+        const carName = carNameInput.value.trim();
+        const licensePlate = licensePlateInput.value.trim();
+
+        if (!licensePlate || !selectedCarModelId) {
+            alert("Vui lòng điền đủ thông tin và chọn loại xe.");
+            return;
+        }
+
+        const requestBody = {
+            carId: carId,
+            carModelId: selectedCarModelId,
+            licensePlate: licensePlate,
+            carName: carName
+        };
+
+        try {
+            const response = await fetchWithAuth("https://localhost:7191/api/Car/edit-car", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+                if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Edit failed:", errorData);
+        alert("Cập nhật xe thất bại. Vui lòng thử lại.");
+        return;
+    }
+
+    // Show success modal
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    successModal.show();
+
+        } catch (error) {
+            console.error("Error saving car:", error);
+            alert("Đã xảy ra lỗi khi lưu.");
+        }
+    });
+        document.getElementById('goToDetailBtn').addEventListener('click', () => {
+        window.location.href = `/wireless-charging/vehicles/cardetail?carId=${carId}`;
+    });
+</script>
