@@ -22,7 +22,7 @@ namespace API.Controllers
             _testService = testService;
             _userService = userService;
         }
-        [Authorize("Admin")]
+        [AllowAnonymous]
         [HttpGet]
         public ActionResult getAllRoles()
         {
@@ -32,7 +32,8 @@ namespace API.Controllers
         }
 
 
-        [AllowAnonymous]
+        [Authorize("AdminOrOperator")]
+
         [HttpPost("create-test-user")]
         public async Task<ActionResult> createTestUser([FromBody] CreateTestAccountRequest request)
         {
@@ -70,7 +71,7 @@ namespace API.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [Authorize("AdminOrOperator")]
         [HttpDelete("delete-real-user")]
         public async Task<ActionResult> deleteRealUser([FromBody] int userid)
         {

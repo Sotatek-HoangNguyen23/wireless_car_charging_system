@@ -37,6 +37,10 @@ public partial class User
 
     public virtual ICollection<ChargingStation> ChargingStations { get; set; } = new List<ChargingStation>();
 
+    public virtual ICollection<DocumentReview> DocumentReviewReviewedByNavigations { get; set; } = new List<DocumentReview>();
+
+    public virtual ICollection<DocumentReview> DocumentReviewUsers { get; set; } = new List<DocumentReview>();
+
     public virtual ICollection<DriverLicense> DriverLicenses { get; set; } = new List<DriverLicense>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
