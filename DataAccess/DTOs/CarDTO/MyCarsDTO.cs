@@ -26,7 +26,7 @@ namespace DataAccess.DTOs.CarDTO
         public int CarModelId { get; set; }
 
         public string LicensePlate { get; set; }
-        public string CarName { get; set; }
+        public string? CarName { get; set; }
     }
 
     public class EditCarRequest

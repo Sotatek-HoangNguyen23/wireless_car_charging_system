@@ -65,6 +65,9 @@
             </div>
         </div>
     </div>
+    <div id="access-denied-message" class="alert alert-warning mt-4 text-center" style="display: none;">
+        Bạn không thể xem nội dung này
+    </div>
 </div>
 
 <script type="module">
@@ -124,7 +127,7 @@
         carModelDetails.style.display = 'block';
     }
 
-    document.addEventListener('DOMContentLoaded', async function () {
+       document.addEventListener('DOMContentLoaded', async function () {
         if (!carId) {
             alert('Car ID is missing.');
             return;
@@ -134,9 +137,13 @@
         if (carDetails) {
             fillCarDetails(carDetails);
         } else {
-            alert('Failed to load car details.');
+            // Ẩn toàn bộ nội dung card và hiện thông báo
+            document.querySelector('.card').style.display = 'none';
+            document.getElementById('access-denied-message').style.display = 'block';
+            document.querySelector('h1.mb-4').style.display = 'none';
         }
     });
+
 
     async function fetchCarModels(searchTerm) {
         try {

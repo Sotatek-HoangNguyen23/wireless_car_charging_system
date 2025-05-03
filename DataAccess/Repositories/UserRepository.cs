@@ -252,6 +252,12 @@ namespace DataAccess.Repositories
                 throw;
             }
         }
+
+        public bool IsMailOrPhoneDuplicate(int userId, string mail, string phone)
+        {
+            return _context.Users.Any(u => u.UserId != userId && (u.Email == mail || u.PhoneNumber == phone));
+
+        }
     }
 }
 

@@ -3,7 +3,7 @@
 @{
     Layout = "_Layout";
 }
-
+<div id="car-detail-container" class="container py-4">
 <div class="container py-4">
     <div class="card rounded-5 shadow-sm mt-3">
         <div class="card-body">
@@ -67,6 +67,10 @@
             </div>
         </div>
     </div>
+    </div>
+</div>
+<div id="access-denied-message" class="alert alert-warning mt-4 text-center" style="display: none;">
+    Bạn không thể xem nội dung này
 </div>
 <!-- Confirm Delete Car Modal -->
 <div class="modal fade" id="confirmDeleteCarModal" tabindex="-1" aria-labelledby="confirmDeleteCarModalLabel" aria-hidden="true">
@@ -141,15 +145,24 @@
         return new URLSearchParams(window.location.search).get('carId');
     }
 
-    async function fetchCarDetails(carId) {
+        async function fetchCarDetails(carId) {
         try {
             const response = await fetchWithAuth(`https://localhost:7191/api/Car/detail/${carId}`);
+
+            if (response.status === 404) {
+                document.getElementById("car-detail-container").style.display = "none";
+                document.getElementById("access-denied-message").style.display = "block";
+                return;
+            }
+
             if (!response.ok) throw new Error(await response.text());
 
             const car = await response.json();
             updateCarDetails(car);
         } catch (error) {
             console.error("Fetch Car Details Error:", error);
+            document.getElementById("car-detail-container").style.display = "none";
+            document.getElementById("access-denied-message").style.display = "block";
         }
     }
 

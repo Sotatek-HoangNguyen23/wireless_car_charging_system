@@ -203,8 +203,21 @@ namespace DataAccess.Repositories.CarRepo
         public void addCar(int carModel, int userId, string licensePlate, string carName)
         {
             //code here
-            
-                try
+            var carModelEntity = _context.CarModels.FirstOrDefault(cm => cm.CarModelId == carModel);
+            if (carModelEntity == null)
+            {
+                throw new Exception("Car model không tồn tại.");
+            }
+
+
+            if (string.IsNullOrWhiteSpace(carName))
+            {
+                var brand = string.IsNullOrWhiteSpace(carModelEntity.Brand) ? "" : carModelEntity.Brand.Trim();
+                var type = string.IsNullOrWhiteSpace(carModelEntity.Type) ? "" : carModelEntity.Type.Trim();
+                carName = $"{brand} {type}".Trim();
+            }
+
+            try
                 {
                     var car = new Car
                     {
@@ -440,6 +453,31 @@ namespace DataAccess.Repositories.CarRepo
                     uc.IsAllowedToCharge == true &&
                     uc.StartDate <= currentTime &&
                     (uc.EndDate == null || uc.EndDate >= currentTime));
+        }
+
+        public  bool IsAllowToAccess(int carId, int userId)
+        {
+            var owner =  _context.UserCars
+        .FirstOrDefault(uc => uc.CarId == carId && uc.Role == "Owner");
+
+            if (owner == null)
+                return false;
+
+            return owner.UserId == userId;
+        }
+
+        public bool IsRenterViewAnalysis(int carId, int renterId)
+        {
+            var now = DateTime.Now;
+
+            return _context.UserCars.Any(uc =>
+                uc.CarId == carId &&
+                uc.UserId == renterId &&
+                uc.Role == "Renter" &&
+                uc.IsAllowedToCharge == true &&
+                uc.StartDate <= now &&
+                uc.EndDate >= now
+            );
         }
     }
 }

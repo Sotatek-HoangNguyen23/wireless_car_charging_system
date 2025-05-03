@@ -30,5 +30,8 @@ namespace DataAccess.Interfaces
 
         Task DeleteUserReal(int userId);
 
+        bool IsMailOrPhoneDuplicate(int userId,string mail, string phone);
+
+
     }
 }

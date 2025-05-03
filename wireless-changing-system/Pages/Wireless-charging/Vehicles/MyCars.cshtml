@@ -24,6 +24,12 @@
     async function fetchCarsByUserId() {
         try {
             const response = await fetchWithAuth('https://localhost:7191/api/Car/owner');
+
+            if (response.status === 404) {
+                displayCars([]); // Không có xe -> hiển thị thông báo
+                return;
+            }
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.detail || `API Error: ${response.statusText}`);
@@ -37,12 +43,13 @@
         }
     }
 
+
     function displayCars(cars) {
         const container = document.getElementById("cars-container");
         container.innerHTML = "";
 
         if (cars.length === 0) {
-            container.innerHTML = `<p class="text-muted">Không có xe nào được tìm thấy.</p>`;
+            container.innerHTML = `<h5 class="text-muted">Không có xe </h5>`;
             return;
         }
 

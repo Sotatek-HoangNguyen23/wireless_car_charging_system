@@ -416,6 +416,10 @@ namespace API.Services
             {
                 throw new Exception("Người dùng không tồn tại.");
             }
+            if(_userRepository.IsMailOrPhoneDuplicate(userId, request.Email, request.PhoneNumber))
+            {
+                throw new ArgumentException("Email hoặc số điện thoại đã tồn tại");
+            }
 
             // Update user properties
             user.Fullname = request.Fullname ?? user.Fullname;

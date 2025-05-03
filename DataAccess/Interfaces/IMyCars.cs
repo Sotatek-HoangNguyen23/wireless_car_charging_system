@@ -52,5 +52,9 @@ namespace DataAccess.Interfaces
 
         List<string?> GetAllBrands();
         List<string?> GetAllTypes();
+
+        bool IsAllowToAccess(int  carId,int userId);
+
+        bool IsRenterViewAnalysis(int carId, int renterId);
     }
 }

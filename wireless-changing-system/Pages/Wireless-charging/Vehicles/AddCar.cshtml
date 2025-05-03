@@ -7,19 +7,22 @@
         <div class="card rounded-5 shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Đặt tên xe của bạn</label>
-                    <input type="text" class="form-control" placeholder="Name your car" />
+                    <label class="form-label fw-bold" for="carName">Đặt tên xe của bạn</label>
+                    <input type="text" class="form-control" id="carName" placeholder="" maxlength="50"/>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold"><span class="text-danger">*</span>Biển số xe</label>
-                    <input type="text" class="form-control" placeholder="Enter license plate" />
+                    <label class="form-label fw-bold" for="licensePlate">
+                        <span class="text-danger">*</span>Biển số xe
+                    </label>
+                    <input type="text" class="form-control" id="licensePlate" placeholder="Nhập đúng biển số" />
                 </div>
+
 
                 <div class="mb-4 position-relative">
                     <label class="form-label fw-bold"><span class="text-danger">*</span>Loại</label>
                     <div class="input-group">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm loại xe..." />
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm loại xe..." maxlength="50" />
                         <span id="clearSearch" class="input-group-text bg-transparent border-0 position-absolute end-0 top-50 translate-middle-y" style="cursor: pointer; display: none;">
                             <i class="bi bi-x-circle"></i>
                         </span>
@@ -202,24 +205,25 @@
 
             const result = await response.json();
             showSuccessToast('Car added successfully!');
-            window.location.href = '/wireless-charging/vehicles/mycars';
+            //window.location.href = '/wireless-charging/vehicles/mycars';
         } catch (error) {
             showToast('Error: ' + error.message);
         }
     }
 
             document.querySelector('#btn-add').addEventListener('click', function () {
-        const carNameInput = document.querySelector('input[placeholder="Name your car"]').value;
-        const licensePlate = document.querySelector('input[placeholder="Enter license plate"]').value;
+            const carNameInput = document.getElementById("carName").value;
+    const licensePlate = document.getElementById("licensePlate").value;
+
 
         if (!licensePlate || !selectedCarModelId) {
-            showToast('Please fill in all required fields and select a car model.');
+            showToast('Hãy nhập Biển số và chọn loại xe');
             return;
         }
 
         const selectedCarModelType = document.querySelector('.list-group-item[data-model-id]')?.getAttribute('data-type');
 
-        const carName = carNameInput || selectedCarModelType;
+        const carName = carNameInput || null;
 
          
         addCar(selectedCarModelId,  licensePlate, carName);

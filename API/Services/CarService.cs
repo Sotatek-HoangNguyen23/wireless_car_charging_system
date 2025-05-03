@@ -25,17 +25,45 @@ namespace API.Services
             return _myCars.getCarByOwner(userId);
         }
 
-        public CarDetailDTO GetCarDetailById(int carId)
+        public  CarDetailDTO GetCarDetailById(int carId, int userId)
         {
+            bool isOwner =  _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null; 
+            }
             return _myCars.getCarDetailById(carId);
         }
 
-        public ChargingStatusDTO GetChargingStatusById(int carId) {
+        public ChargingStatusDTO GetChargingStatusById(int carId, int userId) {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null;
+            }
+
             return _myCars.GetChargingStatusById(carId);
         }
 
-        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10)
+        public ChargingStatusDTO GetChargingStatusByIdForRenter(int carId, int userId)
         {
+            bool isRenter = _myCars.IsRenterViewAnalysis(carId, userId);
+            if (!isRenter)
+            {
+                return null;
+            }
+
+            return _myCars.GetChargingStatusById(carId);
+        }
+
+        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int userId, int page = 1, int pageSize = 10)
+        {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                throw new ArgumentException("Bạn không xem được nội dung này");
+                //return null;
+            }
             return _myCars.GetChargingHistory(carId, start, end, chargingStationId, page, pageSize);
         }
 
@@ -81,8 +109,13 @@ namespace API.Services
         //    };
         //}
 
-        public List<CarMonthlyStatDTO> GetCarStats(int carId, int? year)
+        public List<CarMonthlyStatDTO> GetCarStats(int carId, int? year, int userId)
         {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null;
+            }
             return _myCars.GetCarStats(carId, year ?? DateTime.Now.Year);
         }
 
@@ -99,12 +132,12 @@ namespace API.Services
         {
             if (!IsValidVietnameseLicensePlate(licensePlate))
             {
-                throw new ArgumentException("Invalid license plate format");
+                throw new ArgumentException("Sai định dạng biển số");
             }
 
             if (_myCars.checkDuplicateLicensePlate(licensePlate))
             {
-                throw new ArgumentException("License Plate already exists");
+                throw new ArgumentException("Biển số đã tồn tại");
             }
 
             try
@@ -113,7 +146,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Error: " + ex.Message);
+                throw new Exception("Lỗi: " + ex.Message);
             }
         }
 
