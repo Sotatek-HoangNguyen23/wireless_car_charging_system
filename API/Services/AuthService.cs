@@ -3,6 +3,7 @@ using DataAccess.DTOs.Auth;
 using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -22,11 +23,21 @@ namespace API.Services
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.CaptchaToken))
+            {
+                throw new ArgumentException("Captcha không được để trống", nameof(request.CaptchaToken));
+            }
+
+            var captchaValid = await VerifyCaptchaAsync(request.CaptchaToken);
+            if (!captchaValid)
+            {
+                throw new ArgumentException("Captcha không hợp lệ", nameof(request.CaptchaToken));
+            }
+
             if (request.Password.IsNullOrEmpty())
             {
                 throw new ArgumentException("Password không thể trống hoặc khoảng trắng",nameof(request.Password));
             }
-
             var user = await _userRepository.GetUserByEmail(request.Email);
             if (request.Email.Length > 225) 
             {
@@ -34,19 +45,31 @@ namespace API.Services
             }
             if (request.Password.Length > 100) 
             {
-                throw new ArgumentException("Password không được vượt quá 100 ký tự.", nameof(request.Password));
+                throw new ArgumentException("Mật khẩu không được vượt quá 100 ký tự.", nameof(request.Password));
             }
             if (user == null)
             {
-                throw new ArgumentException("Tai khoan khong ton tai");
+                throw new ArgumentException("Tài khoản không tồn tại");
             }
             if ( !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                throw new ArgumentException("Mat khau sai"); // Authentication failed
+                throw new ArgumentException("Mật khẩu sai"); // Authentication failed
             }
-            if (user.Status == "Inactive")
+            if (user.Status == "PENDING")
             {
-                throw new ArgumentException("Tài khoản của bạn đã bị khóa.Vui lòng vào email để kích hoạt tài khoản");
+                throw new ArgumentException("Tài khoản của bạn đang trong hàng chờ, vui lòng đợi duyệt.");
+            }
+            if (user.Status == "REJECTED")
+            {
+                throw new ArgumentException("Tài khoản của bạn đã bị từ chối. Vui lòng liên hệ hỗ trợ để biết thêm chi tiết.");
+            }
+            if (user.Status == "OTPprocess")
+            {
+                throw new ArgumentException("Tài khoản của bạn chưa hoàn tất đăng kí. Vui lòng đăng kí lại sau 1 ngày");
+            }
+            if (user.Status != "ACTIVE")
+            {
+                throw new ArgumentException("Tài khoản của bạn không đủ điều kiện để thực hiện thao tác này.");
             }
 
             var AccessToken = GenerateAccessToken(user);
@@ -181,6 +204,34 @@ namespace API.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public async Task<bool> VerifyCaptchaAsync(string captchaResponse)
+        {
+            if (string.IsNullOrEmpty(captchaResponse))
+                return false;
+
+            var _secretKey = Environment.GetEnvironmentVariable("RECAPTCHA_SECRET_KEY");
+            if (string.IsNullOrEmpty(_secretKey))
+            {
+             throw new ArgumentException("Secret key cannot be null or empty");
+            }
+            using (var client = new HttpClient())
+            {
+                var parameters = new Dictionary<string, string>
+                {
+                    { "secret", _secretKey },
+                    { "response", captchaResponse }
+                };
+
+                var content = new FormUrlEncodedContent(parameters);
+                var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                var captchaResult = JsonConvert.DeserializeObject<CaptchaResponse>(responseString);
+
+                return captchaResult!.success;
+            }
+        }
+
 
     }
 }

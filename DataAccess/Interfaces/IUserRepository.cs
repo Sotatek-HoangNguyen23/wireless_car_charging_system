@@ -30,6 +30,7 @@ namespace DataAccess.Interfaces
 
         Task DeleteUserReal(int userId);
 
+        Task AddDocumentRequest(DocumentReview document);
         bool IsMailOrPhoneDuplicate(int userId,string mail, string phone);
 
 
