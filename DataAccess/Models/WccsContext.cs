@@ -386,7 +386,6 @@ public partial class WccsContext : DbContext
                 .HasColumnName("img_frontPubblicId");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");

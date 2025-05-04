@@ -29,6 +29,16 @@ public partial class Car
 
     public DateTime? UpdateAt { get; set; }
 
+    public string? ImgFront { get; set; }
+
+    public string? ImgBack { get; set; }
+
+    public string? ImgFrontPubblicId { get; set; }
+
+    public string? ImgBackPubblicId { get; set; }
+
+    public string? Status { get; set; }
+
     public virtual CarModel CarModel { get; set; } = null!;
 
     public virtual ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();

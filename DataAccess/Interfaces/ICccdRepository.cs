@@ -11,5 +11,7 @@ namespace DataAccess.Interfaces
     {
          Task<Cccd?> GetCccdByCode(string code);
         Task SaveCccd(Cccd cccd);
+
+        Task<Cccd?> GetCccdById(int id);
     }
 }

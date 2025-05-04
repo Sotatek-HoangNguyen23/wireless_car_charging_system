@@ -510,5 +510,24 @@ namespace DataAccess.Repositories.CarRepo
                 uc.EndDate >= now
             );
         }
+
+        public async Task ChangeCarStatusAsync(int? carId, string newStatus)
+        {
+            if (string.IsNullOrEmpty(newStatus))
+            {
+                throw new ArgumentException("Trạng thái không thể trống", nameof(newStatus));
+            }
+            if (carId <= 0)
+            {
+                throw new ArgumentException("ID người dùng không hợp lệ", nameof(carId));
+            }
+            var car = await _context.Cars.FindAsync(carId);
+            if (car != null)
+            {
+                car.Status = newStatus;
+                _context.Cars.Update(car);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

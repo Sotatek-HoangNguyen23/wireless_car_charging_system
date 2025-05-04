@@ -18,6 +18,7 @@ namespace DataAccess.Interfaces
         Task<IEnumerable<DriverLicense>?> GetLicensesByUserId(int userId);
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<PagedResultD<DriverLicenseDTO>> GetPagedLicensesAsync(int pageNumber, int pageSize, DriverLicenseFilter filter);
-
+        Task<DriverLicense?> GetLicensesById(int id);
+        Task ChangeLicenseStatusAsync(int? licenseId, string newStatus);
     }
 }

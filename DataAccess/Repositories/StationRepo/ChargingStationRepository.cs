@@ -1,9 +1,7 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace DataAccess.Repositories.StationRepo
 {
@@ -79,7 +77,7 @@ namespace DataAccess.Repositories.StationRepo
             }
 
             // Tính tổng số trang
-            int totalRecords = query.Count(); ; ;    
+            int totalRecords = query.Count();    
 
             // Phân trang (chỉ lấy dữ liệu của trang hiện tại)
             var data = stationList
