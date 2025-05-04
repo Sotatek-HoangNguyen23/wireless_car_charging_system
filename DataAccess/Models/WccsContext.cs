@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace DataAccess.Models;
 
@@ -32,6 +31,8 @@ public partial class WccsContext : DbContext
 
     public virtual DbSet<ChargingStation> ChargingStations { get; set; }
 
+    public virtual DbSet<DocumentReview> DocumentReviews { get; set; }
+
     public virtual DbSet<DriverLicense> DriverLicenses { get; set; }
 
     public virtual DbSet<Feedback> Feedbacks { get; set; }
@@ -51,17 +52,14 @@ public partial class WccsContext : DbContext
     public virtual DbSet<UserCar> UserCars { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
-        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=LAPTOP-3FG4MF5P;Database=WCCS;User Id=sa;Password=123456;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Balance>(entity =>
         {
-            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B6080899F");
+            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B502E8059");
 
             entity.ToTable("balance");
 
@@ -74,12 +72,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Balances)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__balance__user_id__6E01572D");
+                .HasConstraintName("FK__balance__user_id__5BE2A6F2");
         });
 
         modelBuilder.Entity<BalanceTransaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AF1E842AC2");
+            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AFCA6C2E51");
 
             entity.ToTable("balance_transactions");
 
@@ -98,12 +96,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Balance).WithMany(p => p.BalanceTransactions)
                 .HasForeignKey(d => d.BalanceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__balance_t__balan__70DDC3D8");
+                .HasConstraintName("FK__balance_t__balan__5EBF139D");
         });
 
         modelBuilder.Entity<Car>(entity =>
         {
-            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB370606937");
+            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB3AA015144");
 
             entity.ToTable("car");
 
@@ -113,21 +111,36 @@ public partial class WccsContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("car_name");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
+            entity.Property(e => e.ImgBack)
+                .HasMaxLength(1000)
+                .HasColumnName("img_back");
+            entity.Property(e => e.ImgBackPubblicId)
+                .HasMaxLength(255)
+                .HasColumnName("img_backPubblicId");
+            entity.Property(e => e.ImgFront)
+                .HasMaxLength(1000)
+                .HasColumnName("img_front");
+            entity.Property(e => e.ImgFrontPubblicId)
+                .HasMaxLength(255)
+                .HasColumnName("img_frontPubblicId");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.LicensePlate)
                 .HasMaxLength(50)
                 .HasColumnName("license_plate");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
             entity.HasOne(d => d.CarModel).WithMany(p => p.Cars)
                 .HasForeignKey(d => d.CarModelId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__car__car_model_i__5812160E");
+                .HasConstraintName("FK__car__car_model_i__45F365D3");
         });
 
         modelBuilder.Entity<CarModel>(entity =>
         {
-            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B23773FE23A84");
+            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B237727E51E14");
 
             entity.ToTable("car_model");
 
@@ -158,7 +171,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Cccd>(entity =>
         {
-            entity.HasKey(e => e.CccdId).HasName("PK__cccd__E47A6DF11E5AF1D6");
+            entity.HasKey(e => e.CccdId).HasName("PK__cccd__E47A6DF1D3DF36FB");
 
             entity.ToTable("cccd");
 
@@ -190,12 +203,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Cccds)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__cccd__user_id__7C4F7684");
+                .HasConstraintName("FK__cccd__user_id__6754599E");
         });
 
         modelBuilder.Entity<ChargingPoint>(entity =>
         {
-            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F5953704532DEE");
+            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F595371887C632");
 
             entity.ToTable("charging_point");
 
@@ -217,12 +230,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Station).WithMany(p => p.ChargingPoints)
                 .HasForeignKey(d => d.StationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___stati__5AEE82B9");
+                .HasConstraintName("FK__charging___stati__48CFD27E");
         });
 
         modelBuilder.Entity<ChargingSession>(entity =>
         {
-            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDC0D18C915");
+            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDC2779F21B");
 
             entity.ToTable("charging_session");
 
@@ -241,22 +254,22 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Car).WithMany(p => p.ChargingSessions)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___car_i__656C112C");
+                .HasConstraintName("FK__charging___car_i__534D60F1");
 
             entity.HasOne(d => d.ChargingPoint).WithMany(p => p.ChargingSessions)
                 .HasForeignKey(d => d.ChargingPointId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___charg__66603565");
+                .HasConstraintName("FK__charging___charg__5441852A");
 
             entity.HasOne(d => d.User).WithMany(p => p.ChargingSessions)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___user___6754599E");
+                .HasConstraintName("FK__charging___user___5535A963");
         });
 
         modelBuilder.Entity<ChargingStation>(entity =>
         {
-            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E95DF1D3D7");
+            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E9724EE29A");
 
             entity.ToTable("charging_station");
 
@@ -275,17 +288,68 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Owner).WithMany(p => p.ChargingStations)
                 .HasForeignKey(d => d.OwnerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___owner__5441852A");
+                .HasConstraintName("FK__charging___owner__4222D4EF");
 
             entity.HasOne(d => d.StationLocation).WithMany(p => p.ChargingStations)
                 .HasForeignKey(d => d.StationLocationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__charging___stati__5535A963");
+                .HasConstraintName("FK__charging___stati__4316F928");
+        });
+
+        modelBuilder.Entity<DocumentReview>(entity =>
+        {
+            entity.HasKey(e => e.ReviewId).HasName("PK__document__60883D9090F98612");
+
+            entity.ToTable("document_review", tb => tb.HasTrigger("trg_document_review_update"));
+
+            entity.Property(e => e.ReviewId).HasColumnName("review_id");
+            entity.Property(e => e.CarId).HasColumnName("car_id");
+            entity.Property(e => e.CccdId).HasColumnName("cccd_id");
+            entity.Property(e => e.Comments)
+                .HasMaxLength(1000)
+                .HasColumnName("comments");
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("create_at");
+            entity.Property(e => e.DriverLicenseId).HasColumnName("driver_license_id");
+            entity.Property(e => e.ReviewType)
+                .HasMaxLength(20)
+                .HasColumnName("review_type");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+            entity.Property(e => e.UpdateAt)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("update_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Car).WithMany(p => p.DocumentReviews)
+                .HasForeignKey(d => d.CarId)
+                .HasConstraintName("FK__document___car_i__4AE30379");
+
+            entity.HasOne(d => d.Cccd).WithMany(p => p.DocumentReviews)
+                .HasForeignKey(d => d.CccdId)
+                .HasConstraintName("FK__document___cccd___49EEDF40");
+
+            entity.HasOne(d => d.DriverLicense).WithMany(p => p.DocumentReviews)
+                .HasForeignKey(d => d.DriverLicenseId)
+                .HasConstraintName("FK__document___drive__4BD727B2");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.DocumentReviewReviewedByNavigations)
+                .HasForeignKey(d => d.ReviewedBy)
+                .HasConstraintName("FK__document___revie__4CCB4BEB");
+
+            entity.HasOne(d => d.User).WithMany(p => p.DocumentReviewUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__document___user___48FABB07");
         });
 
         modelBuilder.Entity<DriverLicense>(entity =>
         {
-            entity.HasKey(e => e.DriverLicenseId).HasName("PK__driver_l__5EB6C89F42D37B76");
+            entity.HasKey(e => e.DriverLicenseId).HasName("PK__driver_l__5EB6C89F740B2197");
 
             entity.ToTable("driver_license");
 
@@ -317,7 +381,6 @@ public partial class WccsContext : DbContext
                 .HasColumnName("img_frontPubblicId");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
-                .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -325,12 +388,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.DriverLicenses)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__driver_li__user___7F2BE32F");
+                .HasConstraintName("FK__driver_li__user___6A30C649");
         });
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8CF9B3C3A7");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8CE7D0D04C");
 
             entity.ToTable("feedback");
 
@@ -355,25 +418,25 @@ public partial class WccsContext : DbContext
 
             entity.HasOne(d => d.Car).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.CarId)
-                .HasConstraintName("FK__feedback__car_id__76969D2E");
+                .HasConstraintName("fk_feedback_car");
 
             entity.HasOne(d => d.Point).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.PointId)
-                .HasConstraintName("FK__feedback__point___787EE5A0");
+                .HasConstraintName("fk_feedback_point");
 
             entity.HasOne(d => d.Station).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.StationId)
-                .HasConstraintName("FK__feedback__statio__797309D9");
+                .HasConstraintName("fk_feedback_station");
 
             entity.HasOne(d => d.User).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__feedback__user_i__778AC167");
+                .HasConstraintName("FK__feedback__user_i__6477ECF3");
         });
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EAD0146172");
+            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EAE8504C78");
 
             entity.ToTable("payment");
 
@@ -392,17 +455,17 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Session).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.SessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__payment__session__6B24EA82");
+                .HasConstraintName("FK__payment__session__59063A47");
 
             entity.HasOne(d => d.User).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__payment__user_id__6A30C649");
+                .HasConstraintName("FK__payment__user_id__5812160E");
         });
 
         modelBuilder.Entity<RealTimeDatum>(entity =>
         {
-            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B1157BA97");
+            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3BC73E5A4C");
 
             entity.ToTable("real_time_data");
 
@@ -451,26 +514,31 @@ public partial class WccsContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("status");
+            entity.Property(e => e.StepCost)
+                .HasMaxLength(50)
+                .HasColumnName("step_cost");
             entity.Property(e => e.Temperature)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("temperature");
-            entity.Property(e => e.TimeMoment).HasColumnName("Time_moment");
+            entity.Property(e => e.TimeMoment)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("time_moment");
 
             entity.HasOne(d => d.Car).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__real_time__car_i__619B8048");
+                .HasConstraintName("FK__real_time__car_i__74AE54BC");
 
             entity.HasOne(d => d.Chargingpoint).WithMany(p => p.RealTimeData)
                 .HasForeignKey(d => d.ChargingpointId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__real_time__charg__628FA481");
+                .HasConstraintName("FK__real_time__charg__75A278F5");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E17BE5EB670");
+            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E175550A2B3");
 
             entity.ToTable("refresh_tokens");
 
@@ -487,12 +555,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__refresh_t__user___73BA3083");
+                .HasConstraintName("FK__refresh_t__user___619B8048");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CC64736BD9");
+            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CCAF1A0C43");
 
             entity.ToTable("roles");
 
@@ -504,7 +572,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<StationLocation>(entity =>
         {
-            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE7BD48A73B");
+            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE74D6667F1");
 
             entity.ToTable("station_location");
 
@@ -527,13 +595,13 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370FB24E0180");
+            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370FB094757A");
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6B632764FD").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6BEB9BDBF2").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E61649E285DE1").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__users__AB6E6164C834537B").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Address)
@@ -563,12 +631,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__users__role_id__5165187F");
+                .HasConstraintName("FK__users__role_id__3F466844");
         });
 
         modelBuilder.Entity<UserCar>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D4E4D91218");
+            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D4BE2090A0");
 
             entity.ToTable("user_car");
 
@@ -579,12 +647,12 @@ public partial class WccsContext : DbContext
             entity.HasOne(d => d.Car).WithMany(p => p.UserCars)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__user_car__car_id__5EBF139D");
+                .HasConstraintName("FK__user_car__car_id__4CA06362");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserCars)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__user_car__user_i__5DCAEF64");
+                .HasConstraintName("FK__user_car__user_i__4BAC3F29");
         });
 
         OnModelCreatingPartial(modelBuilder);

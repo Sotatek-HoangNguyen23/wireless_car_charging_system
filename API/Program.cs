@@ -82,6 +82,7 @@ builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryWrapper>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<DocumentReviewService>();
 builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -94,6 +95,7 @@ builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
 builder.Services.AddScoped<IBalancement, BalanceRepo>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddScoped<IDocumentReviewRepository, DocumentReviewRepository>();
 
 //=======================================
 // JWt configuration

@@ -52,5 +52,6 @@ namespace DataAccess.Interfaces
 
         List<string?> GetAllBrands();
         List<string?> GetAllTypes();
+        Task ChangeCarStatusAsync(int? carId, string newStatus);
     }
 }
