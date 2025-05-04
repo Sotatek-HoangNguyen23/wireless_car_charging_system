@@ -1,6 +1,7 @@
 ﻿let isRefreshing = false;
 let refreshPromise = null;
 function notify(message, type = 'info', duration = 2000, topOffset = 20) {
+    document.body.classList.add('notify-active');
     const color = {
         info: '#2196F3',
         success: '#4CAF50',
@@ -35,6 +36,7 @@ function notify(message, type = 'info', duration = 2000, topOffset = 20) {
 
     // Tự ẩn sau `duration` ms
     setTimeout(() => {
+        document.body.classList.remove('notify-active');
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(-20px)';  // slide lên khi ẩn
         toast.addEventListener('transitionend', () => toast.remove());
@@ -66,7 +68,7 @@ async function performTokenRefresh() {
         notify("Bạn cần đăng nhập để truy cập tính năng này!", 'error');
         setTimeout(() => {
             logout(); 
-        }, 2000);
+        }, 1000);
         throw error;
     }
 }
@@ -121,7 +123,7 @@ export async function fetchWithAuth(url, options = {}) {
             notify("Bạn không có quyền truy cập tính năng này!", 'warning');
             setTimeout(() => {
                 logout(); 
-            }, 2000);
+            }, 1000);
             return Promise.reject(new Error('Access denied'));
         }
 
