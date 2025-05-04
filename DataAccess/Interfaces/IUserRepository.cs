@@ -30,5 +30,6 @@ namespace DataAccess.Interfaces
 
         Task DeleteUserReal(int userId);
 
+        Task AddDocumentRequest(DocumentReview document);
     }
 }

@@ -59,6 +59,8 @@ namespace DataAccess.Repositories
 
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Cccds)
+                .Include(u => u.DriverLicenses)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
@@ -251,6 +253,16 @@ namespace DataAccess.Repositories
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public Task AddDocumentRequest(DocumentReview document)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document), "DocumentReview không thể null");
+            }
+            _context.DocumentReviews.Add(document);
+            return _context.SaveChangesAsync();
         }
     }
 }

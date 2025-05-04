@@ -53,7 +53,7 @@ public partial class WccsContext : DbContext
     public virtual DbSet<UserCar> UserCars { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
+{
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
         if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("value")); }
@@ -63,7 +63,7 @@ public partial class WccsContext : DbContext
     {
         modelBuilder.Entity<Balance>(entity =>
         {
-            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B8D495C94");
+            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5BD63A0434");
 
             entity.ToTable("balance");
 
@@ -81,7 +81,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<BalanceTransaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AF5760B173");
+            entity.HasKey(e => e.TransactionId).HasName("PK__balance___85C600AFE67830BB");
 
             entity.ToTable("balance_transactions");
 
@@ -105,7 +105,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Car>(entity =>
         {
-            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB316D45B2A");
+            entity.HasKey(e => e.CarId).HasName("PK__car__4C9A0DB361790547");
 
             entity.ToTable("car");
 
@@ -115,10 +115,30 @@ public partial class WccsContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("car_name");
             entity.Property(e => e.CreateAt).HasColumnName("create_at");
+            entity.Property(e => e.ImgBack)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_back");
+            entity.Property(e => e.ImgBackPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_backPubblicId");
+            entity.Property(e => e.ImgFront)
+                .HasMaxLength(1000)
+                .IsUnicode(false)
+                .HasColumnName("img_front");
+            entity.Property(e => e.ImgFrontPubblicId)
+                .HasMaxLength(225)
+                .IsUnicode(false)
+                .HasColumnName("img_frontPubblicId");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.LicensePlate)
                 .HasMaxLength(50)
                 .HasColumnName("license_plate");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
             entity.Property(e => e.UpdateAt).HasColumnName("update_at");
 
             entity.HasOne(d => d.CarModel).WithMany(p => p.Cars)
@@ -129,7 +149,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<CarModel>(entity =>
         {
-            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B23777309A388");
+            entity.HasKey(e => e.CarModelId).HasName("PK__car_mode__6F9B237770240B8F");
 
             entity.ToTable("car_model");
 
@@ -160,7 +180,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Cccd>(entity =>
         {
-            entity.HasKey(e => e.CccdId).HasName("PK__cccd__E47A6DF1C9D85DB3");
+            entity.HasKey(e => e.CccdId).HasName("PK__cccd__E47A6DF186DFDDA1");
 
             entity.ToTable("cccd");
 
@@ -197,7 +217,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<ChargingPoint>(entity =>
         {
-            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F595374472C2EB");
+            entity.HasKey(e => e.ChargingPointId).HasName("PK__charging__D7F59537E93399D3");
 
             entity.ToTable("charging_point");
 
@@ -224,7 +244,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<ChargingSession>(entity =>
         {
-            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDCCEDDB129");
+            entity.HasKey(e => e.SessionId).HasName("PK__charging__69B13FDCFCA28892");
 
             entity.ToTable("charging_session");
 
@@ -258,7 +278,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<ChargingStation>(entity =>
         {
-            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E91DACDA2D");
+            entity.HasKey(e => e.StationId).HasName("PK__charging__44B370E943FB6D23");
 
             entity.ToTable("charging_station");
 
@@ -287,11 +307,12 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<DocumentReview>(entity =>
         {
-            entity.HasKey(e => e.ReviewId).HasName("PK__document__60883D90A1DED032");
+            entity.HasKey(e => e.ReviewId).HasName("PK__document__60883D90C6213A68");
 
             entity.ToTable("document_review", tb => tb.HasTrigger("trg_document_review_update"));
 
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
+            entity.Property(e => e.CarId).HasColumnName("car_id");
             entity.Property(e => e.CccdId).HasColumnName("cccd_id");
             entity.Property(e => e.Comments)
                 .HasMaxLength(1000)
@@ -313,17 +334,21 @@ public partial class WccsContext : DbContext
                 .HasColumnName("update_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
+            entity.HasOne(d => d.Car).WithMany(p => p.DocumentReviews)
+                .HasForeignKey(d => d.CarId)
+                .HasConstraintName("FK__document___car_i__1AD3FDA4");
+
             entity.HasOne(d => d.Cccd).WithMany(p => p.DocumentReviews)
                 .HasForeignKey(d => d.CccdId)
                 .HasConstraintName("FK__document___cccd___19DFD96B");
 
             entity.HasOne(d => d.DriverLicense).WithMany(p => p.DocumentReviews)
                 .HasForeignKey(d => d.DriverLicenseId)
-                .HasConstraintName("FK__document___drive__1AD3FDA4");
+                .HasConstraintName("FK__document___drive__1BC821DD");
 
             entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.DocumentReviewReviewedByNavigations)
                 .HasForeignKey(d => d.ReviewedBy)
-                .HasConstraintName("FK__document___revie__1BC821DD");
+                .HasConstraintName("FK__document___revie__1CBC4616");
 
             entity.HasOne(d => d.User).WithMany(p => p.DocumentReviewUsers)
                 .HasForeignKey(d => d.UserId)
@@ -333,7 +358,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<DriverLicense>(entity =>
         {
-            entity.HasKey(e => e.DriverLicenseId).HasName("PK__driver_l__5EB6C89FCD009AB9");
+            entity.HasKey(e => e.DriverLicenseId).HasName("PK__driver_l__5EB6C89FF2E32C21");
 
             entity.ToTable("driver_license");
 
@@ -378,7 +403,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8C61722772");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8C73826BE4");
 
             entity.ToTable("feedback");
 
@@ -421,7 +446,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EA21B3B32D");
+            entity.HasKey(e => e.PaymentId).HasName("PK__payment__ED1FC9EA073110F9");
 
             entity.ToTable("payment");
 
@@ -450,7 +475,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<RealTimeDatum>(entity =>
         {
-            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3B7061A3DF");
+            entity.HasKey(e => e.DataId).HasName("PK__real_tim__F5A76B3BC73E5A4C");
 
             entity.ToTable("real_time_data");
 
@@ -518,7 +543,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E1777F9F172");
+            entity.HasKey(e => e.TokenId).HasName("PK__refresh___CB3C9E1740EDF086");
 
             entity.ToTable("refresh_tokens");
 
@@ -540,7 +565,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CCE087A950");
+            entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CC7B4A4933");
 
             entity.ToTable("roles");
 
@@ -552,7 +577,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<StationLocation>(entity =>
         {
-            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE7ADEB4F5A");
+            entity.HasKey(e => e.StationLocationId).HasName("PK__station___0CE32FE77AA08A18");
 
             entity.ToTable("station_location");
 
@@ -575,13 +600,13 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F6FFAE440");
+            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F75EF7C0F");
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6B17999929").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6B3D8FA6CF").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E6164F258F998").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__users__AB6E616458702F6A").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Address)
@@ -616,7 +641,7 @@ public partial class WccsContext : DbContext
 
         modelBuilder.Entity<UserCar>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D48B7DBF91");
+            entity.HasKey(e => new { e.UserId, e.CarId }).HasName("PK__user_car__9D7797D4EF334824");
 
             entity.ToTable("user_car");
 

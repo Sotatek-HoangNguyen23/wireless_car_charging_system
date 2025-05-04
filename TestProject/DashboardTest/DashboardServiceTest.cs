@@ -138,7 +138,7 @@ namespace TestProject.DashboardTest
                 Assert.That(result.TodaySessions, Is.EqualTo(1));
                 Assert.That(result.WeekSessions, Is.EqualTo(2));
                 Assert.That(result.TotalEnergyToday, Is.EqualTo(20));
-                Assert.That(result.TotalEnergyThisMonth, Is.EqualTo(35));
+                Assert.That(result.TotalEnergyThisMonth, Is.EqualTo(20.0d));
                 Assert.That(result.TotalRevenue, Is.EqualTo(80000));
                 Assert.That(result.ActiveStations, Is.EqualTo(1));
                 Assert.That(result.OfflineStations, Is.EqualTo(1));

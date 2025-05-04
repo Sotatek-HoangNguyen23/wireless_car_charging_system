@@ -13,6 +13,8 @@ public partial class DocumentReview
 
     public int? DriverLicenseId { get; set; }
 
+    public int? CarId { get; set; }
+
     public string ReviewType { get; set; } = null!;
 
     public string Status { get; set; } = null!;
@@ -26,6 +28,8 @@ public partial class DocumentReview
     public DateTime CreateAt { get; set; }
 
     public DateTime UpdateAt { get; set; }
+
+    public virtual Car? Car { get; set; }
 
     public virtual Cccd? Cccd { get; set; }
 

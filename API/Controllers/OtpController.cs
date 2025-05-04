@@ -116,8 +116,8 @@ namespace API.Controllers
                 });
             }
         }
-        [HttpPost("reset-token")]
-        public async Task<IActionResult> GenerateTokenReset([FromBody] string Email)
+        [HttpPost("pending-register")]
+        public async Task<IActionResult> PendingRegisterUserUseOTP([FromBody] VerifyOtpRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -128,12 +128,62 @@ namespace API.Controllers
                     Status = 400
                 });
             }
+
             try
             {
-                var token = await _otpServices.genResetPasswordToken(Email);
+                await _userService.PendingRegisterUserViaOtpAsync(request.Email, request.OtpCode);
+                return Ok(new
+                {
+                    Message = "Xác thực OTP thành công. Tài khoản đang chờ kích hoạt."
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ex.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+                    Status = 500,
+                });
+            }
+        } 
+        [HttpPost("verify_and_create_reset_password_token")]
+        public async Task<IActionResult> VerifyAndGenerateTokenReset([FromBody] VerifyOtpRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+                    Status = 400
+                });
+            }
+
+            try
+            {
+                var token = await _userService.VerifyAndGenResetPasswordToken(request.Email, request.OtpCode);
                 return Ok(new { Message = "OTP created success", Token = token });
             }
-            catch
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Detail = ex.Message,
+                    Status = 400
+                });
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, new ProblemDetails
                 {
@@ -143,6 +193,34 @@ namespace API.Controllers
                 });
             }
         }
+
+        //[HttpPost("reset-token")]
+        //public async Task<IActionResult> GenerateTokenReset([FromBody] string Email)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(new ProblemDetails
+        //        {
+        //            Title = "Invalid Request",
+        //            Detail = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage,
+        //            Status = 400
+        //        });
+        //    }
+        //    try
+        //    {
+        //        var token = await _otpServices.genResetPasswordToken(Email);
+        //        return Ok(new { Message = "OTP created success", Token = token });
+        //    }
+        //    catch
+        //    {
+        //        return StatusCode(500, new ProblemDetails
+        //        {
+        //            Title = "Internal Server Error",
+        //            Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
+        //            Status = 500,
+        //        });
+        //    }
+        //}
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
