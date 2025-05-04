@@ -59,7 +59,7 @@ public partial class WccsContext : DbContext
     {
         modelBuilder.Entity<Balance>(entity =>
         {
-            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5BD63A0434");
+            entity.HasKey(e => e.BalanceId).HasName("PK__balance__18188B5B6080899F");
 
             entity.ToTable("balance");
 

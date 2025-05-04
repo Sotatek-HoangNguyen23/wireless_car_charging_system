@@ -8,7 +8,14 @@
         <div class="card-body">
             <h4 class="card-title fw-bold mb-3">Nhập mã xác thực</h4>
             <p class="mb-3">
-                Vui lòng kiểm tra email để lấy mã xác thực.
+                @if (Model.ActionType == "register")
+                {
+                    <span>Mã OTP đã được gửi đến email đăng ký của bạn.</span>
+                }
+                else
+                {
+                    <span>Mã OTP đã được gửi để xác thực đặt lại mật khẩu.</span>
+                }               
                 Mã của bạn gồm 6 chữ số.
             </p>
 
@@ -173,42 +180,43 @@
 
            // Xác thực OTP
     verifyBtn.addEventListener('click', async () => {
-         const originalText = verifyBtn.innerHTML;
-         const originalDisabledState = verifyBtn.disabled;
-        if (submitCountdown >= 3) {
-            showToast("Bạn đã nhập sai quá 3 lần. Vui lòng thử lại sau.");
-            return;
-        }
-        const otpCode = Array.from(inputs).map(input => input.value).join('');
+        const originalText = verifyBtn.innerHTML;
+        const originalDisabledState = verifyBtn.disabled;
+        const actionType = '@Model.ActionType'; // Lấy từ model
 
         try {
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = `
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Đang xác thực...
-        `;
-            // Bước 1: Xác thực OTP
-            const verifyResponse = await fetch('https://localhost:7191/api/otp/verify', {
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Đang xác thực...
+            `;
+
+            // Xác định endpoint API theo loại action
+            const apiUrl = actionType === 'register'
+                ? 'https://localhost:7191/api/Otp/pending-register'
+                : 'https://localhost:7191/api/Otp/verify_and_create_reset_password_token';
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: '@Model.Email',
-                    otpCode: otpCode
+                    otpCode: Array.from(inputs).map(input => input.value).join('')
                 })
             });
 
-            if (!verifyResponse.ok) {
-                const errorData = await verifyResponse.json();
-                throw new Error(errorData.detail || 'Mã OTP không hợp lệ');
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.detail || 'Xác thực thất bại');
             }
 
-            // Bước 2: Lấy token reset
-            const token = await tokenReset('@Model.Email');
-
-            // Bước 3: Chuyển hướng với token
-            window.location.href = `./new-password?email=${encodeURIComponent('@Model.Email')}&token=${encodeURIComponent(token)}`;
+            // Xử lý redirect sau khi thành công
+            if (actionType === 'register') {
+                window.location.href = '/auth'; 
+            } else {
+                window.location.href = `./new-password?email=${encodeURIComponent('@Model.Email')}&token=${encodeURIComponent(result.token)}`;
+            }
 
         } catch (error) {
             submitCountdown++;
@@ -219,36 +227,12 @@
                 showToast(error.message);
             }
             clearInput();
-        }finally{
+        } finally {
             verifyBtn.disabled = originalDisabledState;
             verifyBtn.innerHTML = originalText;
         }
     });
-
-    async function tokenReset(Email) {
-        try {
-            const tokenResponse = await fetch('https://localhost:7191/api/otp/reset-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(Email) // Gửi email dạng string
-            });
-
-            if (!tokenResponse.ok) {
-                const errorData = await tokenResponse.json();
-                throw new Error(errorData.detail || 'Không thể tạo token');
-            }
-
-            const result = await tokenResponse.json();
-            return result.token;
-
-        } catch (error) {
-            showToast(error.message);
-            throw error;
-        }
-    }
-        function clearInput(){
+    function clearInput(){
             inputs.forEach(input => input.value = '');
             inputs[0].focus();
         }

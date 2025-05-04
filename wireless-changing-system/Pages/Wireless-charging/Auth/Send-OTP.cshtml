@@ -70,8 +70,15 @@
                 const errorData = await response.json();
                 throw new Error(errorData.detail || 'Gửi mã OTP thất bại');
             }
-
-            window.location.href = `./Confirm-OTP?email=${encodeURIComponent('@Model.Email')}`;
+            showSuccessToast(' Vui lòng kiểm tra email của bạn để nhận OTP.');
+            setTimeout(() => {
+                  // Dùng URLSearchParams để build query string
+                  const params = new URLSearchParams({
+                    Email: '@Model.Email',
+                    ActionType: 'reset-password'
+                  });
+                  window.location.href = `/wireless-charging/auth/Confirm-OTP?${params}`;
+                }, 2000);
 
         } catch (error) {
             showToast(toast, error.message);
