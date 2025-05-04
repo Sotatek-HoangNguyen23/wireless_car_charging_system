@@ -638,16 +638,18 @@ namespace API.Services
                 using var transaction = await _licenseRepository.BeginTransactionAsync();
                 try
                 {
+                    await _licenseRepository.SaveLicense(license);
+
                     var documentReview = new DocumentReview
                     {
                         UserId = userId,
                         ReviewType = "DRIVER_LICENSE",
+                        DriverLicenseId = license.DriverLicenseId,
                         Status = "PENDING",
                         CreateAt = DateTime.UtcNow,
                         UpdateAt = DateTime.UtcNow
                     };
                     await _userRepository.AddDocumentRequest(documentReview);
-                    await _licenseRepository.SaveLicense(license);
                     await transaction.CommitAsync();
                 }
                 catch

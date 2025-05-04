@@ -213,7 +213,7 @@
 
             // Xử lý redirect sau khi thành công
             if (actionType === 'register') {
-                window.location.href = '/auth'; 
+                window.location.href = '/'; 
             } else {
                 window.location.href = `./new-password?email=${encodeURIComponent('@Model.Email')}&token=${encodeURIComponent(result.token)}`;
             }

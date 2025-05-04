@@ -11,8 +11,6 @@ public partial class Feedback
 
     public string? Message { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
-
     public string? Type { get; set; }
 
     public int? CarId { get; set; }
@@ -24,6 +22,8 @@ public partial class Feedback
     public string? Status { get; set; }
 
     public string? Response { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
 
     public virtual Car? Car { get; set; }
 
