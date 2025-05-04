@@ -29,7 +29,7 @@ namespace DataAccess.Interfaces
 
         bool checkDuplicateLicensePlate(string licensePlate) ;
 
-        void addCar(int carModel, int userId, string licensePlate, string carName);
+        Task addCar(Car request, int userId);
 
         void editCar(int carModel, int carId, string licensePlate, string carName);
 

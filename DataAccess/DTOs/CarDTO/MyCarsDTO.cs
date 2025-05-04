@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,8 @@ namespace DataAccess.DTOs.CarDTO
         public string? Color { get; set; }
         public string? Brand { get; set; }
         public string? Img { get; set; }
+
+        public string Status { get; set; }
     }
 
     public class AddCarRequest
@@ -27,6 +30,10 @@ namespace DataAccess.DTOs.CarDTO
 
         public string LicensePlate { get; set; }
         public string? CarName { get; set; }
+
+        public required IFormFile CarLicenseFrontImage { get; set; }
+
+        public required IFormFile CarLicenseBackImage { get; set; }
     }
 
     public class EditCarRequest
@@ -34,7 +41,7 @@ namespace DataAccess.DTOs.CarDTO
         public int CarId { get; set; }
         public int CarModelId { get; set; }
         public string LicensePlate { get; set; }
-        public string CarName { get; set; }
+        public string? CarName { get; set; }
     }
 
     public class RentRequestDto

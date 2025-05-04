@@ -17,6 +17,15 @@
                     </label>
                     <input type="text" class="form-control" id="licensePlate" placeholder="Nhập đúng biển số" />
                 </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>Ảnh đăng ký xe - mặt trước</label>
+                    <input type="file" id="carLicenseFrontImage" accept="image/*" class="form-control" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold"><span class="text-danger">*</span>Ảnh đăng ký xe - mặt sau</label>
+                    <input type="file" id="carLicenseBackImage" accept="image/*" class="form-control" />
+                </div>
 
 
                 <div class="mb-4 position-relative">
@@ -183,19 +192,26 @@
         }
     });
 
-    async function addCar(carModelId, licensePlate, carName) {
+            async function addCar(carModelId, licensePlate, carName) {
+        const frontImageInput = document.getElementById("carLicenseFrontImage");
+        const backImageInput = document.getElementById("carLicenseBackImage");
+
+        if (!frontImageInput.files[0] || !backImageInput.files[0]) {
+            showToast("Vui lòng chọn cả 2 ảnh đăng ký xe");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("CarModelId", carModelId);
+        formData.append("LicensePlate", licensePlate);
+        formData.append("CarName", carName);
+        formData.append("CarLicenseFrontImage", frontImageInput.files[0]);
+        formData.append("CarLicenseBackImage", backImageInput.files[0]);
+
         try {
             const response = await fetchWithAuth('https://localhost:7191/api/Car/add-car', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    carModelId: carModelId,
-                   
-                    licensePlate: licensePlate,
-                    carName: carName
-                }),
+                body: formData
             });
 
             if (!response.ok) {
@@ -204,29 +220,32 @@
             }
 
             const result = await response.json();
-            showSuccessToast('Car added successfully!');
-            //window.location.href = '/wireless-charging/vehicles/mycars';
+            showSuccessToast('Đã gửi yêu cầu đăng ký xe trên hệ thống!');
+            // window.location.href = '/wireless-charging/vehicles/mycars';
         } catch (error) {
-            showToast('Error: ' + error.message);
+            showToast('Lỗi: ' + error.message);
         }
     }
 
-            document.querySelector('#btn-add').addEventListener('click', function () {
-            const carNameInput = document.getElementById("carName").value;
-    const licensePlate = document.getElementById("licensePlate").value;
 
+
+                document.querySelector('#btn-add').addEventListener('click', function () {
+        const carName = document.getElementById("carName").value;
+        const licensePlate = document.getElementById("licensePlate").value;
+        const frontImage = document.getElementById("carLicenseFrontImage").files[0];
+        const backImage = document.getElementById("carLicenseBackImage").files[0];
 
         if (!licensePlate || !selectedCarModelId) {
-            showToast('Hãy nhập Biển số và chọn loại xe');
+            showToast('Hãy nhập biển số và chọn loại xe');
             return;
         }
 
-        const selectedCarModelType = document.querySelector('.list-group-item[data-model-id]')?.getAttribute('data-type');
+        if (!frontImage || !backImage) {
+            showToast('Vui lòng tải lên đầy đủ ảnh mặt trước và sau của giấy đăng ký xe');
+            return;
+        }
 
-        const carName = carNameInput || null;
-
-         
-        addCar(selectedCarModelId,  licensePlate, carName);
-    
+        addCar(selectedCarModelId, licensePlate, carName, frontImage, backImage);
     });
+
 </script>

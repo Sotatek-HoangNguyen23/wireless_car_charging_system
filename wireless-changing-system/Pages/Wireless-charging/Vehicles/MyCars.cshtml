@@ -44,7 +44,7 @@
     }
 
 
-    function displayCars(cars) {
+        function displayCars(cars) {
         const container = document.getElementById("cars-container");
         container.innerHTML = "";
 
@@ -54,6 +54,11 @@
         }
 
         cars.forEach(car => {
+            const isInactive = car.status === "Inactive";
+            const buttonHtml = isInactive
+                ? `<button class="btn btn-secondary w-100" disabled>Đang duyệt</button>`
+                : `<button class="btn btn-outline-primary w-100" onclick="viewCar(${car.carId})">Xem chi tiết</button>`;
+
             const carCard = `
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
@@ -65,7 +70,7 @@
                             <p class="card-text mb-1"><strong>Biển số:</strong> ${car.licensePlate}</p>
                             <p class="card-text mb-3"><strong>Màu:</strong> ${car.color}</p>
                             <div class="mt-auto">
-                                <button class="btn btn-outline-primary w-100" onclick="viewCar(${car.carId})">Xem chi tiết</button>
+                                ${buttonHtml}
                             </div>
                         </div>
                     </div>
@@ -74,6 +79,7 @@
             container.insertAdjacentHTML("beforeend", carCard);
         });
     }
+
 
     window.viewCar = function (carId) {
         window.location.href = `/wireless-charging/vehicles/cardetail?carId=${carId}`;

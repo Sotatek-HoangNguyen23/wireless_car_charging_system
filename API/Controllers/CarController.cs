@@ -203,7 +203,7 @@ namespace API.Controllers
         }
         [Authorize("Driver")]
         [HttpPost("add-car")]
-        public IActionResult AddCar([FromBody] AddCarRequest request)
+        public async Task<IActionResult> AddCar([FromForm] AddCarRequest request)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(userIdClaim))
@@ -228,7 +228,7 @@ namespace API.Controllers
 
             try
             {
-                _carService.addCar(request.CarModelId, userId, request.LicensePlate, request.CarName);
+                await _carService.addCar(request, userId);
                 return Ok(new { message = "Car added successfully." });
             }
             catch (ArgumentException ex)
@@ -237,7 +237,13 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the car.", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi khi thêm xe.",
+                    error = ex.Message,
+                    stack = ex.StackTrace, // Bỏ nếu ở production
+                    inner = ex.InnerException?.Message
+                });
             }
         }
 
@@ -249,7 +255,7 @@ namespace API.Controllers
                 return BadRequest("Request body is null.");
             }
 
-            if (request.CarModelId <= 0 || request.CarId <= 0 || string.IsNullOrEmpty(request.LicensePlate) || string.IsNullOrEmpty(request.CarName))
+            if (request.CarModelId <= 0 || request.CarId <= 0 || string.IsNullOrEmpty(request.LicensePlate) )
             {
                 return BadRequest("Invalid input parameters.");
             }

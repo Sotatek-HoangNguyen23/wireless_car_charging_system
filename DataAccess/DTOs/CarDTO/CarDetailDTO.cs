@@ -13,8 +13,8 @@ namespace DataAccess.DTOs.CarDTO
         public string? CarName { get; set; }
         public string? LicensePlate { get; set; }
         public bool? IsDeleted { get; set; }
-        public DateTime? CarCreateAt { get; set; }
-        public DateTime? CarUpdateAt { get; set; }
+        public string? CarImgFront { get; set; }
+        public string? CarImgBack { get; set; }
         public string? Owner { get; set; }
         public string? Email { get; set; }
         public int CarModelId { get; set; }

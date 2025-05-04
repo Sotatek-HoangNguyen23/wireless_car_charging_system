@@ -152,7 +152,7 @@
 
            currentItems.forEach(session => {
         const statusText = session.status === "Completed" ? "Đã hoàn thành" : "Đang sạc";
-        const badgeClass = session.status === "Completed" ? "bg-success" : "bg-primary";
+        const badgeClass = session.status === "Completed" ? "bg-success" : "bg-danger";
 
         const html = `
             <div class="list-group-item mb-2 shadow-sm">
