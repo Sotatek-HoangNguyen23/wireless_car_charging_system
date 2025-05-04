@@ -262,7 +262,7 @@
                     const row = `
                         <tr>
                             <td>${doc.id}</td>
-                            <td>${doc.createAt}</td>
+                            <td>${new Date(doc.createAt).toLocaleDateString('vi-VN')}</td>
                             <td>${doc.reviewedBy}</td>
                             <td>${doc.reviewedAt}</td>
                             <td>${statusBadge}</td>
@@ -355,7 +355,7 @@
                     
                 } catch (error) {
                     console.error("Error fetching document details:", error);
-                    alert("Lỗi khi tải chi tiết tài liệu: " + error.message);
+                    showToast(error.message);
                 }
             }     
             
