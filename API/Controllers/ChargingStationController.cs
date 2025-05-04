@@ -75,10 +75,10 @@ namespace API.Controllers
             }
 
             // Validate description
-            if (string.IsNullOrEmpty(stationDto.LocationDescription) || stationDto.LocationDescription.Length > 225)
-            {
-                errors.Add("Mô tả không vượt quá 225 ký tự");
-            }
+            //if (string.IsNullOrEmpty(stationDto.LocationDescription) || stationDto.LocationDescription.Length > 225)
+            //{
+            //    errors.Add("Mô tả không vượt quá 225 ký tự");
+            //}
 
             // Validate pointDescription
             if (string.IsNullOrEmpty(stationDto.PointDescription) || stationDto.PointDescription.Length > 225)

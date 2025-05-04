@@ -24,7 +24,8 @@ using API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
-builder.Services.AddSingleton<SqlDependencyService>();
+//builder.Services.AddSingleton<SqlDependencyService>();
+builder.Services.AddHostedService<SqlDependencyService>();
 
 //=================================
 // Cloudinary configuration
@@ -94,7 +95,7 @@ builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
 builder.Services.AddScoped<IBalancement, BalanceRepo>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
-
+builder.Services.AddHostedService<SqlDependencyService>();
 //=======================================
 // JWt configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -150,8 +151,9 @@ var app = builder.Build();
 app.UseCors("AllowAllOrigins");
 app.UseRouting();
 
-var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
-sqlDependencyService.StartListening();
+//var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
+//sqlDependencyService.StartListening();
+
 
 
 // Configure the HTTP request pipeline.
@@ -168,7 +170,8 @@ app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<RealTimeHub>("/realtimeHub");
+    endpoints.MapHub<RealTimeHub>("/realtimeHub"); // Đảm bảo endpoint đúng
+    endpoints.MapControllers();
 });
 
 app.MapControllers();
