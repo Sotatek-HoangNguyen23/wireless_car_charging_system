@@ -1,5 +1,46 @@
 ﻿let isRefreshing = false;
 let refreshPromise = null;
+function notify(message, type = 'info', duration = 2000, topOffset = 20) {
+    const color = {
+        info: '#2196F3',
+        success: '#4CAF50',
+        warning: '#FFC107',
+        error: '#F44336'
+    }[type] || '#333';
+
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: ${topOffset}px;          /* offset tùy biến */
+        right: 20px;
+        background: ${color};
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+
+    // Show animation (slide xuống)
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
+
+    // Tự ẩn sau `duration` ms
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';  // slide lên khi ẩn
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, duration);
+}
+
 
 async function performTokenRefresh() {
     try {
@@ -22,8 +63,10 @@ async function performTokenRefresh() {
 
         return data.accessToken;
     } catch (error) {
-        alert("Bạn can dang nhap de truy cập tính năng này!");
-        logout();
+        notify("Bạn cần đăng nhập để truy cập tính năng này!", 'error');
+        setTimeout(() => {
+            logout(); 
+        }, 2000);
         throw error;
     }
 }
@@ -75,9 +118,10 @@ export async function fetchWithAuth(url, options = {}) {
             }
         }
         if (response.status === 403) {
-            alert("Bạn không có quyền truy cập tính năng này!");
-            window.location.href = '/wireless-charging/auth';
-            logout();
+            notify("Bạn không có quyền truy cập tính năng này!", 'warning');
+            setTimeout(() => {
+                logout(); 
+            }, 2000);
             return Promise.reject(new Error('Access denied'));
         }
 
