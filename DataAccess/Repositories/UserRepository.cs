@@ -279,7 +279,7 @@ namespace DataAccess.Repositories
             if (license == null)
                 return false;
 
-            return license.Status?.ToLower() == "approve";
+            return license.Status?.ToLower() == "approved";
         }
     }
 }

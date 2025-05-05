@@ -29,6 +29,10 @@ namespace DataAccess.DTOs.CarDTO
         public string? Img { get; set; }
         public DateTime? ModelCreateAt { get; set; }
         public DateTime? ModelUpdateAt { get; set; }
+        public string? OwnerName { get; set; }
+
+        public string? OwnerAddress { get; set; }
+
     }
 
     //public class ChargingCarStatsDto

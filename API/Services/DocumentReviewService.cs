@@ -42,10 +42,10 @@ namespace API.Services
                     await _userRepo.ChangeUserStatusAsync(document.UserId, "ACTIVE");
                     break;
                 case "DRIVER_LICENSE":
-                    await _driverLicenseRepo.ChangeLicenseStatusAsync(document.DriverLicenseId, "ACTIVE");
+                    await _driverLicenseRepo.ChangeLicenseStatusAsync(document.DriverLicenseId, "APPROVED");
                     break;
                 case "CAR_LICENSE":
-                    await _carRepo.ChangeCarStatusAsync(document.CarId, "ACTIVE");
+                    await _carRepo.ChangeCarStatusAsync(document.CarId, "APPROVED");
                     break;
             }
 
@@ -90,7 +90,7 @@ namespace API.Services
 
                 return new DocumentDetailDto
                 {
-                    Type = "Driver_License",
+                    Type = "DRIVER_LICENSE",
                     DocumentId = license.DriverLicenseId,
                     Code = license.Code,
                     Comments = document.Comments,
@@ -111,31 +111,18 @@ namespace API.Services
 
                 return new DocumentDetailDto
                 {
-                    Type = "Car_License",
+                    Type = "CAR_LICENSE",
                     DocumentId = car.CarId,
                     Code = car.LicensePlate,
                     Comments = document.Comments,
                     ImageFront = car.CarImgFront,
-                    ImageBack = car.CarImgBack                   
+                    ImageBack = car.CarImgBack,
+                    FullName = car.OwnerName,
+                    Address = car.OwnerAddress
                 };
             }
 
-            if (document.CarId.HasValue)
-            {
-                var car = _carRepo.getCarDetailById(document.CarId.Value);
-                if (car == null)
-                    return null;
-
-                return new DocumentDetailDto
-                {
-                    Type = "CCCD",
-                    DocumentId = car.CarId,
-                    Code = car.LicensePlate,
-                    Comments = document.Comments,
-                    ImageFront = car.CarImgFront,
-                    ImageBack = car.CarImgBack
-                };
-            }
+            
 
 
             return null;

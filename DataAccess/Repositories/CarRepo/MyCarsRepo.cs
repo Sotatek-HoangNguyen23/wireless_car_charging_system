@@ -48,7 +48,12 @@ namespace DataAccess.Repositories.CarRepo
         {
             var carDetail = (from c in _context.Cars
                              join cm in _context.CarModels on c.CarModelId equals cm.CarModelId
-                             where c.CarId == carId && c.IsDeleted == false && c.Status == "Active"
+                             join uc in _context.UserCars on c.CarId equals uc.CarId
+                             join u in _context.Users on uc.UserId equals u.UserId
+                             where c.CarId == carId
+                                 && c.IsDeleted == false
+                                 && c.Status == "APPROVED"
+                                 && uc.Role == "Owner"
                              select new CarDetailDTO
                              {
                                  CarId = c.CarId,
@@ -68,11 +73,14 @@ namespace DataAccess.Repositories.CarRepo
                                  ChargingStandard = cm.ChargingStandard,
                                  Img = cm.Img,
                                  ModelCreateAt = cm.CreateAt,
-                                 ModelUpdateAt = cm.UpdateAt                              
+                                 ModelUpdateAt = cm.UpdateAt,                  
+                                 OwnerName = u.Fullname,
+                                 OwnerAddress = u.Address
                              }).FirstOrDefault();
 
             return carDetail;
         }
+
 
         public ChargingStatusDTO? GetChargingStatusById(int carId)
         {
