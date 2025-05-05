@@ -66,6 +66,10 @@ namespace API.Controllers
         {
             try
             {
+                if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+                {
+                    await _authService.RevokeRefreshToken(refreshToken);
+                }
                 var response = await _authService.Authenticate(request);
                 if (response == null)
                 {
@@ -110,16 +114,11 @@ namespace API.Controllers
         {
             try
             {
-                if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
-                {
-                    return BadRequest(new {
-                        Title = "Invalid Request",
-                        Detail = "Không tìm thấy refresh token",
-                        Status = 400
-                    });
-                }
 
-                await _authService.Logout(refreshToken);
+                if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+                {
+                    await _authService.Logout(refreshToken);
+                }
                 Response.Cookies.Delete("refreshToken", new CookieOptions
                 {
                     HttpOnly = true,
