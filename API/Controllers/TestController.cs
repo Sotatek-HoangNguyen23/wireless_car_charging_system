@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -23,6 +24,7 @@ namespace API.Controllers
             _userService = userService;
         }
         [AllowAnonymous]
+        [EnableRateLimiting("Login")]
         [HttpGet]
         public ActionResult getAllRoles()
         {

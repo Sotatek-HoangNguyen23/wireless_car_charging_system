@@ -248,7 +248,7 @@ namespace API.Services
             var _secretKey = Environment.GetEnvironmentVariable("RECAPTCHA_SECRET_KEY");
             if (string.IsNullOrEmpty(_secretKey))
             {
-                throw new ArgumentException("Secret key cannot be null or empty");
+                throw new ArgumentException("Khoá bí mật không được trống");
             }
             using (var client = new HttpClient())
             {
@@ -331,7 +331,7 @@ namespace API.Services
             var user = await _userRepository.GetUserByCccd(cccd);
             if (user == null)
             {
-                throw new ArgumentException("Khong tìm thấy người dùng");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
             var UserDto = new UserDto();
             UserDto.UserId = user.UserId;
@@ -384,7 +384,7 @@ namespace API.Services
             {
                 if (request == null)
                 {
-                    throw new ArgumentException("Request cannot be null");
+                    throw new ArgumentException("Yêu cầu không được trống");
                 }
                 var user = await _userRepository.GetUserByEmail(request.Email);
                 if (user == null)
@@ -437,7 +437,7 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request không được null");
+                throw new ArgumentException("Yêu cầu không được trống");
             }
             if (userId <= 0)
             {
@@ -568,12 +568,12 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request cannot be null");
+                throw new ArgumentException("Yêu cầu không được trống");
             }
             var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
 
             ImageUploadResult? frontUpload = null;
@@ -609,9 +609,25 @@ namespace API.Services
                             await _licenseRepository.UpdateLicense(license);
                             return;
                         }
+                        else if (license.Status == "PENDING")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đang trong hàng chờ");
+                        }
+                        else if (license.Status == "APPROVED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã được chấp nhận");
+                        }
+                        else if (license.Status == "REJECTED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã bị từ chối");
+                        }
+                        else if (license.Status == "BLOCKED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã bị vô hiệu hoá");
+                        }
                         else
                         {
-                            throw new ArgumentException("License already exists");
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã tồn tại");
                         }
                     }
                 }
@@ -674,17 +690,17 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request cannot be null");
+                throw new ArgumentException("Yều cầu không được thiếu");
             }
             var license = await _licenseRepository.GetLicenseByCode(licensecode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
             var existingLicenses = await _licenseRepository.GetLicenseByCode(request.LicenseNumber);
             if (existingLicenses != null && existingLicenses.Code != licensecode)
             {
-                throw new ArgumentException("License mà bạn muốn cập nhật đã tồn tại trong hệ thống");
+                throw new ArgumentException("Bằng lái mà bạn muốn cập nhật đã tồn tại trong hệ thống");
             }
 
             ImageUploadResult? newFront = null;
@@ -748,7 +764,7 @@ namespace API.Services
                 if (newBack != null)
                     deleteTasks.Add(_imageService.DeleteImageAsync(newBack.PublicId));
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("Update license failed", ex);
+                throw new Exception("Cập nhật bằng lái thất bài");
             }
         }
         public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userId)
@@ -768,7 +784,7 @@ namespace API.Services
                 {
                     if (string.IsNullOrEmpty(license.ImgBack))
                     {
-                        throw new ArgumentNullException(nameof(license.ImgBack), "Image back URL is null or empty");
+                        throw new ArgumentNullException(nameof(license.ImgBack), "Đường đẵn ảnh mặt sau không được trống");
                     }
 
                     var qrResult = await _imageService.ReadQrCodeUrl(license.ImgBack);
@@ -776,7 +792,7 @@ namespace API.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error processing license {license.Code}: {ex.Message}");
+                    Console.WriteLine($"Lỗi trong quá trình lấy bằng {license.Code}: {ex.Message}");
                 }
             }
 
@@ -788,10 +804,33 @@ namespace API.Services
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
 
             license.Status = "DELETE";
+            license.UpdateAt = DateTime.UtcNow;
+
+            using var transaction = await _licenseRepository.BeginTransactionAsync();
+            try
+            {
+                await _licenseRepository.UpdateLicense(license);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        } 
+        public async Task BlockedDriverLicenseAsync(string licenseCode)
+        {
+            var license = await _licenseRepository.GetLicenseByCode(licenseCode);
+            if (license == null)
+            {
+                throw new ArgumentException("Không tìm thấy bằng lái");
+            }
+
+            license.Status = "BLOCKED";
             license.UpdateAt = DateTime.UtcNow;
 
             using var transaction = await _licenseRepository.BeginTransactionAsync();
@@ -811,7 +850,7 @@ namespace API.Services
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
 
             license.Status = "APPROVED";
@@ -876,12 +915,12 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
             }
 
             if (pageSize <= 0)
             {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0", nameof(pageSize));
             }
             return await _licenseRepository.GetPagedLicensesAsync(pageNumber, pageSize, filter);
         }
@@ -889,12 +928,12 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
             }
 
             if (pageSize <= 0)
             {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0", nameof(pageSize));
             }
             return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
         }

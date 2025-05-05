@@ -126,7 +126,7 @@ namespace API.Controllers
             try
             {
                 await _userService.UpdateDriverLiscense(licenseCode, request);
-                return Ok(new { result ="Update Success" });
+                return Ok(new { result ="Cập nhật thành công" });
             }
             catch (ArgumentException ex)
             {
@@ -155,7 +155,7 @@ namespace API.Controllers
             try
             {
                 await _userService.DeleteDriverLicenseAsync(licenseCode);
-                return Ok(new { result = "Driver license deactivated successfully" });
+                return Ok(new { result = "Xoá bằng lái thành công" });
             }
             catch (ArgumentException ex)
             {
@@ -183,7 +183,35 @@ namespace API.Controllers
             try
             {
                 await _userService.ActiveDriverLicenseAsync(licenseCode);
-                return Ok(new { result = "Driver license activate successfully" });
+                return Ok(new { result = "Kích hoạt bằng lái thành công" });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = ex.Message,
+                    Status = 404
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Internal Server Error",
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Status = 500
+                });
+            }
+        } 
+        [Authorize("DriverOrOperator")]
+        [HttpPut("driver-licenses/{licenseCode}/block")]
+        public async Task<IActionResult> BlockDriverLicense(string licenseCode)
+        {
+            try
+            {
+                await _userService.BlockedDriverLicenseAsync(licenseCode);
+                return Ok(new { result = "Thành công khoá bằng lái" });
             }
             catch (ArgumentException ex)
             {
@@ -262,7 +290,7 @@ namespace API.Controllers
         public async Task<IActionResult> ChangeUserStatus(int userId, [FromBody] string newStatus)
         {
             await _userService.ChangeUserStatusAsync(userId, newStatus);
-            return Ok(new { message = "User status updated successfully." });
+            return Ok(new { message = "Cập nhật trạng thái người dùng thành công." });
         }        
 
         [AllowAnonymous]
@@ -281,7 +309,7 @@ namespace API.Controllers
             try
             {
                 await _userService.UpdateDriverlicenseOperator(licenseCode, request.NewCode, request.Fullname, request.Level);
-                return Ok(new { result = "Driver license updated successfully" });
+                return Ok(new { result = "Cập nhật bằng lái thành công" });
             }
             catch (ArgumentException ex)
             {
@@ -381,7 +409,7 @@ namespace API.Controllers
             try
             {
                 await _userService.ChangePasswordAsync(userId,passDTO);
-                return Ok(new { Message = "Password changed successfully" });
+                return Ok(new { Message = "Đổi mật khẩu thành công" });
             }
             catch (ArgumentException ex)
             {
@@ -393,7 +421,7 @@ namespace API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { Message = "Internal server error" });
+                return StatusCode(500, new { Message = "Lỗi hệ thống" });
             }
         }
 

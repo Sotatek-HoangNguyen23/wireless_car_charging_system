@@ -18,6 +18,8 @@ using dotenv.net;
 using Microsoft.AspNetCore.Http.Features;
 using DataAccess.Repositories.StationRepo;
 using API.Hubs;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 
 
@@ -149,7 +151,39 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+//Ratelimit
+builder.Services.AddRateLimiter(options =>
+{
+    // Tạo policy giới hạn 10 requests/phút cho mỗi IP
+    options.AddFixedWindowLimiter("Login", policy =>
+    {
+        policy.PermitLimit = 5;
+        policy.Window = TimeSpan.FromMinutes(30);
+        policy.QueueLimit = 0;
+    });  
+    options.AddFixedWindowLimiter("Register", policy =>
+    {
+        policy.PermitLimit = 5;
+        policy.Window = TimeSpan.FromHours(1);
+        policy.QueueLimit = 0;
+    });
 
+    // Xử lý response khi vượt limit
+    options.OnRejected = async (context, _) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.Headers["Retry-After"] = "60";
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            Title = "Quá nhiều request",
+            detail = "Bạn đã vượt quá giới hạn request. Vui lòng thử lại sau",
+            status = 429
+        });
+    };
+});
+
+
+//=======================================
 var app = builder.Build();
 app.UseCors("AllowAllOrigins");
 app.UseRouting();
@@ -167,7 +201,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
