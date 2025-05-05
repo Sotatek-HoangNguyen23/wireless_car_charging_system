@@ -27,8 +27,10 @@
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" id="filterStatus">
                                 <option value="">Tất cả</option>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">InActive</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="PENDING">PENDING</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="DELETE">DELETE</option>
                             </select>
                         </div>
 
@@ -246,7 +248,7 @@
 
         // Render table rows
         result.items.forEach(license => {
-             const actionButton = license.status === "Inactive" ?
+             const actionButton = license.status === "DELETE" ?
                 `<button class="btn btn-sm btn-success" onclick="activateLicense('${license.licenseNumber}')">
                     <i class="fas fa-check me-1"></i>Kích hoạt
                 </button>` :
@@ -383,9 +385,9 @@
 
     function getStatusClass(status) {
         switch (status) {
-            case 'Active': return 'bg-success';
-            case 'Pending': return 'bg-warning';
-            case 'Expired': return 'bg-danger';
+            case 'ACTIVE': return 'bg-success';
+            case 'PENDING': return 'bg-warning';
+            case 'DELETE': return 'bg-danger';
             default: return 'bg-secondary';
         }
     }
