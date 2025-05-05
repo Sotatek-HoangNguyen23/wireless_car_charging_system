@@ -36,7 +36,7 @@ namespace API.Controllers
                 return Conflict(new
                 {
                     Title = "Conflict",
-                    Error = "Dublicate",
+                    Error = "Trùng lặp",
                     Detail = ex.Message
                 });
             }

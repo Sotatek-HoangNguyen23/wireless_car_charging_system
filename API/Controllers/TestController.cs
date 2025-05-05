@@ -35,14 +35,13 @@ namespace API.Controllers
 
 
         [Authorize("AdminOrOperator")]
-
         [HttpPost("create-test-user")]
         public async Task<ActionResult> createTestUser([FromBody] CreateTestAccountRequest request)
         {
             try
             {
                 await _userService.CreateTestAccount(request.Email, request.Password, request.RoleId);
-                return Ok(new { Message = "Test user created successfully." });
+                return Ok(new { Message = "Tạo tài khoản test thành công." });
             }
             catch (ArgumentException e)
             {
@@ -80,7 +79,7 @@ namespace API.Controllers
             try
             {
                 await _userService.DeleteUserReal(userid);
-                return Ok(new { Message = "Real user deleted successfully." });
+                return Ok(new { Message = "Xoá người dùng thành công." });
             }
             catch (ArgumentException e)
             {

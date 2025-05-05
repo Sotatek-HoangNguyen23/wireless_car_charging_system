@@ -18,19 +18,19 @@ namespace API.Services
             var server = smtpSettings["Server"];
             var port = smtpSettings["Port"];
             var senderEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL")
-                    ?? throw new InvalidOperationException("SMTP_EMAIL environment variable is missing");
+                    ?? throw new InvalidOperationException("SMTP_EMAIL biến môi trường bị thiếu");
 
             var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
-                ?? throw new InvalidOperationException("SMTP_PASSWORD environment variable is missing");
+                ?? throw new InvalidOperationException("SMTP_PASSWORD biến môi trường bị thiếu");
 
             if (string.IsNullOrEmpty(server)){
-                throw new InvalidOperationException("SMTP Server is required");
+                throw new InvalidOperationException("SMTP Server bị thiếu");
             }
             if (!int.TryParse(port, out var portNumber)) {
-                throw new InvalidOperationException("Invalid SMTP port");
+                throw new InvalidOperationException("SMTP port không hợp lên");
             }
             var senderName = smtpSettings["SenderName"]
-                     ?? throw new ArgumentNullException("SenderName is required in SmtpSettings");
+                     ?? throw new ArgumentNullException("SenderName bị thiếu trong SmtpSettings");
             var EmailMessage = new MimeMessage();
             EmailMessage.From.Add(new MailboxAddress(senderName, senderEmail));
             EmailMessage.To.Add(new MailboxAddress("",toEmail));

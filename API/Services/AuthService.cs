@@ -91,21 +91,21 @@ namespace API.Services
 
             if (refreshToken == null)
             {
-                throw new ArgumentException("Invalid refresh token");
+                throw new ArgumentException("Refresh token không hợp lệ");
             }
             if (refreshToken.Revoked == true)
             {
-                throw new ArgumentException("Refresh token da bi thu hoi");
+                throw new ArgumentException("Refresh token đã bị thu hồi");
             }
             if (refreshToken.ExpiresAt < DateTime.UtcNow)
             {
-                throw new ArgumentException("Refresh token da het han");
+                throw new ArgumentException("Refresh token đã hết hạn");
             }
             await RevokeRefreshToken(oldRefreshToken);
             var user = await _userRepository.GetUserById(refreshToken.UserId);
             if (user == null)
             {
-                throw new ArgumentException("User khong ton tai");
+                throw new ArgumentException("Người dùng không tồn tại");
             }
 
             var newAccessToken = GenerateAccessToken(user);
@@ -172,13 +172,13 @@ namespace API.Services
             var privateKey = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(privateKey))
             {
-                throw new ArgumentException("JWT private key cannot be null or empty");
+                throw new ArgumentException("Khoá bí mật không thể trống");
             }
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(privateKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             if (user == null)
             {
-                throw new ArgumentException("User cannot be null");
+                throw new ArgumentException("Người dùng không được để trống");
             }
             var claims = new List<Claim>
             {
@@ -190,7 +190,7 @@ namespace API.Services
               };
             if (user.Role?.RoleName == null)
             {
-                throw new InvalidOperationException("User role is missing.");
+                throw new InvalidOperationException("Role người dùng đang thiếu");
             }
             claims.Add(new Claim(ClaimTypes.Role, user.Role.RoleName));
 
@@ -212,7 +212,7 @@ namespace API.Services
             var _secretKey = Environment.GetEnvironmentVariable("RECAPTCHA_SECRET_KEY");
             if (string.IsNullOrEmpty(_secretKey))
             {
-             throw new ArgumentException("Secret key cannot be null or empty");
+             throw new ArgumentException("Khoá bí mật không thể trống");
             }
             using (var client = new HttpClient())
             {

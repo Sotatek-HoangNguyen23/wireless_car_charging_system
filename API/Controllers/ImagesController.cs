@@ -23,7 +23,7 @@ namespace API.Controllers
                 return BadRequest(new ProblemDetails
                 {
                     Title= "Invalid Request",
-                    Detail = "Please upload an image file",
+                    Detail = "Hãy upload ảnh đúng",
                     Status = StatusCodes.Status400BadRequest
                 });
             }
@@ -60,7 +60,7 @@ namespace API.Controllers
                 return BadRequest(new ProblemDetails
                 {
                     Title = "Invalid Request",
-                    Detail = "Please provide a valid URL",
+                    Detail = "Hãy nhập url ảnh hợp lệ",
                     Status = StatusCodes.Status400BadRequest
                 });
             }

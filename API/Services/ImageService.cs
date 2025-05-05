@@ -72,7 +72,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Image upload failed", ex);
+                throw new Exception("Upload ảnh bị lỗi", ex);
             }
         }
 
@@ -213,7 +213,7 @@ namespace API.Services
         public void ValidateImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                throw new InvalidImageException("No file provided");
+                throw new InvalidImageException("Không có ảnh được chọn");
 
             if (file.Length > 5 * 1024 * 1024)
                 throw new InvalidImageException("File có dung lượng vượt quá 5MB limit");
