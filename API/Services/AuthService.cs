@@ -23,6 +23,7 @@ namespace API.Services
         }
         public async Task<AuthenticateResponse?> Authenticate(AuthenticateRequest request)
         {
+
             if (string.IsNullOrWhiteSpace(request.CaptchaToken))
             {
                 throw new ArgumentException("Captcha không được để trống", nameof(request.CaptchaToken));
@@ -151,7 +152,7 @@ namespace API.Services
             }
 
         }
-        private async Task RevokeRefreshToken(string token)
+        public async Task RevokeRefreshToken(string token)
         {
             var tokenHash = HashToken(token);
             var refreshToken = await _authRepository.FindRefreshToken(tokenHash);
