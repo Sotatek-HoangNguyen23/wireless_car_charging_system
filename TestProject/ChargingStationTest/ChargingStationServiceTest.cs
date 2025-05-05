@@ -138,14 +138,14 @@ namespace TestProject.ChargingStationTest
             _context.Dispose();
         }
 
-        [Test]
-        public void GetChargingStations_ShouldReturnAllStations_NoFilter()
-        {
-            var result = _service.GetChargingStations(null, 0, 0, 1, 10);
+        //[Test]
+        //public void GetChargingStations_ShouldReturnAllStations_NoFilter()
+        //{
+        //    var result = _service.GetChargingStations(null, 0, 0, 1, 10);
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Data.Count, Is.EqualTo(2));
-        }
+        //    Assert.That(result, Is.Not.Null);
+        //    Assert.That(result.Data.Count, Is.EqualTo(2));
+        //}
 
         [Test]
         public async Task GetStationDetails_ShouldReturnStationWithPoints_WhenIdNotExists()

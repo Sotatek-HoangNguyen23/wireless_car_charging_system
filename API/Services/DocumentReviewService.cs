@@ -115,8 +115,8 @@ namespace API.Services
                     DocumentId = car.CarId,
                     Code = car.LicensePlate,
                     Comments = document.Comments,
-                    ImageFront = car.FrontCarLicenseImg,
-                    ImageBack = car.BackCarLicenseImg                   
+                    ImageFront = car.CarImgFront,
+                    ImageBack = car.CarImgBack                   
                 };
             }
 
