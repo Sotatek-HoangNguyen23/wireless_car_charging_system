@@ -499,3 +499,7 @@ img[id$="Preview"] {
         transform: scale(0.90);
     }
 }
+body.notify-active #error-toast,
+body.notify-active #success-toast {
+    display: none !important;
+}
