@@ -109,7 +109,7 @@
         const role = sessionStorage.getItem("role");
 
         // Ẩn CCCD và nút nếu là Operator
-        if (role === "Operator") {
+        if (role === "Operator" || role === "Station Owner") {
             const cccdGroup = document.getElementById("cccd")?.closest(".form-group");
             if (cccdGroup) {
                 cccdGroup.style.display = "none";
