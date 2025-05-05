@@ -27,19 +27,18 @@
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" id="filterStatus">
                                 <option value="">Tất cả</option>
-                                <option value="APPROVED">APPROVED</option>
-                                <option value="PENDING">PENDING</option>
-                                <option value="REJECTED">REJECTED</option>
-                                <option value="BLOCKED">BLOCKED</option>
-                                <option value="DELETE">DELETE</option>
+                                <option value="APPROVED">Đã chấp nhận</option>
+                                <option value="PENDING">Đang xử lí</option>
+                                <option value="REJECTED">Từ chối</option>
+                                <option value="BLOCKED">Bị khóa</option>
+                                <option value="DELETE">Đã Xóa</option>
                             </select>
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Hạng bằng</label>
                             <select class="form-select" id="filterClass">
-                                <option value="">Tất cả</option>
-                                <option value="A1">A1</option>
+                                <option value="">Tất cả</option>                              
                                 <option value="B1">B1</option>
                                 <option value="C">C</option>
                             </select>
@@ -446,10 +445,11 @@
 
     function getStatusClass(status) {
         switch (status) {
-            case 'ACTIVE': return 'bg-success';
+            case 'APPROVED': return 'bg-success';
             case 'PENDING': return 'bg-warning';
             case 'DELETE': return 'bg-danger';
             case 'BLOCKED': return 'bg-warning';
+            
             default: return 'bg-secondary';
         }
     }

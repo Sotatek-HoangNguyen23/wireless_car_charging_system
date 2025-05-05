@@ -387,7 +387,16 @@
                         document.getElementById('docAddressRow').hidden = false;
                         document.getElementById('docClassRow').hidden = false;
                     }
-                    
+                    if (currentType === "CAR_LICENSE") {
+                        document.getElementById('docName').textContent = getDocumentTypeName(data.fullName);
+                       
+                        document.getElementById('docAddress').textContent = data.address;
+                       
+                        document.getElementById('docNameRow').hidden = false;
+                       
+                        document.getElementById('docAddressRow').hidden = false;
+                       
+                    }
                     // Hiển thị modal
                     const detailModal = new bootstrap.Modal(document.getElementById('documentDetailModal'));
                     detailModal.show();
