@@ -260,96 +260,105 @@
         }
     }
 
-    function renderLicenses(result) {
-           const tbody = document.getElementById('licenseList');
-           const pagination = document.getElementById('pagination');
+     function renderLicenses(result) {
+        const statusTranslations = {
+            APPROVED: "Đã chấp nhận",
+            PENDING: "Đang xử lí",
+            REJECTED: "Từ chối",
+            BLOCKED: "Bị khóa",
+            DELETE: "Đã Xóa"
+        };
 
-           tbody.innerHTML = '';
-           pagination.innerHTML = '';
+        const tbody = document.getElementById('licenseList');
+        const pagination = document.getElementById('pagination');
 
-           if (result.items.length === 0) {
-               document.getElementById('emptyMessage').style.display = 'block';
-               document.getElementById('licenseTable').style.display = 'none';
-               return;
-           }
+        tbody.innerHTML = '';
+        pagination.innerHTML = '';
 
-           result.items.forEach(license => {
-               const status = license.status;
-               const licenseNumber = license.licenseNumber;
+        if (result.items.length === 0) {
+            document.getElementById('emptyMessage').style.display = 'block';
+            document.getElementById('licenseTable').style.display = 'none';
+            return;
+        }
 
-               // Prepare action buttons based on status
-               const actions = [];
+        result.items.forEach(license => {
+            const status = license.status;
+            const licenseNumber = license.licenseNumber;
 
-               // Detail button (always shown)
-               actions.push(
-                   `<button class="btn btn-sm btn-info" onclick="viewDetail('${licenseNumber}')">
-                       <i class="fas fa-eye me-1"></i>Chi tiết
-                   </button>`
-               );
+            // Prepare action buttons based on status
+            const actions = [];
 
-               // Approve button (hidden if already APPROVED)
-               if (status !== 'APPROVED') {
-                   actions.push(
-                       `<button class="btn btn-sm btn-success" onclick="approveLicense('${licenseNumber}')">
-                           <i class="fas fa-check-circle me-1"></i>Duyệt
-                       </button>`
-                   );
-               }
+            // Detail button (always shown)
+            actions.push(
+                `<button class="btn btn-sm btn-info" onclick="viewDetail('${licenseNumber}')">
+                    <i class="fas fa-eye me-1"></i>Chi tiết
+                </button>`
+            );
 
-               // Block button (hidden if already BLOCKED)
-               if (status !== 'BLOCKED') {
-                   actions.push(
-                       `<button class="btn btn-sm btn-warning" onclick="blockLicense('${licenseNumber}')">
-                           <i class="fas fa-trash me-1"></i>Khoá
-                       </button>`
-                   );
-               } 
-               if (status !== 'DELETE') {
-                   actions.push(
-                       `<button class="btn btn-sm btn-danger" onclick="deactivateLicense('${licenseNumber}')">
-                           <i class="fas fa-trash me-1"></i>Xóa
-                       </button>`
-                   );
-               }
+            // Approve button (hidden if already APPROVED)
+            if (status !== 'APPROVED') {
+                actions.push(
+                    `<button class="btn btn-sm btn-success" onclick="approveLicense('${licenseNumber}')">
+                        <i class="fas fa-check-circle me-1"></i>Duyệt
+                    </button>`
+                );
+            }
 
-               // Update button (always shown)
-               actions.push(
-                   `<button class="btn btn-sm btn-light" onclick="openUpdateModal('${licenseNumber}', '${license.user.fullname}', '${license.class}')">
-                       <i class="fas fa-edit me-1"></i>Cập nhật
-                   </button>`
-               );
+            // Block button (hidden if already BLOCKED)
+            if (status !== 'BLOCKED') {
+                actions.push(
+                    `<button class="btn btn-sm btn-warning" onclick="blockLicense('${licenseNumber}')">
+                        <i class="fas fa-trash me-1"></i>Khoá
+                    </button>`
+                );
+            }
+            if (status !== 'DELETE') {
+                actions.push(
+                    `<button class="btn btn-sm btn-danger" onclick="deactivateLicense('${licenseNumber}')">
+                        <i class="fas fa-trash me-1"></i>Xóa
+                    </button>`
+                );
+            }
 
-               // Render row
-               tbody.innerHTML += `
-                   <tr>
-                       <td>${licenseNumber}</td>
-                       <td>
-                           <div>${license.user.fullname}</div>
-                           <div>${license.user.phoneNumber}</div>
-                           <div>${license.user.email}</div>
-                       </td>
-                       <td>${license.class}</td>
-                       <td>
-                           <span class="badge ${getStatusClass(status)}">
-                               ${status}
-                           </span>
-                       </td>
-                       <td>${formatDate(license.createdAt)}</td>
-                       <td>${formatDate(license.updatedAt)}</td>
-                       <td>
-                           <div class="d-flex flex-wrap gap-2">
-                               ${actions.join('')}
-                           </div>
-                       </td>
-                   </tr>
-               `;
-           });
+            // Update button (always shown)
+            actions.push(
+                `<button class="btn btn-sm btn-light" onclick="openUpdateModal('${licenseNumber}', '${license.user.fullname}', '${license.class}')">
+                    <i class="fas fa-edit me-1"></i>Cập nhật
+                </button>`
+            );
 
-           renderPagination(result.totalPages);
+            // Render row
+            tbody.innerHTML += `
+                <tr>
+                    <td>${licenseNumber}</td>
+                    <td>
+                        <div>${license.user.fullname}</div>
+                        <div>${license.user.phoneNumber}</div>
+                        <div>${license.user.email}</div>
+                    </td>
+                    <td>${license.class}</td>
+                    <td>
+                        <span class="badge ${getStatusClass(status)}">
+                            ${statusTranslations[status] || status}
+                        </span>
+                    </td>
+                    <td>${formatDate(license.createdAt)}</td>
+                    <td>${formatDate(license.updatedAt)}</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${actions.join('')}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
 
-           document.getElementById('licenseTable').style.display = 'block';
-           document.getElementById('emptyMessage').style.display = 'none';
-       }
+        renderPagination(result.totalPages);
+
+        document.getElementById('licenseTable').style.display = 'block';
+        document.getElementById('emptyMessage').style.display = 'none';
+    }
+
     function openUpdateModal(licenseCode, fullname, level) {
         const updateLicenseCodeElement = document.getElementById('updateLicenseCode');
         const updateCodeElement = document.getElementById('updateCode');
