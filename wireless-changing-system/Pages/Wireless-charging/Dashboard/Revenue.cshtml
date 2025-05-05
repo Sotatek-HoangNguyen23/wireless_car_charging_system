@@ -148,7 +148,7 @@
                         $('#highestRevenueStation').text("--");
                     }
 
-                    renderChart('dailyRevenueChart', res.daily.map(d => d.date), res.daily.map(d => d.revenue), 'line', 'Doanh thu (VND)', 'blue', chart => dailyRevenueChart = chart);
+                    renderChart('dailyRevenueChart', res.daily.map(d => d.date.split('T')[0]), res.daily.map(d => d.revenue), 'line', 'Doanh thu (VND)', 'blue', chart => dailyRevenueChart = chart);
                     renderChart('monthlyRevenueChart', res.monthly.map(d => `${d.month}/${d.year}`), res.monthly.map(d => d.revenue), 'bar', 'Doanh thu (VND)', 'green', chart => monthlyRevenueChart = chart);
                     renderChart('yearlyRevenueChart', res.yearly.map(d => d.year), res.yearly.map(d => d.revenue), 'bar', 'Doanh thu (VND)', 'orange', chart => yearlyRevenueChart = chart);
                 } else {
@@ -169,13 +169,14 @@
                 plugins: {
                     datalabels: {
                         anchor: 'end',
-                        align: 'start',
+                        align: 'top',
+                        offset: 8,
                         color: 'black',
                         font: {
                             weight: 'bold'
                         },
                         formatter: function (value) {
-                            return value
+                            return value;
                         }
                     }
                 }

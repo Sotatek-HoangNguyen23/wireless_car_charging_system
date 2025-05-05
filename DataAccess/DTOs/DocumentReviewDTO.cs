@@ -9,6 +9,7 @@ namespace DataAccess.DTOs
     public class DocumentReviewDto
     {
         public int Id { get; set; }
+        public string User {  get; set; }
         public string Type { get; set; }
         public string Status { get; set; }
         public string Comments { get; set; }
@@ -26,6 +27,11 @@ namespace DataAccess.DTOs
         public string ImageFront { get; set; }
         public string ImageBack { get; set; }
         public string Status { get; set; }
+        public string FullName { get; set; }
+        public string DoB { get; set; }
+        public string Address { get; set; }
+        public string Gender { get; set; }
+        public string Class { get; set; }
     }
 
 
@@ -35,7 +41,5 @@ namespace DataAccess.DTOs
         public string Type { get; set; }
         public string Status { get; set; }
         public string Comments { get; set; }
-        public int ReviewedBy { get; set; }
-        public DateTime? ReviewedAt { get; set; }
     }
 }

@@ -68,7 +68,7 @@ namespace DataAccess.Repositories.CarRepo
                                  ChargingStandard = cm.ChargingStandard,
                                  Img = cm.Img,
                                  ModelCreateAt = cm.CreateAt,
-                                 ModelUpdateAt = cm.UpdateAt
+                                 ModelUpdateAt = cm.UpdateAt                              
                              }).FirstOrDefault();
 
             return carDetail;

@@ -210,7 +210,7 @@
             if (!response.ok) {
                 throw new Error(result.detail || 'Xác thực thất bại');
             }
-
+            showSuccessToast(result.message);
             // Xử lý redirect sau khi thành công
             if (actionType === 'register') {
                 window.location.href = '/'; 

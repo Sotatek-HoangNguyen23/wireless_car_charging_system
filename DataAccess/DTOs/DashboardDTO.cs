@@ -41,7 +41,7 @@ namespace DataAccess.DTOs.ChargingStation
 
     public class DailyStat
     {
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
         public int SessionCount { get; set; }
     }
 
@@ -72,7 +72,7 @@ namespace DataAccess.DTOs.ChargingStation
 
     public class DailyRevenueDto
     {
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
         public double Revenue { get; set; }
     }
 
@@ -110,7 +110,7 @@ namespace DataAccess.DTOs.ChargingStation
 
     public class UserCountByDateDto
     {
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
         public int Count { get; set; }
     }
 

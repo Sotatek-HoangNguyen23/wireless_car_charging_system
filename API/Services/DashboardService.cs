@@ -18,9 +18,9 @@ namespace API.Services
             return await _dashboardRepository.GetSystemOverviewAsync();
         }
 
-        public async Task<ChargingSessionStatDto> GetSessionStatistics(FilterDto filter)
+        public async Task<ChargingSessionStatDto> GetSessionStatistics(FilterDto filter, int userId, string role)
         {
-            var sessions = await _dashboardRepository.GetSessionsAsync(filter);
+            var sessions = await _dashboardRepository.GetSessionsAsync(filter, userId, role);
 
             var daily = sessions
                 .GroupBy(s => s.StartTime.Value.Date)
@@ -69,9 +69,9 @@ namespace API.Services
             };
         }
 
-        public async Task<RevenueStatsDto> GetRevenueStatistics(FilterDto filter)
+        public async Task<RevenueStatsDto> GetRevenueStatistics(FilterDto filter, int userId, string role)
         {
-            var sessions = await _dashboardRepository.GetSessionsAsync(filter);
+            var sessions = await _dashboardRepository.GetSessionsAsync(filter, userId, role);
             var validSessions = sessions
                 .Where(s => s.Cost.HasValue && s.Cost > 0 && s.StartTime.HasValue)
                 .ToList();

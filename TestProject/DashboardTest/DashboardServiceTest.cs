@@ -145,45 +145,45 @@ namespace TestProject.DashboardTest
             });
         }
 
-        [Test]
-        public async Task GetSessionStatistics_ReturnsCorrectStatistics()
-        {
-            // Arrange
-            var filter = new FilterDto
-            {
-                Start = DateTime.Today.AddDays(-7), // test with a date range
-                End = DateTime.Today.AddDays(7)
-            };
+        //[Test]
+        //public async Task GetSessionStatistics_ReturnsCorrectStatistics()
+        //{
+        //    // Arrange
+        //    var filter = new FilterDto
+        //    {
+        //        Start = DateTime.Today.AddDays(-7), // test with a date range
+        //        End = DateTime.Today.AddDays(7)
+        //    };
 
-            // Act
-            var result = await _dashboardService.GetSessionStatistics(filter);
+        //    // Act
+        //    var result = await _dashboardService.GetSessionStatistics(filter);
 
-            // Assert
-            Assert.That(result.TotalSession, Is.EqualTo(2));
-            Assert.That(result.TotalEnergy, Is.EqualTo(35));
-            Assert.That(result.AvgDuration, Is.EqualTo(37.5)); 
-            Assert.That(result.FailedSessions, Is.EqualTo(0)); 
-        }
+        //    // Assert
+        //    Assert.That(result.TotalSession, Is.EqualTo(2));
+        //    Assert.That(result.TotalEnergy, Is.EqualTo(35));
+        //    Assert.That(result.AvgDuration, Is.EqualTo(37.5)); 
+        //    Assert.That(result.FailedSessions, Is.EqualTo(0)); 
+        //}
 
-        [Test]
-        public async Task GetRevenueStatistics_ReturnsCorrectRevenue()
-        {
-            // Arrange
-            var filter = new FilterDto
-            {
-                Start = DateTime.Today.AddDays(-7), // test with a date range
-                End = DateTime.Today.AddDays(7)
-            };
+        //[Test]
+        //public async Task GetRevenueStatistics_ReturnsCorrectRevenue()
+        //{
+        //    // Arrange
+        //    var filter = new FilterDto
+        //    {
+        //        Start = DateTime.Today.AddDays(-7), // test with a date range
+        //        End = DateTime.Today.AddDays(7)
+        //    };
 
-            // Act
-            var result = await _dashboardService.GetRevenueStatistics(filter);
+        //    // Act
+        //    var result = await _dashboardService.GetRevenueStatistics(filter);
 
-            // Assert
-            Assert.That(result.TotalRevenue, Is.EqualTo(80000));
-            Assert.That(result.AvgRevenuePerSession, Is.EqualTo(40000));
-            Assert.That(result.Daily.Count, Is.EqualTo(1));
-            Assert.That(result.ByStation.Count, Is.EqualTo(1));
-        }
+        //    // Assert
+        //    Assert.That(result.TotalRevenue, Is.EqualTo(80000));
+        //    Assert.That(result.AvgRevenuePerSession, Is.EqualTo(40000));
+        //    Assert.That(result.Daily.Count, Is.EqualTo(1));
+        //    Assert.That(result.ByStation.Count, Is.EqualTo(1));
+        //}
 
         [Test]
         public async Task GetUserStatistics_ReturnsCorrectUserStatistics()

@@ -11,7 +11,7 @@ namespace DataAccess.Interfaces
     public interface IDashboardRepository
     {
         Task<SystemOverviewDto> GetSystemOverviewAsync();
-        Task<List<ChargingSession>> GetSessionsAsync(FilterDto filter);
+        Task<List<ChargingSession>> GetSessionsAsync(FilterDto filter, int userId, string role);
         UserStatisticsDto GetStatistics(FilterDto filter);
     }
 }

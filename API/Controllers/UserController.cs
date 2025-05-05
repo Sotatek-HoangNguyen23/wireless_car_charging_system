@@ -244,7 +244,7 @@ namespace API.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [Authorize("Operator")]
         [HttpGet]
         public IActionResult GetUsers(
             [FromQuery] string? searchQuery,
@@ -257,7 +257,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [AllowAnonymous]
+        [Authorize("Operator")]
         [HttpPut("change-status/{userId}")]
         public async Task<IActionResult> ChangeUserStatus(int userId, [FromBody] string newStatus)
         {
