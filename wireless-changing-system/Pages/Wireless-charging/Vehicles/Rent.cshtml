@@ -59,7 +59,7 @@
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
 
-    async function searchUsers() {
+       async function searchUsers() {
         let searchValue = document.getElementById("search-input").value.trim();
         if (!searchValue) {
             showPopup("Vui lòng nhập số điện thoại hoặc email!", "warning");
@@ -70,17 +70,24 @@
 
         try {
             let response = await fetchWithAuth(apiUrl);
+
             if (!response.ok) {
-                throw new Error("Không tìm thấy người dùng nào!");
+                // Lấy nội dung trả về từ API (có thể là text hoặc JSON)
+                let errorText = await response.text();
+                showToast(errorText || "Đã xảy ra lỗi!");
+                document.getElementById("user-list").innerHTML = "";
+                return;
             }
 
             let users = await response.json();
             displayUserList(users);
         } catch (error) {
-            showPopup(error.message, "danger");
+            showPopup("Lỗi kết nối đến máy chủ!", "danger");
+            console.error(error);
             document.getElementById("user-list").innerHTML = "";
         }
     }
+
 
     window.searchUsers = searchUsers;
 

@@ -33,6 +33,6 @@ namespace DataAccess.Interfaces
         Task AddDocumentRequest(DocumentReview document);
         bool IsMailOrPhoneDuplicate(int userId,string mail, string phone);
 
-
+        bool HavingDriverLicenseYet(int userId);
     }
 }

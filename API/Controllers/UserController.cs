@@ -400,12 +400,37 @@ namespace API.Controllers
         [HttpGet("get-users-by-email-phone")]
         public async Task<IActionResult> GetUsersByEmailPhone([FromQuery] string search)
         {
-            var users = await _userService.GetUsersByEmailOrPhoneAsync(search);
-            if (users == null || users.Count == 0)
+            try
             {
-                return NotFound("Không tìm thấy người dùng nào.");
+                var users = await _userService.GetUsersByEmailOrPhoneAsync(search);
+                if (users == null || users.Count == 0)
+                {
+                    return NotFound("Không tìm thấy người dùng nào.");
+                }
+                return Ok(users);
             }
-            return Ok(users);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message); // hoặc StatusCode(500) nếu cần
+            }
+        }
+
+        [HttpGet("having-driver-license-yet")]
+        public async Task<IActionResult> HavingDriverLicenseYet()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            var result = _userService.HavingDriverLicenseYet(userId);
+            return Ok(result);
         }
     }
 }

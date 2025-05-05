@@ -102,76 +102,89 @@
 </div>
 
 
-    <script type="module">
-        import { fetchWithAuth } from '/js/apiClient.js';
-        document.addEventListener("DOMContentLoaded", function () {
-            // const userId = sessionStorage.getItem("userId");
-            // if (!userId) {
-            //     alert("User chưa đăng nhập!");
-            //     return;
-            // }
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const role = sessionStorage.getItem("role");
+
+        // Ẩn CCCD và nút nếu là Operator
+        if (role === "Operator") {
+            const cccdGroup = document.getElementById("cccd")?.closest(".form-group");
+            if (cccdGroup) {
+                cccdGroup.style.display = "none";
+            }
+
+            const driverLicenseBtn = document.getElementById("add-driver-license-btn");
+            if (driverLicenseBtn) {
+                driverLicenseBtn.style.display = "none";
+            }
+        }
+
+        // Chuyển trang khi nhấn các nút
         document.getElementById("add-driver-license-btn").addEventListener("click", function () {
-                window.location.href = "/wireless-charging/profiles/driverlisense";
-            });
+            window.location.href = "/wireless-charging/profiles/driverlisense";
+        });
 
         document.getElementById("change-password-btn").addEventListener("click", function () {
             window.location.href = "/wireless-charging/profiles/changepassword";
         });
 
-            fetchWithAuth(`https://localhost:7191/api/User/profile`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("fullname").value = data.fullname;
-                    document.getElementById("email").value = data.email;
-                    document.getElementById("phone").value = data.phoneNumber;
-                    document.getElementById("cccd").value = data.code;
-                    document.getElementById("dob").value = data.dob.split("T")[0];
-                    document.getElementById("address").value = data.address;
-                    document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
+        // Lấy thông tin người dùng
+        fetchWithAuth(`https://localhost:7191/api/User/profile`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("fullname").value = data.fullname;
+                document.getElementById("email").value = data.email;
+                document.getElementById("phone").value = data.phoneNumber;
+                document.getElementById("cccd").value = data.code;
+                document.getElementById("dob").value = data.dob.split("T")[0];
+                document.getElementById("address").value = data.address;
+                document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
 
-                    document.getElementById("imgFront").src = data.imgFront;
-                    document.getElementById("imgBack").src = data.imgBack;
-                })
-                .catch(error => console.error("Error fetching profile data:", error));
+                document.getElementById("imgFront").src = data.imgFront;
+                document.getElementById("imgBack").src = data.imgBack;
+            })
+            .catch(error => console.error("Error fetching profile data:", error));
 
-            document.getElementById("toggle-cccd").addEventListener("click", function () {
-                const cccdImages = document.querySelector(".img-cccd");
-                const icon = document.querySelector("#toggle-cccd i");
+        // Toggle hiển thị ảnh CCCD
+        document.getElementById("toggle-cccd").addEventListener("click", function () {
+            const cccdImages = document.querySelector(".img-cccd");
+            const icon = document.querySelector("#toggle-cccd i");
 
-                cccdImages.classList.toggle("d-none");
-                icon.classList.toggle("bi-eye-slash");
-                icon.classList.toggle("bi-eye");
-            });
+            cccdImages.classList.toggle("d-none");
+            icon.classList.toggle("bi-eye-slash");
+            icon.classList.toggle("bi-eye");
+        });
 
-            document.getElementById("save-btn").addEventListener("click", function () {
-                const updatedData = {
-                    fullname: document.getElementById("fullname").value,
-                    email: document.getElementById("email").value,
-                    phoneNumber: document.getElementById("phone").value,
-                    dob: new Date(document.getElementById("dob").value).toISOString(),
-                    gender: document.querySelector('input[name="gender"]:checked').value === "true",
-                    address: document.getElementById("address").value
-                };
+        // Xử lý lưu cập nhật
+        document.getElementById("save-btn").addEventListener("click", function () {
+            const updatedData = {
+                fullname: document.getElementById("fullname").value,
+                email: document.getElementById("email").value,
+                phoneNumber: document.getElementById("phone").value,
+                dob: new Date(document.getElementById("dob").value).toISOString(),
+                gender: document.querySelector('input[name="gender"]:checked').value === "true",
+                address: document.getElementById("address").value
+            };
 
-                    fetchWithAuth(`https://localhost:7191/api/User/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData)
-    })
-    .then(async response => {
-        const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.message || "Cập nhật thất bại");
-        }
-        new bootstrap.Modal(document.getElementById('successModal')).show();
-    })
-    .catch(error => {
-        console.error("Lỗi cập nhật:", error);
-        showToast('Error: ' + error.message);
-    });
-
+            fetchWithAuth(`https://localhost:7191/api/User/profile`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData)
+            })
+            .then(async response => {
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || "Cập nhật thất bại");
+                }
+                new bootstrap.Modal(document.getElementById('successModal')).show();
+            })
+            .catch(error => {
+                console.error("Lỗi cập nhật:", error);
+                showToast('Error: ' + error.message);
             });
         });
-    </script>
+    });
+</script>
 

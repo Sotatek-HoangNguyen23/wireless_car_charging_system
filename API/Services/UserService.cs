@@ -69,7 +69,7 @@ namespace API.Services
             {
                 throw new InvalidOperationException("Số điện thoại đã tồn tại");
             }
-            if(!IsEmailCorrect(request.Email))
+            if (!IsEmailCorrect(request.Email))
             {
                 throw new ArgumentException("Email không hợp lệ");
             }
@@ -173,7 +173,7 @@ namespace API.Services
             }
             catch (InvalidImageException ex)
             {
-                throw new Exception("Image khong hop le",ex);
+                throw new Exception("Image khong hop le", ex);
             }
             catch (Exception ex)
             {
@@ -400,7 +400,7 @@ namespace API.Services
                 {
                     throw new ArgumentException("Mật khẩu không đủ mạnh");
                 }
-                if(user.Status != "ACTIVE")
+                if (user.Status != "ACTIVE")
                 {
                     throw new ArgumentException("Tài khoản chưa được kích hoạt");
                 }
@@ -416,7 +416,7 @@ namespace API.Services
                 throw new Exception("Thay đổi mật khẩu thất bài", ex);
             }
         }
-  
+
         public async Task<ProfileDTO?> GetProfileByUserId(int userId)
         {
             if (userId <= 0)
@@ -457,7 +457,7 @@ namespace API.Services
             {
                 throw new Exception("Người dùng không tồn tại.");
             }
-            if(_userRepository.IsMailOrPhoneDuplicate(userId, request.Email, request.PhoneNumber))
+            if (_userRepository.IsMailOrPhoneDuplicate(userId, request.Email, request.PhoneNumber))
             {
                 throw new ArgumentException("Email hoặc số điện thoại đã tồn tại");
             }
@@ -523,7 +523,21 @@ namespace API.Services
 
         public async Task<List<User>> GetUsersByEmailOrPhoneAsync(string search)
         {
-            return await _userRepository.GetUserByEmailOrPhone(search);
+            var users = await _userRepository.GetUserByEmailOrPhone(search);
+
+            if (users == null || users.Count == 0)
+                return users;
+
+            // Giả sử chỉ cần kiểm tra license của người dùng đầu tiên
+            var userId = users[0].UserId;
+            var hasLicense = _userRepository.HavingDriverLicenseYet(userId); // hoặc gọi service nếu cần
+
+            if (!hasLicense)
+            {
+                throw new Exception("Tài xế chưa đăng ký hoặc được duyệt giấy phép lái xe");
+            }
+
+            return users;
         }
         public async Task<DriverLicenseDTO> GetLicenseByCode(string code)
         {
@@ -934,7 +948,7 @@ namespace API.Services
             {
                 UserId = user.UserId,
                 CccdId = existingCccd.CccdId,
-                ReviewType = "CCCD", 
+                ReviewType = "CCCD",
                 Status = "PENDING",
                 CreateAt = now,
                 UpdateAt = now
@@ -946,7 +960,7 @@ namespace API.Services
             {
                 await _userRepository.AddDocumentRequest(review);
 
-                user.Status = "PENDING";     
+                user.Status = "PENDING";
                 user.UpdateAt = now;
                 await _userRepository.UpdateUser(user);
 
@@ -997,13 +1011,18 @@ namespace API.Services
             {
                 throw new ArgumentException("Tài khoản không tồn tại", nameof(email));
             }
-            var isValid = await _otpServices.VerifyOtpAsync(email,otpCode );
+            var isValid = await _otpServices.VerifyOtpAsync(email, otpCode);
             if (!isValid)
             {
                 throw new ArgumentException("Token không hợp lệ", nameof(otpCode));
             }
             var token = await _otpServices.genResetPasswordToken(email);
             return token;
+        }
+
+        public bool HavingDriverLicenseYet(int userId)
+        {
+            return _userRepository.HavingDriverLicenseYet(userId);
         }
     }
 }

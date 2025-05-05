@@ -57,6 +57,28 @@
                     </div>
                 </div>
 
+                    <div class="col-12 mt-4">
+                        <h5>Giấy tờ xe</h5>
+                        <div class="d-flex justify-content-start align-items-center mb-3">
+                            <button class="btn btn-outline-secondary me-2" onclick="toggleImages()">
+                                <i class="bi bi-eye" id="eye-icon"></i> Xem ảnh
+                            </button>
+                        </div>
+
+                        <!-- Car Images (Front and Back) -->
+                        <div id="car-images" style="display: none;">
+                            <div class="row">
+                                <div class="col-12 col-md-6 mb-3">
+                                    <h6>Ảnh trước xe</h6>
+                                    <img src="" alt="Car Front" id="car-img-front" class="img-fluid rounded-3">
+                                </div>
+                                <div class="col-12 col-md-6 mb-3">
+                                    <h6>Ảnh sau xe</h6>
+                                    <img src="" alt="Car Back" id="car-img-back" class="img-fluid rounded-3">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 <!-- Action Buttons -->
                 <div class="col-12">
                     <div class="d-flex gap-2">
@@ -159,12 +181,31 @@
 
             const car = await response.json();
             updateCarDetails(car);
+            document.getElementById('car-img-front').src = car.carImgFront;
+        document.getElementById('car-img-back').src = car.carImgBack;
         } catch (error) {
             console.error("Fetch Car Details Error:", error);
             document.getElementById("car-detail-container").style.display = "none";
             document.getElementById("access-denied-message").style.display = "block";
         }
     }
+         window.toggleImages = function() {
+        const carImages = document.getElementById("car-images");
+        const eyeIcon = document.getElementById("eye-icon");
+
+        if (carImages.style.display === "none") {
+            carImages.style.display = "block";
+            eyeIcon.classList.remove("bi-eye");
+            eyeIcon.classList.add("bi-eye-slash");
+        } else {
+            carImages.style.display = "none";
+            eyeIcon.classList.remove("bi-eye-slash");
+            eyeIcon.classList.add("bi-eye");
+        }
+    }
+
+    // Add event listener inside module scope
+    document.querySelector(".btn-outline-secondary").addEventListener("click", window.toggleImages);
 
     function updateCarDetails(car) {
         document.getElementById('car-name').textContent = car.carName;

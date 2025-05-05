@@ -270,6 +270,17 @@ namespace DataAccess.Repositories
             return _context.Users.Any(u => u.UserId != userId && (u.Email == mail || u.PhoneNumber == phone));
 
         }
+
+        public bool HavingDriverLicenseYet(int userId)
+        {
+            var license = _context.DriverLicenses
+        .FirstOrDefault(dl => dl.UserId == userId);
+
+            if (license == null)
+                return false;
+
+            return license.Status?.ToLower() == "approve";
+        }
     }
 }
 
