@@ -29,6 +29,8 @@ namespace DataAccess.DTOs.CarDTO
         public string? Img { get; set; }
         public DateTime? ModelCreateAt { get; set; }
         public DateTime? ModelUpdateAt { get; set; }
+        public string? FrontCarLicenseImg { get; set; }
+        public string? BackCarLicenseImg { get; set; }
     }
 
     //public class ChargingCarStatsDto

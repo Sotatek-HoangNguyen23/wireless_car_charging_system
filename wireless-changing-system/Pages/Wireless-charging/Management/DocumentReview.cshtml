@@ -84,6 +84,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>                  
+                        <th>Người gửi</th>                  
                         <th>Ngày gửi</th>
                         <th>Người xét duyệt</th>
                         <th>Ngày xét duyệt</th>
@@ -114,6 +115,11 @@
                 <div class="modal-body">
                     <p><strong>Loại:</strong> <span id="docType"></span></p>
                     <p><strong>Mã:</strong> <span id="docCode"></span></p>
+                    <p id="docNameRow" hidden><strong>Họ tên:</strong> <span id="docName"></span></p>
+                    <p id="docDOBRow" hidden><strong>Sinh nhật:</strong> <span id="docDOB"></span></p>
+                    <p id="docAddressRow" hidden><strong>Địa chỉ:</strong> <span id="docAddress"></span></p>
+                    <p id="docGenderRow" hidden><strong>Giới tính:</strong> <span id="docGender"></span></p>
+                    <p id="docClassRow" hidden><strong>Hạng:</strong> <span id="docClass"></span></p>
                     <p><strong>Ghi chú:</strong> <span id="docComment"></span></p>
                     <div class="row">
                         <div class="col-md-6">
@@ -158,7 +164,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { fetchWithAuth } from '/js/apiClient.js';
+
         document.addEventListener("DOMContentLoaded", function () {
             let currentPage = 1;
             const pageSize = 10;
@@ -189,23 +197,26 @@
             
             // Fetch documents from API
             function fetchDocuments() {
-                let url = `https://localhost:7191/api/DocumentReview/by-type?type=${currentType}&page=${currentPage}&pageSize=${pageSize}`;                
-                
+                let url = `https://localhost:7191/api/DocumentReview/by-type?type=${currentType}&page=${currentPage}&pageSize=${pageSize}`;
+
                 if (currentStatus != null) {
                     url += `&status=${currentStatus}`;
                 }
-                
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        updateDocumentTable(data.data);
-                        updatePagination(data.totalPages, currentPage);
-                    })
-                    .catch(error => {
-                        console.error("Error fetching documents:", error);
-                        showToast("Đã có lỗi khi tải dữ liệu");
-                    });
+
+                fetchWithAuth(url, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    updateDocumentTable(data.data);
+                    updatePagination(data.totalPages, currentPage);
+                })
+                .catch(error => {
+                    console.error("Error fetching documents:", error);
+                    showToast("Đã có lỗi khi tải dữ liệu");
+                });
             }
             
             // Update document table
@@ -244,7 +255,7 @@
                     if (doc.status === "PENDING") {
                         actionButton = `
                             <button class="btn btn-info btn-sm view-details-btn" data-id="${doc.id}">
-                                Xem
+                                Chi tiết
                             </button>
                             <button class="btn btn-primary btn-sm review-btn" data-id="${doc.id}">
                                 Xét duyệt
@@ -262,6 +273,7 @@
                     const row = `
                         <tr>
                             <td>${doc.id}</td>
+                            <td>${doc.user}</td>
                             <td>${new Date(doc.createAt).toLocaleDateString('vi-VN')}</td>
                             <td>${doc.reviewedBy}</td>
                             <td>${doc.reviewedAt}</td>
@@ -334,7 +346,12 @@
             
             async function viewDocumentDetails(id) {
                 try {
-                    const response = await fetch(`https://localhost:7191/api/DocumentReview/${id}`);
+                    resetHiddenFields();
+
+                    const response = await fetchWithAuth(`https://localhost:7191/api/DocumentReview/${id}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                     if (!response.ok) {
                         throw new Error('Không tìm thấy tài liệu');
                     }
@@ -344,10 +361,32 @@
                     
                     // Cập nhật nội dung modal
                     document.getElementById('docType').textContent = getDocumentTypeName(data.type);
-                    document.getElementById('docCode').textContent = data.code || 'Không có';
+                    document.getElementById('docCode').textContent = data.code;
                     document.getElementById('docComment').textContent = data.comments || 'Không có';
                     document.getElementById('imgFront').src = data.imageFront;
                     document.getElementById('imgBack').src = data.imageBack;
+
+                    if (currentType === "CCCD") {
+                        document.getElementById('docName').textContent = getDocumentTypeName(data.fullName);
+                        document.getElementById('docDOB').textContent = data.doB;
+                        document.getElementById('docAddress').textContent = data.address;
+                        document.getElementById('docGender').textContent = data.gender;
+                        document.getElementById('docNameRow').hidden = false;
+                        document.getElementById('docDOBRow').hidden = false;
+                        document.getElementById('docAddressRow').hidden = false;
+                        document.getElementById('docGenderRow').hidden = false;
+                    }
+
+                    if (currentType === "DRIVER_LICENSE") {
+                        document.getElementById('docName').textContent = getDocumentTypeName(data.fullName);
+                        document.getElementById('docDOB').textContent = data.doB;
+                        document.getElementById('docAddress').textContent = data.address;
+                        document.getElementById('docClass').textContent = data.class;
+                        document.getElementById('docNameRow').hidden = false;
+                        document.getElementById('docDOBRow').hidden = false;
+                        document.getElementById('docAddressRow').hidden = false;
+                        document.getElementById('docClassRow').hidden = false;
+                    }
                     
                     // Hiển thị modal
                     const detailModal = new bootstrap.Modal(document.getElementById('documentDetailModal'));
@@ -367,26 +406,30 @@
                 };
                 return types[type] || type;
             }
+
+            function resetHiddenFields() {
+                document.getElementById('docNameRow').hidden = true;
+                document.getElementById('docDOBRow').hidden = true;
+                document.getElementById('docAddressRow').hidden = true;
+                document.getElementById('docGenderRow').hidden = true;
+                document.getElementById('docClassRow').hidden = true;
+            }
+
             
             // Submit review
             document.getElementById('submitReview').addEventListener('click', function() {
                 const docId = document.getElementById('reviewDocumentId').value;
                 const status = document.getElementById('reviewStatus').value;
                 const comments = document.getElementById('reviewNote').value;
-
-                const token = sessionStorage.getItem('accessToken'); // hoặc 'token' tùy app bạn
-                const decoded = parseJwt(token);
-                const userId = decoded?.sub || null;
                 
                 const reviewData = {
                     id: docId,
                     status: status,
                     comments: comments,
-                    reviewedBy: userId,
                     type: currentType
                 };
                 
-                fetch('https://localhost:7191/api/DocumentReview/update-review', {
+                fetchWithAuth('https://localhost:7191/api/DocumentReview/update-review', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'

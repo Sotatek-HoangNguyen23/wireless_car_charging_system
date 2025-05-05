@@ -53,6 +53,13 @@
     document.addEventListener("DOMContentLoaded", function () {
         let currentPage = 1;
         const pageSize = 2;
+
+        // Phân quyền theo role
+        const role = sessionStorage.getItem("role");
+        if (role !== "Operator") {
+            const addButton = document.getElementById("add-station-btn");
+            addButton.style.display = "none";
+        }
         
         $(document).ready(function () {
             getLocationAndLoadStations();
@@ -78,9 +85,9 @@
         });
 
         // Lấy dữ liệu trạm sạc
-        async function loadStations(userLat, userLng, keyword, currentPage, pageSize) {
+        async function loadStations(userLat, userLng, keyword, currentPage, pageSize, currentRole) {
             try {
-                let url = `https://localhost:7191/api/ChargingStation?keyword=${encodeURIComponent(keyword)}&page=${currentPage}&pageSize=${pageSize}`;
+                let url = `https://localhost:7191/api/ChargingStation?keyword=${encodeURIComponent(keyword)}&currentRole=${currentRole}&page=${currentPage}&pageSize=${pageSize}`;
 
                 if (userLat !== null && userLat !== undefined && userLng !== null && userLng !== undefined) {
                     url += `&userLat=${userLat}&userLng=${userLng}`;
@@ -112,11 +119,11 @@
                     const userLng = position.coords.longitude;
                     const keyword = $("#search-input").val();
 
-                    loadStations(userLat, userLng, keyword, currentPage, pageSize);
+                    loadStations(userLat, userLng, keyword, currentPage, pageSize, role);
                 }, error => {
                     console.error("Không thể lấy vị trí hiện tại!", error);
                     showToast("Không thể lấy vị trí hiện tại!");
-                    loadStations(null, null, $("#search-input").val(), currentPage, pageSize);
+                    loadStations(null, null, $("#search-input").val(), currentPage, pageSize, role);
                 });
             } else {
                 console.error("Trình duyệt không hỗ trợ Geolocation.");
@@ -277,11 +284,6 @@
             }
         }
 
-        // Phân quyền theo role
-        const role = sessionStorage.getItem("role");
-        if (role !== "Operator") {
-            const addButton = document.getElementById("add-station-btn");
-            addButton.style.display = "none";
-        }
+        
     });
 </script>

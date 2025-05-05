@@ -29,9 +29,9 @@ namespace API.Services
             
         }
 
-        public async Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto)
+        public async Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto, int currentUserId)
         {
-            await _repository.UpdateReviewInfoAsync(dto);
+            await _repository.UpdateReviewInfoAsync(dto, currentUserId);
 
             int reviewID = dto.Id;
             var document = await _repository.GetDocumentReviewById(reviewID);
@@ -74,7 +74,11 @@ namespace API.Services
                     Code = cccd.Code,
                     Comments = document.Comments,
                     ImageFront = cccd.ImgFront,
-                    ImageBack = cccd.ImgBack
+                    ImageBack = cccd.ImgBack,
+                    FullName = cccd.User.Fullname,
+                    DoB = cccd.User.Dob.Value.ToString("dd/MM/yyyy"),
+                    Address = cccd.User.Address,
+                    Gender = (bool)cccd.User.Gender ? "Nam" : "Nữ"
                 };
             }
 
@@ -91,7 +95,28 @@ namespace API.Services
                     Code = license.Code,
                     Comments = document.Comments,
                     ImageFront = license.ImgFront,
-                    ImageBack = license.ImgBack
+                    ImageBack = license.ImgBack,
+                    Class = license.Class,
+                    FullName = license.User.Fullname,
+                    DoB = license.User.Dob.Value.ToString("dd/MM/yyyy"),
+                    Address = license.User.Address
+                };
+            }
+
+            if (document.CarId.HasValue)
+            {
+                var car = _carRepo.getCarDetailById(document.CarId.Value);
+                if (car == null)
+                    return null;
+
+                return new DocumentDetailDto
+                {
+                    Type = "Car_License",
+                    DocumentId = car.CarId,
+                    Code = car.LicensePlate,
+                    Comments = document.Comments,
+                    ImageFront = car.FrontCarLicenseImg,
+                    ImageBack = car.BackCarLicenseImg                   
                 };
             }
 

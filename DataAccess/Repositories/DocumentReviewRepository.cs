@@ -32,6 +32,7 @@ namespace DataAccess.Repositories
             {
                 Id = d.ReviewId,
                 Type = d.ReviewType,
+                User = d.User.Email,
                 Status = d.Status,
                 Comments = d.Comments,
                 CreateAt = d.CreateAt,
@@ -57,15 +58,15 @@ namespace DataAccess.Repositories
                                  .FirstOrDefaultAsync(d => d.ReviewId == id);
         }
 
-        public async Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto)
+        public async Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto, int currentUserId)
         {
             var doc = await _context.DocumentReviews.FindAsync(dto.Id);
             if (doc == null) return false;
 
             doc.Status = dto.Status;
             doc.Comments = dto.Comments;
-            doc.ReviewedBy = dto.ReviewedBy;
-            doc.ReviewedAt = dto.ReviewedAt;
+            doc.ReviewedBy = currentUserId;
+            doc.ReviewedAt = DateTime.UtcNow;
             doc.UpdateAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

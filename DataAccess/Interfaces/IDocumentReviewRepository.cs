@@ -13,7 +13,7 @@ namespace DataAccess.Interfaces
     public interface IDocumentReviewRepository
     {
         PagedResult<DocumentReviewDto>? GetAllDocumentReview(string type, string? status, int page, int pageSize);
-        Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto);
+        Task<bool> UpdateReviewInfoAsync(UpdateDocumentReviewDto dto, int currentUserId);
         Task<DocumentReview> GetDocumentReviewById(int id);
 
     }
