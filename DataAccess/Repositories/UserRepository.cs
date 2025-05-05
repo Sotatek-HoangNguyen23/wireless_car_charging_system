@@ -271,15 +271,10 @@ namespace DataAccess.Repositories
 
         }
 
-        public bool HavingDriverLicenseYet(int userId)
+        public async Task<bool> HavingDriverLicenseYet(int userId)
         {
-            var license = _context.DriverLicenses
-        .FirstOrDefault(dl => dl.UserId == userId);
-
-            if (license == null)
-                return false;
-
-            return license.Status?.ToLower() == "approved";
+            return await _context.DriverLicenses
+                .AnyAsync(dl => dl.UserId == userId && dl.Status.ToLower() == "approved");
         }
     }
 }

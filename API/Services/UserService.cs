@@ -530,7 +530,8 @@ namespace API.Services
 
             // Giả sử chỉ cần kiểm tra license của người dùng đầu tiên
             var userId = users[0].UserId;
-            var hasLicense = _userRepository.HavingDriverLicenseYet(userId); // hoặc gọi service nếu cần
+            var hasLicense = await _userRepository.HavingDriverLicenseYet(userId);
+
 
             if (!hasLicense)
             {
@@ -1059,7 +1060,7 @@ namespace API.Services
             return token;
         }
 
-        public bool HavingDriverLicenseYet(int userId)
+        public Task<bool> HavingDriverLicenseYet(int userId)
         {
             return _userRepository.HavingDriverLicenseYet(userId);
         }
