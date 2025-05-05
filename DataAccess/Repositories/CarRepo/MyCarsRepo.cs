@@ -55,6 +55,8 @@ namespace DataAccess.Repositories.CarRepo
                                  IsDeleted = c.IsDeleted,
                                  CarCreateAt = c.CreateAt,
                                  CarUpdateAt = c.UpdateAt,
+                                 FrontCarLicenseImg = c.ImgFront,
+                                 BackCarLicenseImg = c.ImgBack,
                                  CarModelId = cm.CarModelId,
                                  Type = cm.Type,
                                  Color = cm.Color,
@@ -66,7 +68,7 @@ namespace DataAccess.Repositories.CarRepo
                                  ChargingStandard = cm.ChargingStandard,
                                  Img = cm.Img,
                                  ModelCreateAt = cm.CreateAt,
-                                 ModelUpdateAt = cm.UpdateAt
+                                 ModelUpdateAt = cm.UpdateAt                              
                              }).FirstOrDefault();
 
             return carDetail;

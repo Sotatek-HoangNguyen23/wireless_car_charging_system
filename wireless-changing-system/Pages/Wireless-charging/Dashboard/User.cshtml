@@ -107,7 +107,7 @@
                     $('#dauMauRatio').text(`${res.daumauPercentage}%`);
 
                     // Render chart
-                    renderChart('newUsersChart', res.newUsersOverTime.map(d => d.date), res.newUsersOverTime.map(d => d.count), 'line', 'Số người dùng mới', 'blue', chart => { });
+                    renderChart('newUsersChart', res.newUsersOverTime.map(d => d.date.split('T')[0]), res.newUsersOverTime.map(d => d.count), 'line', 'Số người dùng mới', 'blue', chart => { });
                     renderChart('userVsChargedChart', ['Đăng ký', 'Đã sạc'], [res.totalUsers, res.usersWhoCharged], 'bar', 'Số người dùng', 'green', chart => { });
                     renderPieChart('dauMauChart', ['DAU', 'MAU'], [res.dau, res.mau], chart => { });
                 } else {
@@ -129,7 +129,8 @@
                 plugins: {
                     datalabels: {
                         anchor: 'end',
-                        align: 'start',
+                        align: 'top',
+                        offset: 8,
                         color: 'black',
                         font: {
                             weight: 'bold'
