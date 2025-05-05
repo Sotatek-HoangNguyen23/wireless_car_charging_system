@@ -57,5 +57,7 @@ namespace DataAccess.Interfaces
 
         bool IsRenterViewAnalysis(int carId, int renterId);
         Task ChangeCarStatusAsync(int? carId, string newStatus);
+
+        Task UpdateExpiredRentalsAsync();
     }
 }
