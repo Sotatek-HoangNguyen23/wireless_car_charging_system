@@ -27,7 +27,8 @@ namespace TestProject.ChargingStationTest
             _context = new WccsContext(options);
 
             // Seed dữ liệu
-            var user1 = new User { UserId = 1, Fullname = "Nguyen Van A", Email = "a@example.com", PhoneNumber = "0123456789", CreateAt = DateTime.UtcNow };
+            var user1 = new User { UserId = 1, Fullname = "Nguyen Van A", Email = "a@example.com", PhoneNumber = "0123456789", CreateAt = 
+                Now };
             var user2 = new User { UserId = 2, Fullname = "Tran Thi B", Email = "b@example.com", PhoneNumber = "0987654321", CreateAt = DateTime.UtcNow };
 
             var location1 = new StationLocation

@@ -31,7 +31,8 @@ namespace TestProject.UserTest
                 Email = "test@example.com",
                 PhoneNumber = "0123456789",    
                 Fullname = "Nguyen Van A",    
-                CreateAt = DateTime.UtcNow,
+                CreateAt = 
+                Now,
             };
             await _context.Users.AddAsync(user);
 

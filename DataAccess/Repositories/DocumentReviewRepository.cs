@@ -66,8 +66,8 @@ namespace DataAccess.Repositories
             doc.Status = dto.Status;
             doc.Comments = dto.Comments;
             doc.ReviewedBy = currentUserId;
-            doc.ReviewedAt = DateTime.UtcNow;
-            doc.UpdateAt = DateTime.UtcNow;
+            doc.ReviewedAt = DateTime.Now;
+            doc.UpdateAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
             return true;

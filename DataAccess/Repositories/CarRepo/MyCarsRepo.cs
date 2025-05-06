@@ -240,8 +240,8 @@ namespace DataAccess.Repositories.CarRepo
                         ImgBackPubblicId = request.ImgBackPubblicId,
                         Status = request.Status,
                         IsDeleted = false,
-                        CreateAt = DateTime.UtcNow,
-                        UpdateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
                     };
 
                     _context.Cars.Add(car);
@@ -253,7 +253,7 @@ namespace DataAccess.Repositories.CarRepo
                         CarId = car.CarId, 
                         Role = "Owner",      
                         IsAllowedToCharge = true,
-                        StartDate = DateTime.UtcNow
+                        StartDate = DateTime.Now
                     };
 
                     _context.UserCars.Add(userCar);
@@ -265,8 +265,8 @@ namespace DataAccess.Repositories.CarRepo
                         CarId = car.CarId,
                         ReviewType = "CAR_LICENSE",
                         Status = "PENDING",
-                        CreateAt = DateTime.UtcNow,
-                        UpdateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
                     };
                      _context.DocumentReviews.Add(document);
                     _context.SaveChanges();
@@ -483,7 +483,7 @@ namespace DataAccess.Repositories.CarRepo
 
         public async Task<bool> IsCarBeingRentedAsync(int carId)
         {
-            var currentTime = DateTime.UtcNow;
+            var currentTime = DateTime.Now;
 
             return await _context.UserCars
                 .AnyAsync(uc =>
