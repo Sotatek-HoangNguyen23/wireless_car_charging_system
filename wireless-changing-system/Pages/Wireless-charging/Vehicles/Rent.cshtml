@@ -116,7 +116,7 @@
         let endDate = document.getElementById("endDate").value;
 
         if (!startDate || !endDate) {
-            showPopup("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.", "warning");
+            showToast("Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.", "warning");
             return;
         }
 
@@ -153,7 +153,7 @@
 
     window.showRentPopup = showRentPopup;
 
-    async function confirmRent() {
+        async function confirmRent() {
         let userId = document.getElementById("confirmRentBtn").dataset.userId;
         let carId = new URLSearchParams(window.location.search).get('carId');
         let startDate = document.getElementById("startDate").value;
@@ -166,15 +166,22 @@
         });
 
         if (response.ok) {
-            showPopup("Đã cấp quyền cho mượn xe. Chờ bên phía người thuê xác nhận!", "success");
+            showToast("Đã cấp quyền cho mượn xe. Chờ bên phía người thuê xác nhận!", "success");
             let rentModal = bootstrap.Modal.getInstance(document.getElementById("rentConfirmModal"));
             if (rentModal) {
                 rentModal.hide();
             }
         } else {
-            showPopup("Lỗi khi thuê xe!", "danger");
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch {
+                errorData = { Message: "Đã xảy ra lỗi!" };
+            }
+            showToast(errorData.message || "Lỗi khi thuê xe!", "danger");
         }
     }
+
 
     window.confirmRent = confirmRent;
 </script>

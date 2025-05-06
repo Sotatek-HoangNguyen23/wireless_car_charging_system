@@ -283,11 +283,21 @@ namespace API.Controllers
                 await _carService.SendRentRequestForRent(request.UserId, request.CarId, request.StartDate, request.EndDate);
                 return Ok(new { Message = "Rent request sent successfully!" });
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message }); // 409 Conflict – có phiên thuê bị trùng
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = ex.Message });
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
             }
         }
+
+        
 
         [HttpGet("rent-requests")]
         public async Task<IActionResult> GetRentRequests()

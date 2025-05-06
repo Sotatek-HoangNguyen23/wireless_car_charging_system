@@ -564,5 +564,16 @@ namespace DataAccess.Repositories.CarRepo
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.CarId == id);
         }
+
+        public async Task<bool> IsRentTimeOverlappingAsync(int carId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.UserCars.AnyAsync(uc =>
+                uc.CarId == carId &&
+                uc.Role == "Renter" &&
+                uc.StartDate != null &&
+                uc.EndDate != null &&
+                (startDate < uc.EndDate && endDate > uc.StartDate)
+            );
+        }
     }
 }

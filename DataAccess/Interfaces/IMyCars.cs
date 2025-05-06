@@ -61,5 +61,7 @@ namespace DataAccess.Interfaces
         Task UpdateExpiredRentalsAsync();
 
         Task<Car?> GetCarById(int id);
+
+        Task<bool> IsRentTimeOverlappingAsync(int carId, DateTime startDate, DateTime endDate);
     }
 }

@@ -244,8 +244,15 @@ namespace API.Services
         {
             if (startDate >= endDate)
             {
-                throw new ArgumentException("Start date must be before end date.");
+                throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc");
             }
+
+            var isOverlapping = await _myCars.IsRentTimeOverlappingAsync(carId, startDate, endDate);
+            if (isOverlapping)
+            {
+                throw new InvalidOperationException("Trùng thời gian thuê");
+            }
+
             var userCar = new UserCar
             {
                 UserId = userId,
