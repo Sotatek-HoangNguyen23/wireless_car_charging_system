@@ -47,7 +47,7 @@ namespace API.Services
             {
                 if (refreshtokenNeedRevole.Revoked!= true)
                 {
-                    await RevokeRefreshToken(refreshtokenNeedRevole.Token!);
+                    await RevokeRefreshTokenNoHash(refreshtokenNeedRevole.Token!);
                 }
             }
             if (request.Email.Length > 225) 
@@ -166,6 +166,16 @@ namespace API.Services
         {
             var tokenHash = HashToken(token);
             var refreshToken = await _authRepository.FindRefreshToken(tokenHash);
+            if (refreshToken != null)
+            {
+                refreshToken.Revoked = true;
+                await _authRepository.UpdateRefreshTokenAsync(refreshToken);
+            }
+
+        }      
+        private async Task RevokeRefreshTokenNoHash(string token)
+        {
+            var refreshToken = await _authRepository.FindRefreshToken(token);
             if (refreshToken != null)
             {
                 refreshToken.Revoked = true;
