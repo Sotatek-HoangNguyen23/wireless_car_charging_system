@@ -126,13 +126,13 @@
                     <span><button class="btn btn-outline-success" onclick="reloadPage()">Đóng</button></span></p>
                     
                 `;
-                await loadBalance(); // Update the balance
+                await loadBalance();
                 return;
             } else if (data.status === "CANCELLED" || data.status === "FAILED") {
                 statusElement.innerText = "Thanh toán thất bại!";
                 return;
             } else {
-                if (retryCount < 100) {
+                if (retryCount < 180) {
                     setTimeout(() => checkPaymentStatus(orderId, retryCount + 1), 5000);
                 } else {
                     statusElement.innerText = "Hết thời gian chờ thanh toán!";
@@ -143,9 +143,9 @@
         }
     }
 
-    // Reload balance function
+    
     function reloadPage() {
-        loadBalance(); // Reload the balance
+        loadBalance(); 
         document.getElementById("paymentStatus").style.display = "none";
     }
     window.reloadPage = reloadPage;
@@ -168,21 +168,21 @@
         try {
             const response = await fetchWithAuth(url);
 
-            // Check if the response is ok
+            
             if (!response.ok) {
                 throw new Error(`Failed to fetch transactions: ${response.statusText}`);
             }
 
-            // Get the raw response as text
+           
             const textResponse = await response.text();
 
-            // If the response is empty, log it and throw an error
+           
             if (!textResponse) {
                 console.error("Received empty response from the server.");
                 throw new Error("No data returned from the server.");
             }
 
-            // Try parsing the response as JSON
+           
             const transactions = JSON.parse(textResponse);
 
             const tableBody = document.getElementById("transactionTable");
@@ -193,7 +193,7 @@
                 return;
             }
 
-            // Populate the table with transaction data
+            
             transactions.forEach(tr => {
                 const statusText = tr.status === "PAID" ? "Đã thanh toán" : tr.status;
                 tableBody.innerHTML += `<tr>
