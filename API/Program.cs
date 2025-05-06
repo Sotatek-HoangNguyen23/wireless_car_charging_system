@@ -157,7 +157,7 @@ builder.Services.AddRateLimiter(options =>
     // Tạo policy giới hạn 10 requests/phút cho mỗi IP
     options.AddFixedWindowLimiter("Login", policy =>
     {
-        policy.PermitLimit = 5;
+        policy.PermitLimit = 100;
         policy.Window = TimeSpan.FromMinutes(30);
         policy.QueueLimit = 0;
     });  

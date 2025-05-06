@@ -26,18 +26,18 @@ namespace API.Services
 
             if (string.IsNullOrWhiteSpace(request.CaptchaToken))
             {
-                throw new ArgumentException("Captcha không được để trống", nameof(request.CaptchaToken));
+                throw new ArgumentException("Captcha không được để trống");
             }
 
             var captchaValid = await VerifyCaptchaAsync(request.CaptchaToken);
             if (!captchaValid)
             {
-                throw new ArgumentException("Captcha không hợp lệ", nameof(request.CaptchaToken));
+                throw new ArgumentException("Captcha không hợp lệ");
             }
 
             if (request.Password.IsNullOrEmpty())
             {
-                throw new ArgumentException("Password không thể trống hoặc khoảng trắng",nameof(request.Password));
+                throw new ArgumentException("Password không thể trống hoặc khoảng trắng");
             }
             var user = await _userRepository.GetUserByEmail(request.Email);
             var refreshtokenNeedRevole = user!.RefreshTokens
@@ -52,11 +52,11 @@ namespace API.Services
             }
             if (request.Email.Length > 225) 
             {
-                throw new ArgumentException("Email không được vượt quá 225 ký tự.", nameof(request.Email));
+                throw new ArgumentException("Email không được vượt quá 225 ký tự.");
             }
             if (request.Password.Length > 100) 
             {
-                throw new ArgumentException("Mật khẩu không được vượt quá 100 ký tự.", nameof(request.Password));
+                throw new ArgumentException("Mật khẩu không được vượt quá 100 ký tự.");
             }
             if (user == null)
             {
@@ -95,7 +95,7 @@ namespace API.Services
         {
             if (string.IsNullOrEmpty(oldRefreshToken))
             {
-                throw new ArgumentException("Refresh token không thể trống hoặc khoảng trắng", nameof(oldRefreshToken));
+                throw new ArgumentException("Refresh token không thể trống hoặc khoảng trắng");
             }
             var oldTokenHash = HashToken(oldRefreshToken);
             var refreshToken = await _authRepository.FindRefreshToken(oldTokenHash);

@@ -72,7 +72,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Upload ảnh bị lỗi", ex);
+                throw new Exception("Upload ảnh bị lỗi");
             }
         }
 
@@ -92,13 +92,13 @@ namespace API.Services
                 var result = await _cloudinary.DestroyAsync(deleteParams);
 
                 if (result.Result != "ok")
-                    throw new Exception($"Cloudinary error: {result.Error?.Message}");
+                    throw new Exception($"Cloudinary error");
 
                 return result;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Không thể xóa ảnh: {ex.Message}");
+                throw new Exception($"Không thể xóa ảnh");
             }
         }
 
@@ -150,7 +150,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidImageException($"Không thể tải ảnh từ URL: {ex.Message}");
+                throw new InvalidImageException($"Không thể tải ảnh từ URL");
             }
 
             if (imageBytes.Length > 5 * 1024 * 1024)
@@ -206,7 +206,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidImageException("Không thể đọc QR code: " + ex.Message);
+                throw new InvalidImageException("Không thể đọc QR code: ");
             }   
         }
 

@@ -40,13 +40,13 @@ namespace API.Services
         {
             if (string.IsNullOrWhiteSpace(request.CaptchaToken))
             {
-                throw new ArgumentException("Captcha không được để trống", nameof(request.CaptchaToken));
+                throw new ArgumentException("Captcha không được để trống");
             }
 
             var captchaValid = await VerifyCaptchaAsync(request.CaptchaToken);
             if (!captchaValid)
             {
-                throw new ArgumentException("Captcha không hợp lệ", nameof(request.CaptchaToken));
+                throw new ArgumentException("Captcha không hợp lệ");
             }
             if (request == null)
             {
@@ -163,17 +163,17 @@ namespace API.Services
                         }
                         catch (Exception rollbackEx)
                         {
-                            Console.WriteLine($"Lỗi rollback: {rollbackEx.Message}");
+                            Console.WriteLine($"Lỗi rollback");
                         }
                     }
-                    Console.WriteLine($"Lỗi: {ex.InnerException?.Message}");
+                    Console.WriteLine($"Lỗi");
 
-                    throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu", ex);
+                    throw new Exception("Đăng ký thất bại trong quá trình lưu dữ liệu");
                 }
             }
             catch (InvalidImageException ex)
             {
-                throw new Exception("Image khong hop le", ex);
+                throw new Exception("Image khong hop le");
             }
             catch (Exception ex)
             {
@@ -186,7 +186,7 @@ namespace API.Services
 
                 await Task.WhenAll(deleteTasks);
                 // Ném lỗi với thông báo tổng quát, bao gồm inner exception để dễ dàng debug
-                throw new Exception("Đăng ký thất bại", ex);
+                throw new Exception("Đăng ký thất bại");
             }
         }
         public async Task CreateTestAccount(string email, string password, int roleId)
@@ -358,7 +358,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Không thể kích hoạt tài khoản", ex);
+                throw new Exception("Không thể kích hoạt tài khoản");
             }
         }
         public async Task<UserDto> GetUserByPhone(string phone)
@@ -413,7 +413,7 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Thay đổi mật khẩu thất bài", ex);
+                throw new Exception("Thay đổi mật khẩu thất bài");
             }
         }
 
@@ -697,7 +697,7 @@ namespace API.Services
                 if (backUpload != null)
                     deleteTasks.Add(_imageService.DeleteImageAsync(backUpload.PublicId));
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("Thêm bằng lái thất bại", ex);
+                throw new Exception("Thêm bằng lái thất bại");
             }
 
         }
@@ -807,7 +807,7 @@ namespace API.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Lỗi trong quá trình lấy bằng {license.Code}: {ex.Message}");
+                    Console.WriteLine($"Lỗi trong quá trình lấy bằng ");
                 }
             }
 
@@ -930,7 +930,7 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0");
             }
 
             if (pageSize <= 0)
@@ -943,12 +943,12 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0");
             }
 
             if (pageSize <= 0)
             {
-                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0", nameof(pageSize));
+                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0");
             }
             return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
         }
@@ -966,7 +966,7 @@ namespace API.Services
             // 1. Lấy user theo email
             var user = await _userRepository.GetUserByEmail(email);
             if (user is null)
-                throw new ArgumentException("Tài khoản không tồn tại", nameof(email));
+                throw new ArgumentException("Tài khoản không tồn tại");
 
             // 2. Chỉ cho phép khi user đang ở trạng thái chờ OTP
             if (user.Status != "OTPprocess")
@@ -1049,12 +1049,12 @@ namespace API.Services
             var user = await _userRepository.GetUserByEmail(email);
             if (user == null)
             {
-                throw new ArgumentException("Tài khoản không tồn tại", nameof(email));
+                throw new ArgumentException("Tài khoản không tồn tại");
             }
             var isValid = await _otpServices.VerifyOtpAsync(email, otpCode);
             if (!isValid)
             {
-                throw new ArgumentException("Token không hợp lệ", nameof(otpCode));
+                throw new ArgumentException("Token không hợp lệ");
             }
             var token = await _otpServices.genResetPasswordToken(email);
             return token;

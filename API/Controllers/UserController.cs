@@ -44,7 +44,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + e.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." ,
                     Status = 500
                 });
             }
@@ -73,7 +73,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau."+ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -112,7 +112,7 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails{
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -141,7 +141,7 @@ namespace API.Controllers
             {
                 return StatusCode(500, new ProblemDetails {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." ,
                     Status = 500
                 });
             }
@@ -171,7 +171,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -199,7 +199,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -227,7 +227,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -266,7 +266,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
@@ -325,7 +325,7 @@ namespace API.Controllers
                 return StatusCode(500, new ProblemDetails
                 {
                     Title = "Internal Server Error",
-                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." + ex.Message,
+                    Detail = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
                     Status = 500
                 });
             }
