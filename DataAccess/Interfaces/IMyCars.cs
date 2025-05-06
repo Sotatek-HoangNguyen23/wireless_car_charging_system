@@ -29,7 +29,7 @@ namespace DataAccess.Interfaces
 
         bool checkDuplicateLicensePlate(string licensePlate) ;
 
-        void addCar(int carModel, int userId, string licensePlate, string carName);
+        Task addCar(Car request, int userId);
 
         void editCar(int carModel, int carId, string licensePlate, string carName);
 
@@ -52,5 +52,14 @@ namespace DataAccess.Interfaces
 
         List<string?> GetAllBrands();
         List<string?> GetAllTypes();
+
+        bool IsAllowToAccess(int  carId,int userId);
+
+        bool IsRenterViewAnalysis(int carId, int renterId);
+        Task ChangeCarStatusAsync(int? carId, string newStatus);
+
+        Task UpdateExpiredRentalsAsync();
+
+        Task<Car?> GetCarById(int id);
     }
 }

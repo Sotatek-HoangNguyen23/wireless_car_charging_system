@@ -40,12 +40,17 @@ namespace DataAccess.Repositories
             return dto;
         }
 
-        public async Task<List<ChargingSession>> GetSessionsAsync(FilterDto filter)
+        public async Task<List<ChargingSession>> GetSessionsAsync(FilterDto filter, int userId, string role)
         {
             var query = _context.ChargingSessions
                 .Include(s => s.ChargingPoint).ThenInclude(cp => cp.Station)
                 .Include(s => s.Car).ThenInclude(c => c.CarModel)
                 .AsQueryable();
+
+            if (role == "Station Owner")
+            {
+                query = query.Where(s => s.ChargingPoint.Station.OwnerId == userId);
+            }
 
             if (filter.StationId.HasValue)
             {

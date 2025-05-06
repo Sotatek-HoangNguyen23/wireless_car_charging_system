@@ -27,5 +27,7 @@ public partial class DriverLicense
 
     public DateTime? UpdateAt { get; set; }
 
+    public virtual ICollection<DocumentReview> DocumentReviews { get; set; } = new List<DocumentReview>();
+
     public virtual User User { get; set; } = null!;
 }

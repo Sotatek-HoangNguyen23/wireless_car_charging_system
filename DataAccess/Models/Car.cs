@@ -15,6 +15,16 @@ public partial class Car
 
     public bool? IsDeleted { get; set; }
 
+    public string? ImgFront { get; set; }
+
+    public string? ImgBack { get; set; }
+
+    public string? ImgFrontPubblicId { get; set; }
+
+    public string? ImgBackPubblicId { get; set; }
+
+    public string? Status { get; set; }
+
     public DateTime? CreateAt { get; set; }
 
     public DateTime? UpdateAt { get; set; }
@@ -22,6 +32,8 @@ public partial class Car
     public virtual CarModel CarModel { get; set; } = null!;
 
     public virtual ICollection<ChargingSession> ChargingSessions { get; set; } = new List<ChargingSession>();
+
+    public virtual ICollection<DocumentReview> DocumentReviews { get; set; } = new List<DocumentReview>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 

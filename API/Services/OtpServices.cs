@@ -62,7 +62,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                throw new Exception("Error generating OTP. Error:" + e);
+                throw new Exception("Lỗi khi tạo otp. Lỗi:" + e);
             }
         }
 
@@ -137,7 +137,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                throw new Exception("Error generating reset password token. Error:" + e);
+                throw new Exception("Lỗi khi tạo token để reset password. Lỗi:" + e);
             }
         }
         public async Task<bool> verifyResetPasswordToken(string token, string email)
@@ -160,7 +160,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                throw new Exception("Error verifying reset password token. Error:" + e);
+                throw new Exception("Lỗi khi xác nhập token. Lỗi:" + e);
             }
         }
 

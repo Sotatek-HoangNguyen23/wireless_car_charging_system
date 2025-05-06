@@ -18,13 +18,16 @@ using dotenv.net;
 using Microsoft.AspNetCore.Http.Features;
 using DataAccess.Repositories.StationRepo;
 using API.Hubs;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 
 
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
-builder.Services.AddSingleton<SqlDependencyService>();
+//builder.Services.AddSingleton<SqlDependencyService>();
+//builder.Services.AddHostedService<SqlDependencyService>();
 
 //=================================
 // Cloudinary configuration
@@ -82,6 +85,7 @@ builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryWrapper>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<DocumentReviewService>();
 builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -94,6 +98,8 @@ builder.Services.AddScoped<IDriverLicenseRepository, DriverLicenseRepository>();
 builder.Services.AddScoped<IBalancement, BalanceRepo>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddHostedService<SqlDependencyService>();
+builder.Services.AddScoped<IDocumentReviewRepository, DocumentReviewRepository>();
 
 //=======================================
 // JWt configuration
@@ -145,13 +151,46 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+//Ratelimit
+builder.Services.AddRateLimiter(options =>
+{
+    // Tạo policy giới hạn 10 requests/phút cho mỗi IP
+    options.AddFixedWindowLimiter("Login", policy =>
+    {
+        policy.PermitLimit = 5;
+        policy.Window = TimeSpan.FromMinutes(30);
+        policy.QueueLimit = 0;
+    });  
+    options.AddFixedWindowLimiter("Register", policy =>
+    {
+        policy.PermitLimit = 5;
+        policy.Window = TimeSpan.FromHours(1);
+        policy.QueueLimit = 0;
+    });
 
+    // Xử lý response khi vượt limit
+    options.OnRejected = async (context, _) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.Headers["Retry-After"] = "60";
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            Title = "Quá nhiều request",
+            detail = "Bạn đã vượt quá giới hạn request. Vui lòng thử lại sau",
+            status = 429
+        });
+    };
+});
+
+
+//=======================================
 var app = builder.Build();
 app.UseCors("AllowAllOrigins");
 app.UseRouting();
 
-var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
-sqlDependencyService.StartListening();
+//var sqlDependencyService = app.Services.GetRequiredService<SqlDependencyService>();
+//sqlDependencyService.StartListening();
+
 
 
 // Configure the HTTP request pipeline.
@@ -162,13 +201,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<RealTimeHub>("/realtimeHub");
+    endpoints.MapHub<RealTimeHub>("/realtimeHub"); // Đảm bảo endpoint đúng
+    endpoints.MapControllers();
 });
 
 app.MapControllers();

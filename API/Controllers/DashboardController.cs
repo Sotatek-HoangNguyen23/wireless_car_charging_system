@@ -3,6 +3,7 @@ using DataAccess.DTOs.ChargingStation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -30,7 +31,10 @@ namespace API.Controllers
         [HttpGet("charging-sessions")]
         public async Task<IActionResult> GetChargingSessionStats([FromQuery] FilterDto filter)
         {
-            var result = await _dashboardService.GetSessionStatistics(filter);
+            var userId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            var result = await _dashboardService.GetSessionStatistics(filter, userId, role);
             return Ok(result);
         }
 
@@ -38,7 +42,10 @@ namespace API.Controllers
         [HttpGet("revenue")]
         public async Task<IActionResult> GetRevenueStats([FromQuery] FilterDto filter)
         {
-            var data = await _dashboardService.GetRevenueStatistics(filter);
+            var userId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            var data = await _dashboardService.GetRevenueStatistics(filter, userId, role);
             return Ok(data);
         }
 

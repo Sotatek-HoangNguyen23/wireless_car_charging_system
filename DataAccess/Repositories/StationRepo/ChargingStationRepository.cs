@@ -1,9 +1,7 @@
 ﻿using DataAccess.DTOs.ChargingStation;
 using DataAccess.Interfaces;
 using DataAccess.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace DataAccess.Repositories.StationRepo
 {
@@ -28,13 +26,24 @@ namespace DataAccess.Repositories.StationRepo
             _context = context;
         }
 
-        public PagedResult<ChargingStationDto> GetAllStation(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize)
+        public PagedResult<ChargingStationDto> GetAllStation(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize, string currentRole, int currentUserId)
         {
             // Lấy tất cả dữ liệu Stationn
             var query = _context.ChargingStations
                 .Include(cs => cs.StationLocation)
                 .Include(cs => cs.ChargingPoints)
+                .Include(cs => cs.Owner)
                 .AsQueryable();
+
+            if (currentRole == "Driver")
+            {
+                query = query.Where(cs => cs.Status != "Deleted");
+            }
+
+            if (currentRole == "Station Owner")
+            {
+                query = query.Where(cs => cs.OwnerId == currentUserId);
+            }
 
             // Tìm kiếm theo từ khóa (name hoặc location)
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -79,7 +88,7 @@ namespace DataAccess.Repositories.StationRepo
             }
 
             // Tính tổng số trang
-            int totalRecords = query.Count(); ; ;    
+            int totalRecords = query.Count();    
 
             // Phân trang (chỉ lấy dữ liệu của trang hiện tại)
             var data = stationList

@@ -1,5 +1,5 @@
 ﻿@page
-@model wireless_changing_system.Pages.Wireless_charging.Vehicles.ChargingAnalysisModel
+@model wireless_changing_system.Pages.Wireless_charging.Vehicles.ChargingAnalysisForRenterModel
 @{
     Layout = "_Layout";
 }
@@ -142,9 +142,8 @@
                 Bạn muốn làm gì tiếp theo?
             </div>
             <div class="modal-footer">
-                <a id="view-history-btn" href="#" class="btn btn-primary">Xem lịch sử sạc</a>
-
-                <a href="/wireless-charging/vehicles/mycars" class="btn btn-secondary">Quay lại danh sách xe</a>
+                <a href="/wireless-charging/vehicles/rentconfirm" class="btn btn-primary">Quay lại danh sách thuê</a>
+                <a href="/" class="btn btn-secondary">Trang chủ</a>
             </div>
         </div>
     </div>
@@ -174,7 +173,7 @@
             const carId = new URLSearchParams(window.location.search).get('carId');
             if (!carId) return;
 
-            const res = await fetchWithAuth(`https://localhost:7191/api/Car/real-time-status/${carId}`);
+            const res = await fetchWithAuth(`https://localhost:7191/api/Car/real-time-status-for-renter/${carId}`);
             if (!res.ok) throw new Error("Lỗi API trạng thái");
 
             const data = await res.json();
@@ -219,11 +218,9 @@
                 elementsToUpdate.chargingPower.textContent = `${data.chargingPower}W`;
                 elementsToUpdate.temperature.textContent = `${data.temperature}°C`;
                 elementsToUpdate.current.textContent = `${data.current}A`;
-                    elementsToUpdate.cost.textContent = new Intl.NumberFormat('vi-VN', {
-                    style: 'decimal',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(data.cost)+ ' VND';
+                elementsToUpdate.cost.textContent = new Intl.NumberFormat('vi-VN', {
+                    style: 'currency', currency: 'VND'
+                }).format(data.cost);
 
                 elementsToUpdate.voltage.textContent = `${data.batteryVoltage}V`;
                 const efficiency = data.powerpoint > 0 ? ((data.chargingPower / data.powerpoint) * 100).toFixed(2) : 0;
@@ -286,16 +283,6 @@
             btn.textContent = "Xem chi tiết";
         }
     });
-
-        // Set carId to "Xem lịch sử sạc" button
-    document.addEventListener("DOMContentLoaded", () => {
-        const carId = new URLSearchParams(window.location.search).get('carId');
-        if (carId) {
-            const viewHistoryBtn = document.getElementById("view-history-btn");
-            viewHistoryBtn.href = `/wireless-charging/vehicles/charginghistory?carId=${carId}`;
-        }
-    });
-
 </script>
 
 <style>

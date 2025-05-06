@@ -8,16 +8,20 @@ using DataAccess.Repositories.StationRepo;
 using DataAccess.Repositories;
 using System.Text.RegularExpressions;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using CloudinaryDotNet.Actions;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services
 {
     public class CarService
     {
         private readonly IMyCars _myCars;
+        private readonly ImageService _imageService;
 
-        public CarService(IMyCars myCar)
+        public CarService(IMyCars myCar, ImageService imgservice)
         {
             _myCars = myCar;
+            _imageService = imgservice;
         }
 
         public List<MyCarsDTO> GetCarByOwner( int userId)
@@ -25,17 +29,45 @@ namespace API.Services
             return _myCars.getCarByOwner(userId);
         }
 
-        public CarDetailDTO GetCarDetailById(int carId)
+        public  CarDetailDTO GetCarDetailById(int carId, int userId)
         {
+            bool isOwner =  _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null; 
+            }
             return _myCars.getCarDetailById(carId);
         }
 
-        public ChargingStatusDTO GetChargingStatusById(int carId) {
+        public ChargingStatusDTO GetChargingStatusById(int carId, int userId) {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null;
+            }
+
             return _myCars.GetChargingStatusById(carId);
         }
 
-        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int page = 1, int pageSize = 10)
+        public ChargingStatusDTO GetChargingStatusByIdForRenter(int carId, int userId)
         {
+            bool isRenter = _myCars.IsRenterViewAnalysis(carId, userId);
+            if (!isRenter)
+            {
+                return null;
+            }
+
+            return _myCars.GetChargingStatusById(carId);
+        }
+
+        public List<ChargingHistoryDTO> GetChargingHistory(int carId, DateTime? start, DateTime? end, int? chargingStationId, int userId, int page = 1, int pageSize = 10)
+        {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                throw new ArgumentException("Bạn không xem được nội dung này");
+                //return null;
+            }
             return _myCars.GetChargingHistory(carId, start, end, chargingStationId, page, pageSize);
         }
 
@@ -81,8 +113,13 @@ namespace API.Services
         //    };
         //}
 
-        public List<CarMonthlyStatDTO> GetCarStats(int carId, int? year)
+        public List<CarMonthlyStatDTO> GetCarStats(int carId, int? year, int userId)
         {
+            bool isOwner = _myCars.IsAllowToAccess(carId, userId);
+            if (!isOwner)
+            {
+                return null;
+            }
             return _myCars.GetCarStats(carId, year ?? DateTime.Now.Year);
         }
 
@@ -95,27 +132,86 @@ namespace API.Services
            return _myCars.getCarModels(search);
         }
 
-        public void addCar(int carModel, int userId, string licensePlate, string carName)
+        public async Task addCar(AddCarRequest request, int userId)
         {
-            if (!IsValidVietnameseLicensePlate(licensePlate))
-            {
-                throw new ArgumentException("Invalid license plate format");
-            }
+            if (!IsValidVietnameseLicensePlate(request.LicensePlate))
+                throw new ArgumentException("Sai định dạng biển số");
 
-            if (_myCars.checkDuplicateLicensePlate(licensePlate))
-            {
-                throw new ArgumentException("License Plate already exists");
-            }
+            if (_myCars.checkDuplicateLicensePlate(request.LicensePlate))
+                throw new ArgumentException("Biển số đã tồn tại");
+
+            if (request.CarLicenseFrontImage == null || request.CarLicenseBackImage == null)
+                throw new ArgumentException("Ảnh giấy đăng ký xe không được để trống");
+
+            ImageUploadResult? frontUploadResult = null;
+            ImageUploadResult? backUploadResult = null;
 
             try
             {
-                _myCars.addCar(carModel, userId, licensePlate, carName);
+                // Validate the images before uploading
+                _imageService.ValidateImage(request.CarLicenseFrontImage);
+                _imageService.ValidateImage(request.CarLicenseBackImage);
+
+                // Upload images asynchronously
+                var frontUploadTask = _imageService.UploadImagetAsync(request.CarLicenseFrontImage);
+                var backUploadTask = _imageService.UploadImagetAsync(request.CarLicenseBackImage);
+
+                // Wait for both uploads to complete
+                await Task.WhenAll(frontUploadTask, backUploadTask);
+
+                // Get the upload results
+                frontUploadResult = frontUploadTask.Result;
+                backUploadResult = backUploadTask.Result;
+
+                // Check if the results are valid
+                if (frontUploadResult == null || backUploadResult == null ||
+    frontUploadResult.Url == null || backUploadResult.Url == null ||
+    string.IsNullOrEmpty(frontUploadResult.Url.ToString()) || string.IsNullOrEmpty(backUploadResult.Url.ToString()) ||
+    string.IsNullOrEmpty(frontUploadResult.PublicId) || string.IsNullOrEmpty(backUploadResult.PublicId))
+                {
+                    throw new ApplicationException("Upload ảnh thất bại.");
+                }
+
+
+                // Create the new car entry
+                var newCar = new Car
+                {
+                    CarModelId = request.CarModelId,
+                    LicensePlate = request.LicensePlate,
+                    CarName = request.CarName,
+                    ImgFront = frontUploadResult.Url.ToString(),
+                    ImgBack = backUploadResult.Url.ToString(),
+                    ImgFrontPubblicId = frontUploadResult.PublicId,
+                    ImgBackPubblicId = backUploadResult.PublicId,
+                    Status = "Inactive",
+                    CreateAt = DateTime.UtcNow,
+                    UpdateAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                // Add the new car to the database
+                await _myCars.addCar(newCar, userId); // Assuming addCar is async
             }
             catch (Exception ex)
             {
-                throw new Exception("Error: " + ex.Message);
+                // Cleanup uploaded images if there's an error
+                var deleteTasks = new List<Task>();
+                if (!string.IsNullOrEmpty(frontUploadResult?.PublicId))
+                    deleteTasks.Add(_imageService.DeleteImageAsync(frontUploadResult.PublicId));
+                if (!string.IsNullOrEmpty(backUploadResult?.PublicId))
+                    deleteTasks.Add(_imageService.DeleteImageAsync(backUploadResult.PublicId));
+
+                // Await deletion of images
+                await Task.WhenAll(deleteTasks);
+
+                // Log the error (uncomment the logger if available)
+                //_logger?.LogError(ex, "Lỗi khi thêm xe cho userId={UserId}", userId);
+
+                // Re-throw the exception with a more specific message
+                throw new ApplicationException("Thêm xe thất bại: " + ex.Message, ex);
             }
         }
+
 
         public void editCar(int carModel, int carId, string licensePlate, string carName) {
             if (!IsValidVietnameseLicensePlate(licensePlate))
@@ -240,6 +336,11 @@ namespace API.Services
                 Brands = _myCars.GetAllBrands(),
                 Types = _myCars.GetAllTypes()
             };
+        }
+
+        public async Task UpdateExpiredRentalsAsync()
+        {
+             await _myCars.UpdateExpiredRentalsAsync();
         }
     }
 }

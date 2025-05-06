@@ -11,7 +11,8 @@
 
         <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
-            <input type="number" id="txtThanhTien" class="form-control" placeholder="Nhập số tiền bạn muốn nạp (VNĐ)">
+            <input type="number" id="txtThanhTien" class="form-control" placeholder="Nhập số tiền bạn muốn nạp (VNĐ)" min="1" step="1">
+
         </div>
 
         <div class="d-flex justify-content-center gap-3">
@@ -79,7 +80,7 @@
     async function taoLinkThanhToan() {
         const thanhtien = parseInt(document.getElementById("txtThanhTien").value);
         if (!thanhtien || thanhtien <= 0) {
-            alert("Vui lòng nhập số tiền hợp lệ!");
+            showToast("Vui lòng nhập số tiền hợp lệ!");
             return;
         }
 
@@ -131,7 +132,7 @@
                 statusElement.innerText = "Thanh toán thất bại!";
                 return;
             } else {
-                if (retryCount < 60) {
+                if (retryCount < 100) {
                     setTimeout(() => checkPaymentStatus(orderId, retryCount + 1), 5000);
                 } else {
                     statusElement.innerText = "Hết thời gian chờ thanh toán!";

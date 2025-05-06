@@ -173,5 +173,32 @@ namespace DataAccess.Repositories
                 .Where(dl => dl.UserId == userId)
                 .ToListAsync();
         }
+
+        public async Task<DriverLicense?> GetLicensesById(int id)
+        {
+            return await _context.DriverLicenses
+                .Include(dl => dl.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(dl => dl.DriverLicenseId == id);
+        }
+
+        public async Task ChangeLicenseStatusAsync(int? licenseId, string newStatus)
+        {
+            if (string.IsNullOrEmpty(newStatus))
+            {
+                throw new ArgumentException("Trạng thái không thể trống", nameof(newStatus));
+            }
+            if (licenseId <= 0)
+            {
+                throw new ArgumentException("ID người dùng không hợp lệ", nameof(licenseId));
+            }
+            var license = await _context.DriverLicenses.FindAsync(licenseId);
+            if (license != null)
+            {
+                license.Status = newStatus;
+                _context.DriverLicenses.Update(license);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

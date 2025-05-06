@@ -17,9 +17,9 @@ namespace API.Services
             _stationRepository = stationRepository;
         }
 
-        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize)
+        public PagedResult<ChargingStationDto> GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page, int pageSize, string currentRole, int currentUserId)
         {
-            return _stationRepository.GetAllStation(keyword, userLat, userLng, page, pageSize);
+            return _stationRepository.GetAllStation(keyword, userLat, userLng, page, pageSize, currentRole, currentUserId);
         }
 
         public StationDetailDto? GetStationDetails(int stationId, int page, int pageSize)

@@ -2,6 +2,7 @@
 using DataAccess.DTOs.ChargingStation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace API.Controllers
@@ -22,7 +23,16 @@ namespace API.Controllers
         [AllowAnonymous]
         public ActionResult GetChargingStations(string? keyword, decimal? userLat, decimal? userLng, int page = 1, int pageSize = 2)
         {
-            var stations = _stationService.GetChargingStations(keyword, userLat, userLng, page, pageSize);
+            var currentUserId = 0;
+            var role = "";
+            // Nếu không phải Anonymous thì mới lấy userId
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                currentUserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                role = User.FindFirstValue(ClaimTypes.Role);
+            }
+
+            var stations = _stationService.GetChargingStations(keyword, userLat, userLng, page, pageSize, role, currentUserId);
             return new JsonResult(stations);
         }
 
@@ -75,10 +85,10 @@ namespace API.Controllers
             }
 
             // Validate description
-            if (string.IsNullOrEmpty(stationDto.LocationDescription) || stationDto.LocationDescription.Length > 225)
-            {
-                errors.Add("Mô tả không vượt quá 225 ký tự");
-            }
+            //if (string.IsNullOrEmpty(stationDto.LocationDescription) || stationDto.LocationDescription.Length > 225)
+            //{
+            //    errors.Add("Mô tả không vượt quá 225 ký tự");
+            //}
 
             // Validate pointDescription
             if (string.IsNullOrEmpty(stationDto.PointDescription) || stationDto.PointDescription.Length > 225)

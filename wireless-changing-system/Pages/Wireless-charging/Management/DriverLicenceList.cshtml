@@ -27,16 +27,18 @@
                             <label class="form-label">Trạng thái</label>
                             <select class="form-select" id="filterStatus">
                                 <option value="">Tất cả</option>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">InActive</option>
+                                <option value="APPROVED">Đã chấp nhận</option>
+                                <option value="PENDING">Đang xử lí</option>
+                                <option value="REJECTED">Từ chối</option>
+                                <option value="BLOCKED">Bị khóa</option>
+                                <option value="DELETE">Đã Xóa</option>
                             </select>
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Hạng bằng</label>
                             <select class="form-select" id="filterClass">
-                                <option value="">Tất cả</option>
-                                <option value="A1">A1</option>
+                                <option value="">Tất cả</option>                              
                                 <option value="B1">B1</option>
                                 <option value="C">C</option>
                             </select>
@@ -187,11 +189,39 @@
         <p class="mb-0"></p>
     </div>
 </div>
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmOkButton">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { fetchWithAuth } from '/js/apiClient.js';
     let currentPage = 1;
     const pageSize = 10;
-
+     const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = new bootstrap.Modal(confirmModalEl);
+    let confirmCallback = null;
+    document.getElementById('confirmOkButton').addEventListener('click', () => {
+        if (confirmCallback) confirmCallback();
+        confirmModal.hide();
+    });
+    function showConfirm(message, callback) {
+        document.getElementById('confirmMessage').textContent = message;
+        confirmCallback = callback;
+        confirmModal.show();
+    }
     // Khởi tạo khi trang load xong
     document.addEventListener('DOMContentLoaded', () => {
         loadLicenses();
@@ -230,11 +260,18 @@
         }
     }
 
-    function renderLicenses(result) {
+     function renderLicenses(result) {
+        const statusTranslations = {
+            APPROVED: "Đã chấp nhận",
+            PENDING: "Đang xử lí",
+            REJECTED: "Từ chối",
+            BLOCKED: "Bị khóa",
+            DELETE: "Đã Xóa"
+        };
+
         const tbody = document.getElementById('licenseList');
         const pagination = document.getElementById('pagination');
 
-        // Clear old data
         tbody.innerHTML = '';
         pagination.innerHTML = '';
 
@@ -244,18 +281,56 @@
             return;
         }
 
-        // Render table rows
         result.items.forEach(license => {
-             const actionButton = license.status === "Inactive" ?
-                `<button class="btn btn-sm btn-success" onclick="activateLicense('${license.licenseNumber}')">
-                    <i class="fas fa-check me-1"></i>Kích hoạt
-                </button>` :
-                `<button class="btn btn-sm btn-danger" onclick="deactivateLicense('${license.licenseNumber}')">
-                    <i class="fas fa-ban me-1"></i>Vô hiệu hóa
-                </button>`;
+            const status = license.status;
+            const licenseNumber = license.licenseNumber;
+
+            // Prepare action buttons based on status
+            const actions = [];
+
+            // Detail button (always shown)
+            actions.push(
+                `<button class="btn btn-sm btn-info" onclick="viewDetail('${licenseNumber}')">
+                    <i class="fas fa-eye me-1"></i>Chi tiết
+                </button>`
+            );
+
+            // Approve button (hidden if already APPROVED)
+            if (status !== 'APPROVED') {
+                actions.push(
+                    `<button class="btn btn-sm btn-success" onclick="approveLicense('${licenseNumber}')">
+                        <i class="fas fa-check-circle me-1"></i>Duyệt
+                    </button>`
+                );
+            }
+
+            // Block button (hidden if already BLOCKED)
+            if (status !== 'BLOCKED') {
+                actions.push(
+                    `<button class="btn btn-sm btn-warning" onclick="blockLicense('${licenseNumber}')">
+                        <i class="fas fa-trash me-1"></i>Khoá
+                    </button>`
+                );
+            }
+            if (status !== 'DELETE') {
+                actions.push(
+                    `<button class="btn btn-sm btn-danger" onclick="deactivateLicense('${licenseNumber}')">
+                        <i class="fas fa-trash me-1"></i>Xóa
+                    </button>`
+                );
+            }
+
+            // Update button (always shown)
+            actions.push(
+                `<button class="btn btn-sm btn-light" onclick="openUpdateModal('${licenseNumber}', '${license.user.fullname}', '${license.class}')">
+                    <i class="fas fa-edit me-1"></i>Cập nhật
+                </button>`
+            );
+
+            // Render row
             tbody.innerHTML += `
                 <tr>
-                    <td>${license.licenseNumber}</td>
+                    <td>${licenseNumber}</td>
                     <td>
                         <div>${license.user.fullname}</div>
                         <div>${license.user.phoneNumber}</div>
@@ -263,31 +338,27 @@
                     </td>
                     <td>${license.class}</td>
                     <td>
-                        <span class="badge ${getStatusClass(license.status)}">
-                            ${license.status}
+                        <span class="badge ${getStatusClass(status)}">
+                            ${statusTranslations[status] || status}
                         </span>
                     </td>
                     <td>${formatDate(license.createdAt)}</td>
                     <td>${formatDate(license.updatedAt)}</td>
                     <td>
-                        <button class="btn btn-sm btn-info" onclick="viewDetail('${license.licenseNumber}')">
-                            <i class="fas fa-eye me-1"></i>Chi tiết
-                        </button>
-                        ${actionButton}
-                        <button class="btn btn-sm btn-warning" onclick="openUpdateModal('${license.licenseNumber}', '${license.user.fullname}', '${license.class}')">
-                            <i class="fas fa-edit me-1"></i>Cập nhật
-                        </button>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${actions.join('')}
+                        </div>
                     </td>
                 </tr>
             `;
         });
 
-        // Render pagination
         renderPagination(result.totalPages);
 
         document.getElementById('licenseTable').style.display = 'block';
         document.getElementById('emptyMessage').style.display = 'none';
     }
+
     function openUpdateModal(licenseCode, fullname, level) {
         const updateLicenseCodeElement = document.getElementById('updateLicenseCode');
         const updateCodeElement = document.getElementById('updateCode');
@@ -383,9 +454,11 @@
 
     function getStatusClass(status) {
         switch (status) {
-            case 'Active': return 'bg-success';
-            case 'Pending': return 'bg-warning';
-            case 'Expired': return 'bg-danger';
+            case 'APPROVED': return 'bg-success';
+            case 'PENDING': return 'bg-warning';
+            case 'DELETE': return 'bg-danger';
+            case 'BLOCKED': return 'bg-warning';
+            
             default: return 'bg-secondary';
         }
     }
@@ -432,58 +505,57 @@
         }
     }
 
-    async function deactivateLicense(licenseCode) {
-        if (!confirm(`Xác nhận vô hiệu hóa bằng lái ${licenseCode}?`)) return;
-
-        try {
-            const response = await fetchWithAuth(
-                `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+       async function deactivateLicense(licenseCode) {
+        showConfirm(`Xác nhận vô hiệu hóa bằng lái ${licenseCode}?`, async () => {
+            try {
+                const response = await fetchWithAuth(
+                    `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}`,
+                    { method: 'DELETE', headers: { 'Content-Type': 'application/json' } }
+                );
+                if (!response.ok) throw new Error((await response.json()).detail || `HTTP error! status: ${response.status}`);
+                showSuccessToast("Vô hiệu hóa thành công!");
+                await loadLicenses(currentPage);
+            } catch (error) {
+                showToast(error.message);
+                console.error('Error deactivating:', error);
             }
-
-            showSuccessToast("Vô hiệu hóa thành công!");
-            await loadLicenses(currentPage);
-        } catch (error) {
-            showToast(error.message);
-            console.error('Error deactivating:', error);
-        }
+        });
     }
+
     async function activateLicense(licenseCode) {
-        if (!confirm(`Xác nhận kích hoạt bằng lái ${licenseCode}?`)) return;
-
-        try {
-            const response = await fetchWithAuth(
-                `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}/activate`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || `Lỗi khi kích hoạt`);
+        showConfirm(`Xác nhận kích hoạt bằng lái ${licenseCode}?`, async () => {
+            try {
+                const response = await fetchWithAuth(
+                    `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}/activate`,
+                    { method: 'PUT', headers: { 'Content-Type': 'application/json' } }
+                );
+                if (!response.ok) throw new Error((await response.json()).detail || `Lỗi khi kích hoạt`);
+                showSuccessToast("Kích hoạt thành công!");
+                await loadLicenses(currentPage);
+            } catch (error) {
+                showToast(error.message);
+                console.error('Error activating:', error);
             }
-
-            showSuccessToast("Kích hoạt thành công!");
-            await loadLicenses(currentPage);
-        } catch (error) {
-            showToast(error.message);
-            console.error('Error activating:', error);
-        }
+        });
     }
+
+    async function blockLicense(licenseCode) {
+        showConfirm(`Xác nhận khoá bằng lái ${licenseCode}?`, async () => {
+            try {
+                const response = await fetchWithAuth(
+                    `https://localhost:7191/api/user/driver-licenses/${encodeURIComponent(licenseCode)}/block`,
+                    { method: 'PUT', headers: { 'Content-Type': 'application/json' } }
+                );
+                if (!response.ok) throw new Error((await response.json()).detail || `Lỗi khi khoá`);
+                showSuccessToast("Khóa thành công!");
+                await loadLicenses(currentPage);
+            } catch (error) {
+                showToast(error.message);
+                console.error('Error blocking:', error);
+            }
+        });
+    }
+
     function showLicenseDetailModal(data) {
         const frontImage = data.frontImageUrl ?
             `<img src="${data.frontImageUrl}" class="img-fluid mb-3" alt="Mặt trước">` :
@@ -533,10 +605,24 @@
     }
 
 
-    window.activateLicense = activateLicense;
+    window.approveLicense = activateLicense;
     window.viewDetail = viewDetail;
+    window.blockLicense = blockLicense;
     window.deactivateLicense = deactivateLicense;
     window.loadLicenses = loadLicenses;
     window.openUpdateModal = openUpdateModal;
     window.submitUpdate = submitUpdate;
 </script>
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+    @@media (max-width: 576px) {
+        .btn-sm
+
+    {
+        flex: 1 1 100%;
+    }
+
+    }
+</style>

@@ -2,37 +2,64 @@
 @model wireless_changing_system.Pages.Wireless_charging.Profiles.IndexModel
 @{
 }
-    <div class="container d-flex justify-content-center align-items-center">
-        <div class="row w-100 mt-3">
-        <h3>Thông tin người dùng</h3>
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Thông tin người dùng</h3>
+
+    <div class="d-flex justify-content-center mb-4">
+        <button class="btn btn-outline-primary me-2" id="change-password-btn">
+            <i class="bi bi-key-fill me-2"></i>Đổi mật khẩu
+        </button>
+
+        <button class="btn btn-outline-primary" id="add-driver-license-btn">
+            <i class="bi bi-person-vcard me-2"></i>Quản lí bằng lái xe
+        </button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="fullname" class="fw-bold">Họ tên:</label>
+                <input class="form-control" id="fullname" type="text" maxlength="50"/>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="email" class="fw-bold">Email:</label>
+                <input class="form-control" id="email" type="text" maxlength="50" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="phone" class="fw-bold">Số điện thoại:</label>
+                <input class="form-control" id="phone" type="text" maxlength="50" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="dob" class="fw-bold">Ngày sinh:</label>
+                <input type="date" class="form-control" id="dob" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="fw-bold">Giới tính:</label>
+                <div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" name="gender" type="radio" value="true" id="male" />
+                        <label class="form-check-label" for="male">Nam</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" name="gender" type="radio" value="false" id="female" />
+                        <label class="form-check-label" for="female">Nữ</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
             
 
-            <div class="d-flex justify-content-center mb-3">
-                <button class="btn btn-outline-primary" id="change-password-btn">
-                    <i class="bi bi-key-fill me-2"></i>Đổi mật khẩu
-                </button>
-
-                <button class="btn btn-outline-primary mx-3" id="add-driver-license-btn">
-                    Thêm bằng lái xe
-                </button>
+            <div class="form-group mb-3">
+                <label for="address" class="fw-bold">Địa chỉ:</label>
+                <input type="text" class="form-control" id="address" maxlength="50" />
             </div>
-
-            <div class="form-group">
-                <label for="fullname" class="fw-bold">Họ tên:</label>
-                <input class="form-control" id="fullname" type="text" />
-            </div>
-
-            <div class="form-group">
-                <label for="email" class="fw-bold">Email:</label>
-                <input class="form-control" id="email" type="text" />
-            </div>
-
-            <div class="form-group">
-                <label for="phone" class="fw-bold">Số điện thoại:</label>
-                <input class="form-control" id="phone" type="text" />
-            </div>
-
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="cccd" class="fw-bold d-flex align-items-center">
                     Số CCCD:
                     <span id="toggle-cccd" class="ms-2 text-primary" role="button">
@@ -45,125 +72,119 @@
                     <img id="imgBack" class="img-thumbnail" width="250" />
                 </div>
             </div>
-
-            <div class="form-group">
-                <label for="dob" class="fw-bold">Ngày sinh:</label>
-                <input type="date" class="form-control" id="dob" />
-            </div>
-
-            <div class="form-group">
-                <label class="fw-bold">Giới tính:</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" name="gender" type="radio" value="true" id="male" />
-                    <label class="form-check-label" for="male">Nam</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" name="gender" type="radio" value="false" id="female" />
-                    <label class="form-check-label" for="female">Nữ</label>
-                </div>
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="address" class="fw-bold">Địa chỉ:</label>
-                <input type="text" class="form-control" id="address" />
-            </div>
-
-            <div class="text-center">
-                <button id="save-btn" class="btn btn-primary w-100">
-                    <i class="bi bi-save me-2"></i>Lưu
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Modal thông báo -->
-    <div class="modal fade" id="successModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Thông báo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                    <p class="mt-2">Cập nhật thông tin thành công!</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                </div>
+    <div class="text-center mt-3">
+        <button id="save-btn" class="btn btn-primary px-5">
+            <i class="bi bi-save me-2"></i>Lưu
+        </button>
+    </div>
+</div>
+
+<!-- Modal thông báo -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                <p class="mt-2">Cập nhật thông tin thành công!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script type="module">
-        import { fetchWithAuth } from '/js/apiClient.js';
-        document.addEventListener("DOMContentLoaded", function () {
-            // const userId = sessionStorage.getItem("userId");
-            // if (!userId) {
-            //     alert("User chưa đăng nhập!");
-            //     return;
-            // }
 
+<script type="module">
+    import { fetchWithAuth } from '/js/apiClient.js';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const role = sessionStorage.getItem("role");
+
+        // Ẩn CCCD và nút nếu là Operator
+        if (role === "Operator" || role === "Station Owner") {
+            const cccdGroup = document.getElementById("cccd")?.closest(".form-group");
+            if (cccdGroup) {
+                cccdGroup.style.display = "none";
+            }
+
+            const driverLicenseBtn = document.getElementById("add-driver-license-btn");
+            if (driverLicenseBtn) {
+                driverLicenseBtn.style.display = "none";
+            }
+        }
+
+        // Chuyển trang khi nhấn các nút
         document.getElementById("add-driver-license-btn").addEventListener("click", function () {
-                window.location.href = "/wireless-charging/profiles/driverlisense";
-            });
+            window.location.href = "/wireless-charging/profiles/driverlisense";
+        });
 
         document.getElementById("change-password-btn").addEventListener("click", function () {
             window.location.href = "/wireless-charging/profiles/changepassword";
         });
 
-            fetchWithAuth(`https://localhost:7191/api/User/profile`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("fullname").value = data.fullname;
-                    document.getElementById("email").value = data.email;
-                    document.getElementById("phone").value = data.phoneNumber;
-                    document.getElementById("cccd").value = data.code;
-                    document.getElementById("dob").value = data.dob.split("T")[0];
-                    document.getElementById("address").value = data.address;
-                    document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
+        // Lấy thông tin người dùng
+        fetchWithAuth(`https://localhost:7191/api/User/profile`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("fullname").value = data.fullname;
+                document.getElementById("email").value = data.email;
+                document.getElementById("phone").value = data.phoneNumber;
+                document.getElementById("cccd").value = data.code;
+                document.getElementById("dob").value = data.dob.split("T")[0];
+                document.getElementById("address").value = data.address;
+                document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
 
-                    document.getElementById("imgFront").src = data.imgFront;
-                    document.getElementById("imgBack").src = data.imgBack;
-                })
-                .catch(error => console.error("Error fetching profile data:", error));
+                document.getElementById("imgFront").src = data.imgFront;
+                document.getElementById("imgBack").src = data.imgBack;
+            })
+            .catch(error => console.error("Error fetching profile data:", error));
 
-            document.getElementById("toggle-cccd").addEventListener("click", function () {
-                const cccdImages = document.querySelector(".img-cccd");
-                const icon = document.querySelector("#toggle-cccd i");
+        // Toggle hiển thị ảnh CCCD
+        document.getElementById("toggle-cccd").addEventListener("click", function () {
+            const cccdImages = document.querySelector(".img-cccd");
+            const icon = document.querySelector("#toggle-cccd i");
 
-                cccdImages.classList.toggle("d-none");
-                icon.classList.toggle("bi-eye-slash");
-                icon.classList.toggle("bi-eye");
-            });
+            cccdImages.classList.toggle("d-none");
+            icon.classList.toggle("bi-eye-slash");
+            icon.classList.toggle("bi-eye");
+        });
 
-            document.getElementById("save-btn").addEventListener("click", function () {
-                const updatedData = {
-                    fullname: document.getElementById("fullname").value,
-                    email: document.getElementById("email").value,
-                    phoneNumber: document.getElementById("phone").value,
-                    dob: new Date(document.getElementById("dob").value).toISOString(),
-                    gender: document.querySelector('input[name="gender"]:checked').value === "true",
-                    address: document.getElementById("address").value
-                };
+        // Xử lý lưu cập nhật
+        document.getElementById("save-btn").addEventListener("click", function () {
+            const updatedData = {
+                fullname: document.getElementById("fullname").value,
+                email: document.getElementById("email").value,
+                phoneNumber: document.getElementById("phone").value,
+                dob: new Date(document.getElementById("dob").value).toISOString(),
+                gender: document.querySelector('input[name="gender"]:checked').value === "true",
+                address: document.getElementById("address").value
+            };
 
-                fetchWithAuth(`https://localhost:7191/api/User/profile`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(updatedData)
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error("Cập nhật thất bại");
-                    return response.json();
-                })
-                .then(() => {
-                    new bootstrap.Modal(document.getElementById('successModal')).show();
-                })
-                .catch(error => {
-                    console.error("Lỗi cập nhật:", error);
-                    alert("Cập nhật thất bại, vui lòng thử lại!");
-                });
+            fetchWithAuth(`https://localhost:7191/api/User/profile`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData)
+            })
+            .then(async response => {
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || "Cập nhật thất bại");
+                }
+                new bootstrap.Modal(document.getElementById('successModal')).show();
+            })
+            .catch(error => {
+                console.error("Lỗi cập nhật:", error);
+                showToast('Error: ' + error.message);
             });
         });
-    </script>
+    });
+</script>
 

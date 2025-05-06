@@ -59,6 +59,9 @@ namespace DataAccess.Repositories
 
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Cccds)
+                .Include(u => u.DriverLicenses)
+                .Include(u=> u.RefreshTokens)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
@@ -251,6 +254,28 @@ namespace DataAccess.Repositories
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public Task AddDocumentRequest(DocumentReview document)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document), "DocumentReview không thể null");
+            }
+            _context.DocumentReviews.Add(document);
+            return _context.SaveChangesAsync();
+        }
+
+        public bool IsMailOrPhoneDuplicate(int userId, string mail, string phone)
+        {
+            return _context.Users.Any(u => u.UserId != userId && (u.Email == mail || u.PhoneNumber == phone));
+
+        }
+
+        public async Task<bool> HavingDriverLicenseYet(int userId)
+        {
+            return await _context.DriverLicenses
+                .AnyAsync(dl => dl.UserId == userId && dl.Status.ToLower() == "approved");
         }
     }
 }

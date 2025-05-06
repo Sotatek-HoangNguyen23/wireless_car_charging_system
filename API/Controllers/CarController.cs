@@ -41,7 +41,12 @@ namespace API.Controllers
             var cars = _carService.GetCarByOwner(userId);
             if (cars == null || cars.Count == 0)
             {
-                return NotFound("No cars found.");
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = "Không tìm thấy xe nào",
+                    Status = 404
+                });
             }
 
             return Ok(cars);
@@ -51,12 +56,24 @@ namespace API.Controllers
         [HttpGet("detail/{carId}")]
         public ActionResult<CarDetailDTO> GetCarDetailById(int carId)
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+
             if (carId <= 0)
             {
                 return BadRequest("Invalid car ID.");
             }
 
-            var carDetail = _carService.GetCarDetailById(carId);
+            var carDetail = _carService.GetCarDetailById(carId,userId);
 
             if (carDetail == null)
             {
@@ -70,7 +87,43 @@ namespace API.Controllers
         [HttpGet("real-time-status/{carId}")]
         public ActionResult<ChargingStatusDTO> GetChargingStatus(int carId)
         {
-            var result = _carService.GetChargingStatusById(carId);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            var result = _carService.GetChargingStatusById(carId,userId);
+            if (result == null)
+            {
+                return NotFound(new { message = "Not found" });
+            }
+
+            return Ok(result);
+        }
+
+
+        [Authorize("Driver")]
+        [HttpGet("real-time-status-for-renter/{carId}")]
+        public ActionResult<ChargingStatusDTO> GetChargingStatusForRenter(int carId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            var result = _carService.GetChargingStatusByIdForRenter(carId, userId);
             if (result == null)
             {
                 return NotFound(new { message = "Not found" });
@@ -89,17 +142,42 @@ namespace API.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
-            var result = _carService.GetChargingHistory(carId, start, end, chargingStationId, page, pageSize);
-            if (result == null || result.Count == 0)
+            try
             {
-                return NotFound(new { message = "Not found" });
-            }
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrWhiteSpace(userIdClaim))
+                {
+                    return Unauthorized(new ProblemDetails
+                    {
+                        Title = "Unauthorized",
+                        Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                        Status = 401
+                    });
+                }
+                int userId = int.Parse(userIdClaim.Trim());
+                var result = _carService.GetChargingHistory(carId, start, end, chargingStationId, userId, page, pageSize);
+                if (result == null || result.Count == 0)
+                {
+                    return NotFound(new { message = "Not found" });
+                }
 
-            return Ok(result);
+                return Ok(result);
+
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Lỗi xử lý yêu cầu",
+                    detail = ex.Message,
+                    
+                });
+            }
         }
 
 
-        [Authorize("Driver")]
+            [Authorize("Driver")]
         [HttpDelete("Delete/{carId}")]
         public IActionResult DeleteCar(int carId)
         {
@@ -125,7 +203,7 @@ namespace API.Controllers
         }
         [Authorize("Driver")]
         [HttpPost("add-car")]
-        public IActionResult AddCar([FromBody] AddCarRequest request)
+        public async Task<IActionResult> AddCar([FromForm] AddCarRequest request)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(userIdClaim))
@@ -143,14 +221,14 @@ namespace API.Controllers
                 return BadRequest("Request body is null.");
             }
 
-            if (request.CarModelId <= 0 || userId <= 0 || string.IsNullOrEmpty(request.LicensePlate) || string.IsNullOrEmpty(request.CarName))
+            if (request.CarModelId <= 0 || userId <= 0 || string.IsNullOrEmpty(request.LicensePlate) )
             {
                 return BadRequest("Invalid input parameters.");
             }
 
             try
             {
-                _carService.addCar(request.CarModelId, userId, request.LicensePlate, request.CarName);
+                await _carService.addCar(request, userId);
                 return Ok(new { message = "Car added successfully." });
             }
             catch (ArgumentException ex)
@@ -159,7 +237,13 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the car.", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi khi thêm xe.",
+                    error = ex.Message,
+                    stack = ex.StackTrace, // Bỏ nếu ở production
+                    inner = ex.InnerException?.Message
+                });
             }
         }
 
@@ -171,7 +255,7 @@ namespace API.Controllers
                 return BadRequest("Request body is null.");
             }
 
-            if (request.CarModelId <= 0 || request.CarId <= 0 || string.IsNullOrEmpty(request.LicensePlate) || string.IsNullOrEmpty(request.CarName))
+            if (request.CarModelId <= 0 || request.CarId <= 0 || string.IsNullOrEmpty(request.LicensePlate) )
             {
                 return BadRequest("Invalid input parameters.");
             }
@@ -269,7 +353,18 @@ namespace API.Controllers
         [HttpGet("{carId}/stats")]
         public IActionResult GetCarStats(int carId, int? year)
         {
-            var stats = _carService.GetCarStats(carId, year);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Bạn cần đăng nhập để thực hiện thao tác này",
+                    Status = 401
+                });
+            }
+            int userId = int.Parse(userIdClaim.Trim());
+            var stats = _carService.GetCarStats(carId, year,userId);
             return Ok(stats);
         }
 
@@ -298,6 +393,13 @@ namespace API.Controllers
         {
             var result = _carService.GetFilterOptions();
             return Ok(result);
+        }
+
+        [HttpPut("update-expired-rentals")]
+        public async Task<IActionResult> UpdateExpiredRentals()
+        {
+            await _carService.UpdateExpiredRentalsAsync();
+            return Ok();
         }
     }
 }

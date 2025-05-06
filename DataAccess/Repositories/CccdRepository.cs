@@ -27,6 +27,14 @@ namespace DataAccess.Repositories
                 .SingleOrDefaultAsync(c => c.Code == code);
         }
 
+        public async Task<Cccd?> GetCccdById(int id)
+        {
+            return await _context.Cccds
+                   .Include(dl => dl.User)
+                   .AsNoTracking()
+                   .FirstOrDefaultAsync(dl => dl.CccdId == id);
+        }
+
         public Task SaveCccd(Cccd cccd)
         {
             if (cccd == null)

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Core;
 
 namespace DataAccess.Repositories.CarRepo
 {
@@ -26,7 +27,7 @@ namespace DataAccess.Repositories.CarRepo
             var cars = (from uc in _context.UserCars
                         join c in _context.Cars on uc.CarId equals c.CarId
                         join cm in _context.CarModels on c.CarModelId equals cm.CarModelId
-                        where uc.UserId == userId && uc.Role == "Owner" && c.IsDeleted == false
+                        where uc.UserId == userId && uc.Role == "Owner" && c.IsDeleted == false 
                         select new MyCarsDTO
                         {
                             CarId = c.CarId,
@@ -36,7 +37,8 @@ namespace DataAccess.Repositories.CarRepo
                             Type = cm.Type,
                             Color = cm.Color,
                             Brand = cm.Brand,
-                            Img = cm.Img
+                            Img = cm.Img,
+                            Status = c.Status
                         }).ToList();
 
             return cars;
@@ -46,15 +48,20 @@ namespace DataAccess.Repositories.CarRepo
         {
             var carDetail = (from c in _context.Cars
                              join cm in _context.CarModels on c.CarModelId equals cm.CarModelId
-                             where c.CarId == carId && c.IsDeleted == false
+                             join uc in _context.UserCars on c.CarId equals uc.CarId
+                             join u in _context.Users on uc.UserId equals u.UserId
+                             where c.CarId == carId
+                                 && c.IsDeleted == false
+                                 && c.Status == "APPROVED"
+                                 && uc.Role == "Owner"
                              select new CarDetailDTO
                              {
                                  CarId = c.CarId,
                                  CarName = c.CarName,
                                  LicensePlate = c.LicensePlate,
                                  IsDeleted = c.IsDeleted,
-                                 CarCreateAt = c.CreateAt,
-                                 CarUpdateAt = c.UpdateAt,
+                                 CarImgFront = c.ImgFront,
+                                 CarImgBack = c.ImgBack,
                                  CarModelId = cm.CarModelId,
                                  Type = cm.Type,
                                  Color = cm.Color,
@@ -66,11 +73,14 @@ namespace DataAccess.Repositories.CarRepo
                                  ChargingStandard = cm.ChargingStandard,
                                  Img = cm.Img,
                                  ModelCreateAt = cm.CreateAt,
-                                 ModelUpdateAt = cm.UpdateAt
+                                 ModelUpdateAt = cm.UpdateAt,                  
+                                 OwnerName = u.Fullname,
+                                 OwnerAddress = u.Address
                              }).FirstOrDefault();
 
             return carDetail;
         }
+
 
         public ChargingStatusDTO? GetChargingStatusById(int carId)
         {
@@ -200,20 +210,38 @@ namespace DataAccess.Repositories.CarRepo
             
         }
 
-        public void addCar(int carModel, int userId, string licensePlate, string carName)
+        public async Task addCar(Car request, int userId)
         {
             //code here
-            
-                try
+            var carModelEntity = _context.CarModels.FirstOrDefault(cm => cm.CarModelId == request.CarModelId);
+            if (carModelEntity == null)
+            {
+                throw new Exception("Car model không tồn tại.");
+            }
+
+            var carNameIn = request.CarName;
+            if (string.IsNullOrWhiteSpace(request.CarName))
+            {
+                var brand = string.IsNullOrWhiteSpace(carModelEntity.Brand) ? "" : carModelEntity.Brand.Trim();
+                var type = string.IsNullOrWhiteSpace(carModelEntity.Type) ? "" : carModelEntity.Type.Trim();
+                carNameIn = $"{brand} {type}".Trim();
+            }
+
+            try
                 {
                     var car = new Car
                     {
-                        CarModelId = carModel,
-                        CarName = carName,
-                        LicensePlate = licensePlate,
+                        CarModelId = request.CarModelId,
+                        CarName = carNameIn,
+                        LicensePlate = request.LicensePlate,
+                        ImgFront = request.ImgFront,
+                        ImgBack = request.ImgBack,
+                        ImgFrontPubblicId = request.ImgFrontPubblicId,
+                        ImgBackPubblicId = request.ImgBackPubblicId,
+                        Status = request.Status,
                         IsDeleted = false,
-                        CreateAt = DateTime.Now,
-                        UpdateAt = DateTime.Now
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow
                     };
 
                     _context.Cars.Add(car);
@@ -225,14 +253,25 @@ namespace DataAccess.Repositories.CarRepo
                         CarId = car.CarId, 
                         Role = "Owner",      
                         IsAllowedToCharge = true,
-                        StartDate = DateTime.Now
+                        StartDate = DateTime.UtcNow
                     };
 
                     _context.UserCars.Add(userCar);
                     _context.SaveChanges();
 
-                    //transaction.Commit();
-                }
+                    var document = new DocumentReview
+                    {
+                        UserId = userId,
+                        CarId = car.CarId,
+                        ReviewType = "CAR_LICENSE",
+                        Status = "PENDING",
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow
+                    };
+                     _context.DocumentReviews.Add(document);
+                    _context.SaveChanges();
+                //transaction.Commit();
+            }
                 catch (Exception ex)
                 {
                    // transaction.Rollback();
@@ -244,11 +283,24 @@ namespace DataAccess.Repositories.CarRepo
         public void editCar(int carModel, int carId, string licensePlate, string carName)
         {
             var car = _context.Cars.FirstOrDefault(c => c.CarId == carId);
+            var carModelEntity = _context.CarModels.FirstOrDefault(cm => cm.CarModelId == carModel);
+            if (carModelEntity == null)
+            {
+                throw new Exception("Car model không tồn tại.");
+            }
+
+            var carNameIn = carName;
+            if (string.IsNullOrWhiteSpace(carName))
+            {
+                var brand = string.IsNullOrWhiteSpace(carModelEntity.Brand) ? "" : carModelEntity.Brand.Trim();
+                var type = string.IsNullOrWhiteSpace(carModelEntity.Type) ? "" : carModelEntity.Type.Trim();
+                carNameIn = $"{brand} {type}".Trim();
+            }
             if (car != null)
             {
                 car.CarModelId = carModel;
                 car.LicensePlate = licensePlate;
-                car.CarName = carName;
+                car.CarName = carNameIn;
                 car.UpdateAt = DateTime.Now;
                 _context.SaveChanges();
             }
@@ -440,6 +492,77 @@ namespace DataAccess.Repositories.CarRepo
                     uc.IsAllowedToCharge == true &&
                     uc.StartDate <= currentTime &&
                     (uc.EndDate == null || uc.EndDate >= currentTime));
+        }
+
+        public  bool IsAllowToAccess(int carId, int userId)
+        {
+            var owner =  _context.UserCars
+        .FirstOrDefault(uc => uc.CarId == carId && uc.Role == "Owner");
+
+            if (owner == null)
+                return false;
+
+            return owner.UserId == userId;
+        }
+
+        public bool IsRenterViewAnalysis(int carId, int renterId)
+        {
+            var now = DateTime.Now;
+
+            return _context.UserCars.Any(uc =>
+                uc.CarId == carId &&
+                uc.UserId == renterId &&
+                uc.Role == "Renter" &&
+                uc.IsAllowedToCharge == true &&
+                uc.StartDate <= now &&
+                uc.EndDate >= now
+            );
+        }
+
+        public async Task ChangeCarStatusAsync(int? carId, string newStatus)
+        {
+            if (string.IsNullOrEmpty(newStatus))
+            {
+                throw new ArgumentException("Trạng thái không thể trống", nameof(newStatus));
+            }
+            if (carId <= 0)
+            {
+                throw new ArgumentException("ID người dùng không hợp lệ", nameof(carId));
+            }
+            var car = await _context.Cars.FindAsync(carId);
+            if (car != null)
+            {
+                car.Status = newStatus;
+                _context.Cars.Update(car);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateExpiredRentalsAsync()
+        {
+            var now = DateTime.Now;
+            var expiredRents = await _context.UserCars
+                .Where(uc => uc.Role == "Renter" && uc.EndDate <= now && uc.IsAllowedToCharge == true)
+                .ToListAsync();
+
+            foreach (var rent in expiredRents)
+            {
+                rent.IsAllowedToCharge = false;
+            }
+
+            if (expiredRents.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Car?> GetCarById(int id)
+        {
+            return await _context.Cars
+                .Include(c => c.CarModel)
+                .Include(c => c.UserCars).ThenInclude(uc => uc.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CarId == id);
         }
     }
 }

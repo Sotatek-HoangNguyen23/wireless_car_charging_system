@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using DataAccess.Repositories.StationRepo;
 using System.Text.RegularExpressions;
 using DataAccess.DTOs.CarDTO;
+using Newtonsoft.Json;
 
 namespace API.Services
 {
@@ -37,6 +38,16 @@ namespace API.Services
 
         public async Task RegisterAsync(RegisterRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.CaptchaToken))
+            {
+                throw new ArgumentException("Captcha không được để trống", nameof(request.CaptchaToken));
+            }
+
+            var captchaValid = await VerifyCaptchaAsync(request.CaptchaToken);
+            if (!captchaValid)
+            {
+                throw new ArgumentException("Captcha không hợp lệ", nameof(request.CaptchaToken));
+            }
             if (request == null)
             {
                 throw new ArgumentException("Request không được null");
@@ -58,7 +69,7 @@ namespace API.Services
             {
                 throw new InvalidOperationException("Số điện thoại đã tồn tại");
             }
-            if(!IsEmailCorrect(request.Email))
+            if (!IsEmailCorrect(request.Email))
             {
                 throw new ArgumentException("Email không hợp lệ");
             }
@@ -103,7 +114,7 @@ namespace API.Services
                     RoleId = 1,
                     Gender = request.Gender,
                     Address = request.Address,
-                    Status = "Inactive",
+                    Status = "OTPprocess",
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
                 };
@@ -162,7 +173,7 @@ namespace API.Services
             }
             catch (InvalidImageException ex)
             {
-                throw new Exception("Image khong hop le",ex);
+                throw new Exception("Image khong hop le", ex);
             }
             catch (Exception ex)
             {
@@ -201,7 +212,7 @@ namespace API.Services
                 Dob = GenerateRandomBirthDate(),
                 Gender = _random.Next(2) == 0,
                 Address = $"{_random.Next(1, 999)} {_streets[_random.Next(_streets.Length)]}, {_cities[_random.Next(_cities.Length)]}",
-                Status = "Active",
+                Status = "ACTIVE",
                 Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
                 RoleId = roleId,
@@ -229,7 +240,33 @@ namespace API.Services
             };
             await _balanceRepository.AddBalance(balance);
         }
+        public async Task<bool> VerifyCaptchaAsync(string captchaResponse)
+        {
+            if (string.IsNullOrEmpty(captchaResponse))
+                return false;
 
+            var _secretKey = Environment.GetEnvironmentVariable("RECAPTCHA_SECRET_KEY");
+            if (string.IsNullOrEmpty(_secretKey))
+            {
+                throw new ArgumentException("Khoá bí mật không được trống");
+            }
+            using (var client = new HttpClient())
+            {
+                var parameters = new Dictionary<string, string>
+                {
+                    { "secret", _secretKey },
+                    { "response", captchaResponse }
+                };
+
+                var content = new FormUrlEncodedContent(parameters);
+                var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                var captchaResult = JsonConvert.DeserializeObject<CaptchaResponse>(responseString);
+
+                return captchaResult!.success;
+            }
+        }
         private string GenerateRandomCccd()
         {
             return _random.Next(100000000, 999999999).ToString();
@@ -294,7 +331,7 @@ namespace API.Services
             var user = await _userRepository.GetUserByCccd(cccd);
             if (user == null)
             {
-                throw new ArgumentException("Khong tìm thấy người dùng");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
             var UserDto = new UserDto();
             UserDto.UserId = user.UserId;
@@ -347,21 +384,25 @@ namespace API.Services
             {
                 if (request == null)
                 {
-                    throw new ArgumentException("Request cannot be null");
+                    throw new ArgumentException("Yêu cầu không được trống");
                 }
                 var user = await _userRepository.GetUserByEmail(request.Email);
                 if (user == null)
                 {
-                    throw new ArgumentException("User khong ton tai");
+                    throw new ArgumentException("Tài khoản không tồn tại");
                 }
                 var isValid = await _otpServices.verifyResetPasswordToken(request.Token, request.Email);
                 if (!isValid)
                 {
-                    throw new ArgumentException("Invalid Token");
+                    throw new ArgumentException("Token không hợp lệ");
                 }
                 if (!IsPasswordCorrect(request.NewPassword))
                 {
                     throw new ArgumentException("Mật khẩu không đủ mạnh");
+                }
+                if (user.Status != "ACTIVE")
+                {
+                    throw new ArgumentException("Tài khoản chưa được kích hoạt");
                 }
                 var password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 user.PasswordHash = password;
@@ -372,15 +413,15 @@ namespace API.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Reset password failed", ex);
+                throw new Exception("Thay đổi mật khẩu thất bài", ex);
             }
         }
-  
+
         public async Task<ProfileDTO?> GetProfileByUserId(int userId)
         {
             if (userId <= 0)
             {
-                throw new ArgumentException("Invalid user ID.");
+                throw new ArgumentException("Id của người dùng không hợp lệ.");
             }
 
             var profile = await _userRepository.GetProfileByUserId(userId);
@@ -396,11 +437,11 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request không được null");
+                throw new ArgumentException("Yêu cầu không được trống");
             }
             if (userId <= 0)
             {
-                throw new ArgumentException("Invalid user ID.");
+                throw new ArgumentException("Id của người dùng không hợp lệ.");
             }
             ValidateUpdateProfileRequest(request);
             if (!string.IsNullOrEmpty(request.Email) && !IsEmailCorrect(request.Email))
@@ -415,6 +456,10 @@ namespace API.Services
             if (user == null)
             {
                 throw new Exception("Người dùng không tồn tại.");
+            }
+            if (_userRepository.IsMailOrPhoneDuplicate(userId, request.Email, request.PhoneNumber))
+            {
+                throw new ArgumentException("Email hoặc số điện thoại đã tồn tại");
             }
 
             // Update user properties
@@ -450,11 +495,11 @@ namespace API.Services
                 string.IsNullOrWhiteSpace(passDTO.NewPassword) ||
                 string.IsNullOrWhiteSpace(passDTO.ConfirmNewPassword))
             {
-                throw new ArgumentException("Passwords khong the trong.");
+                throw new ArgumentException("Mật khẩu không thể trống.");
             }
             if (!IsPasswordCorrect(passDTO.NewPassword))
             {
-                throw new ArgumentException("Password is not strong enough");
+                throw new ArgumentException("Mật khẩu không đủ mạnh. Vui lòng điền mật khẩu gồm 1 chữ in hoa, 1 kí tự đặc biệt, 1 só và dài ít nhất 8 kí tự");
             }
             if (passDTO.NewPassword != passDTO.ConfirmNewPassword)
             {
@@ -478,7 +523,22 @@ namespace API.Services
 
         public async Task<List<User>> GetUsersByEmailOrPhoneAsync(string search)
         {
-            return await _userRepository.GetUserByEmailOrPhone(search);
+            var users = await _userRepository.GetUserByEmailOrPhone(search);
+
+            if (users == null || users.Count == 0)
+                return users;
+
+            // Giả sử chỉ cần kiểm tra license của người dùng đầu tiên
+            var userId = users[0].UserId;
+            var hasLicense = await _userRepository.HavingDriverLicenseYet(userId);
+
+
+            if (!hasLicense)
+            {
+                throw new Exception("Tài xế chưa đăng ký hoặc được duyệt giấy phép lái xe");
+            }
+
+            return users;
         }
         public async Task<DriverLicenseDTO> GetLicenseByCode(string code)
         {
@@ -490,12 +550,12 @@ namespace API.Services
             var existingLicense = await _licenseRepository.GetLicenseByCode(code);
             if (existingLicense == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
             var user = await _userRepository.GetUserById(existingLicense.UserId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
 
             var licenseDTO = new DriverLicenseDTO
@@ -523,12 +583,12 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request cannot be null");
+                throw new ArgumentException("Yêu cầu không được trống");
             }
             var user = await _userRepository.GetUserById(userId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
 
             ImageUploadResult? frontUpload = null;
@@ -540,7 +600,7 @@ namespace API.Services
                 {
                     if (license.Code == request.LicenseNumber)
                     {
-                        if (license.Status == "Inactive")
+                        if (license.Status == "DELETE")
                         {
                             _imageService.ValidateImage(request.LicenseFrontImage);
                             _imageService.ValidateImage(request.LicenseBackImage);
@@ -556,7 +616,7 @@ namespace API.Services
                             license.ImgBack = backUpload.Url.ToString();
                             license.ImgBackPubblicId = backUpload.PublicId;
                             license.Code = request.LicenseNumber;
-                            license.Status = "Active";
+                            license.Status = "PENDING";
                             license.Class = request.Class;
                             license.UpdateAt = DateTime.UtcNow;
 
@@ -564,9 +624,25 @@ namespace API.Services
                             await _licenseRepository.UpdateLicense(license);
                             return;
                         }
+                        else if (license.Status == "PENDING")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đang trong hàng chờ");
+                        }
+                        else if (license.Status == "APPROVED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã được chấp nhận");
+                        }
+                        else if (license.Status == "REJECTED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã bị từ chối");
+                        }
+                        else if (license.Status == "BLOCKED")
+                        {
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã bị vô hiệu hoá");
+                        }
                         else
                         {
-                            throw new ArgumentException("License already exists");
+                            throw new ArgumentException("Bằng lái bạn muốn thêm đã tồn tại");
                         }
                     }
                 }
@@ -586,7 +662,7 @@ namespace API.Services
                     ImgFrontPubblicId = frontUpload.PublicId,
                     ImgBack = backUpload.Url.ToString(),
                     ImgBackPubblicId = backUpload.PublicId,
-                    Status = "Active",
+                    Status = "PENDING",
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
                 };
@@ -594,6 +670,17 @@ namespace API.Services
                 try
                 {
                     await _licenseRepository.SaveLicense(license);
+
+                    var documentReview = new DocumentReview
+                    {
+                        UserId = userId,
+                        ReviewType = "DRIVER_LICENSE",
+                        DriverLicenseId = license.DriverLicenseId,
+                        Status = "PENDING",
+                        CreateAt = DateTime.UtcNow,
+                        UpdateAt = DateTime.UtcNow
+                    };
+                    await _userRepository.AddDocumentRequest(documentReview);
                     await transaction.CommitAsync();
                 }
                 catch
@@ -610,7 +697,7 @@ namespace API.Services
                 if (backUpload != null)
                     deleteTasks.Add(_imageService.DeleteImageAsync(backUpload.PublicId));
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("Add license failed", ex);
+                throw new Exception("Thêm bằng lái thất bại", ex);
             }
 
         }
@@ -618,17 +705,17 @@ namespace API.Services
         {
             if (request == null)
             {
-                throw new ArgumentException("Request cannot be null");
+                throw new ArgumentException("Yều cầu không được thiếu");
             }
             var license = await _licenseRepository.GetLicenseByCode(licensecode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
             var existingLicenses = await _licenseRepository.GetLicenseByCode(request.LicenseNumber);
             if (existingLicenses != null && existingLicenses.Code != licensecode)
             {
-                throw new ArgumentException("License mà bạn muốn cập nhật đã tồn tại trong hệ thống");
+                throw new ArgumentException("Bằng lái mà bạn muốn cập nhật đã tồn tại trong hệ thống");
             }
 
             ImageUploadResult? newFront = null;
@@ -692,30 +779,9 @@ namespace API.Services
                 if (newBack != null)
                     deleteTasks.Add(_imageService.DeleteImageAsync(newBack.PublicId));
                 await Task.WhenAll(deleteTasks);
-                throw new Exception("Update license failed", ex);
+                throw new Exception("Cập nhật bằng lái thất bài");
             }
         }
-
-        //public async Task<IEnumerable<DriverLicenseResponse>> GetDriverLicensesAsync(int userid)
-        //{
-        //    var licenses = await _licenseRepository.GetLicensesByUserId(userid);
-        //    if (licenses == null || !licenses.Any())
-        //    {
-        //        return Enumerable.Empty<DriverLicenseResponse>();
-
-
-        //    }
-        //    return licenses.Select(l => new DriverLicenseResponse
-        //    {
-        //        LicenseNumber = l.Code,
-        //        Class = l.Class,
-        //        FrontImageUrl = l.ImgFront,
-        //        BackImageUrl = l.ImgBack,
-        //        Status = l.Status,
-        //        CreatedAt = l.CreateAt,
-        //        UpdatedAt = l.UpdateAt
-        //    });
-        //}
         public async Task<IEnumerable<DriverLicenseResponse>> GetActiveDriverLicensesAsync(int userId)
         {
             var licenses = await _licenseRepository.GetLicensesByUserId(userId);
@@ -724,7 +790,7 @@ namespace API.Services
                 return Enumerable.Empty<DriverLicenseResponse>();
             }
 
-            var activeLicenses = licenses.Where(l => l.Status == "Active").ToList();
+            var activeLicenses = licenses.Where(l => l.Status == "APPROVED").ToList();
             var responses = new List<DriverLicenseResponse>();
 
             foreach (var license in activeLicenses)
@@ -733,7 +799,7 @@ namespace API.Services
                 {
                     if (string.IsNullOrEmpty(license.ImgBack))
                     {
-                        throw new ArgumentNullException(nameof(license.ImgBack), "Image back URL is null or empty");
+                        throw new ArgumentNullException(nameof(license.ImgBack), "Đường đẵn ảnh mặt sau không được trống");
                     }
 
                     var qrResult = await _imageService.ReadQrCodeUrl(license.ImgBack);
@@ -741,7 +807,7 @@ namespace API.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error processing license {license.Code}: {ex.Message}");
+                    Console.WriteLine($"Lỗi trong quá trình lấy bằng {license.Code}: {ex.Message}");
                 }
             }
 
@@ -753,10 +819,33 @@ namespace API.Services
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
 
-            license.Status = "Inactive";
+            license.Status = "DELETE";
+            license.UpdateAt = DateTime.UtcNow;
+
+            using var transaction = await _licenseRepository.BeginTransactionAsync();
+            try
+            {
+                await _licenseRepository.UpdateLicense(license);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        } 
+        public async Task BlockedDriverLicenseAsync(string licenseCode)
+        {
+            var license = await _licenseRepository.GetLicenseByCode(licenseCode);
+            if (license == null)
+            {
+                throw new ArgumentException("Không tìm thấy bằng lái");
+            }
+
+            license.Status = "BLOCKED";
             license.UpdateAt = DateTime.UtcNow;
 
             using var transaction = await _licenseRepository.BeginTransactionAsync();
@@ -776,10 +865,10 @@ namespace API.Services
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
 
-            license.Status = "Active";
+            license.Status = "APPROVED";
             license.UpdateAt = DateTime.UtcNow;
 
             using var transaction = await _licenseRepository.BeginTransactionAsync();
@@ -800,13 +889,13 @@ namespace API.Services
             var license = await _licenseRepository.GetLicenseByCode(licenseCode);
             if (license == null)
             {
-                throw new ArgumentException("License not found");
+                throw new ArgumentException("Không tìm thấy bằng lái");
             }
 
             var user = await _userRepository.GetUserById(license.UserId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("Không tìm thấy người dùng");
             }
 
             if (!string.IsNullOrEmpty(fullname))
@@ -841,12 +930,12 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
             }
 
             if (pageSize <= 0)
             {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0", nameof(pageSize));
             }
             return await _licenseRepository.GetPagedLicensesAsync(pageNumber, pageSize, filter);
         }
@@ -854,12 +943,12 @@ namespace API.Services
         {
             if (pageNumber <= 0)
             {
-                throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+                throw new ArgumentException("Số trang phải lớn hơn 0", nameof(pageNumber));
             }
 
             if (pageSize <= 0)
             {
-                throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+                throw new ArgumentException("Số lượng item trong 1 trang phải lớn hơn 0", nameof(pageSize));
             }
             return _userRepository.GetUsers(searchQuery, status, roleId, pageNumber, pageSize);
         }
@@ -872,6 +961,58 @@ namespace API.Services
         {
             await _userRepository.DeleteUserReal(userId);
         }
+        public async Task PendingRegisterUserViaOtpAsync(string email, string otpToken)
+        {
+            // 1. Lấy user theo email
+            var user = await _userRepository.GetUserByEmail(email);
+            if (user is null)
+                throw new ArgumentException("Tài khoản không tồn tại", nameof(email));
+
+            // 2. Chỉ cho phép khi user đang ở trạng thái chờ OTP
+            if (user.Status != "OTPprocess")
+                throw new InvalidOperationException("Tài khoản không trong trạng thái chờ xác thực OTP.");
+
+            // 3. Kiểm tra OTP
+            var isValidOtp = await _otpServices.VerifyOtpAsync(email, otpToken);
+            if (!isValidOtp)
+                throw new ArgumentException("OTP không hợp lệ", nameof(otpToken));
+
+            // 4. Lấy CCCD đã upload
+            var existingCccd = user.Cccds.FirstOrDefault();
+            if (existingCccd is null)
+                throw new InvalidOperationException("Chưa có hồ sơ CCCD để xác thực.");
+
+            // 5. Tạo DocumentReview mới
+            var now = DateTime.UtcNow;
+            var review = new DocumentReview
+            {
+                UserId = user.UserId,
+                CccdId = existingCccd.CccdId,
+                ReviewType = "CCCD",
+                Status = "PENDING",
+                CreateAt = now,
+                UpdateAt = now
+            };
+
+            // 6. Ghi vào DB trong transaction
+            using var transaction = await _userRepository.BeginTransactionAsync();
+            try
+            {
+                await _userRepository.AddDocumentRequest(review);
+
+                user.Status = "PENDING";
+                user.UpdateAt = now;
+                await _userRepository.UpdateUser(user);
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         private bool IsEmailCorrect(string email)
         {
             string regex = @"^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$";
@@ -901,6 +1042,27 @@ namespace API.Services
                    hasNumber &&
                    hasSpecialChar &&
                    hasValidSpecialChar;
+        }
+
+        public async Task<string> VerifyAndGenResetPasswordToken(string email, string otpCode)
+        {
+            var user = await _userRepository.GetUserByEmail(email);
+            if (user == null)
+            {
+                throw new ArgumentException("Tài khoản không tồn tại", nameof(email));
+            }
+            var isValid = await _otpServices.VerifyOtpAsync(email, otpCode);
+            if (!isValid)
+            {
+                throw new ArgumentException("Token không hợp lệ", nameof(otpCode));
+            }
+            var token = await _otpServices.genResetPasswordToken(email);
+            return token;
+        }
+
+        public async Task<bool> HavingDriverLicenseYet(int userId)
+        {
+            return await _userRepository.HavingDriverLicenseYet(userId);
         }
     }
 }

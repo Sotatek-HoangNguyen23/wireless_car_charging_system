@@ -6,7 +6,8 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h3 class="mb-0">Xe của tôi</h3>
-        <a href="/wireless-charging/vehicles/addcar" class="btn btn-primary">+ Thêm xe</a>
+        <button id="add-car-btn" class="btn btn-primary">+ Thêm xe</button>
+
     </div>
 
     <div id="cars-container" class="row g-4">
@@ -19,11 +20,18 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
         await fetchCarsByUserId();
+        setupAddCarButton();
     });
 
     async function fetchCarsByUserId() {
         try {
             const response = await fetchWithAuth('https://localhost:7191/api/Car/owner');
+
+            if (response.status === 404) {
+                displayCars([]); // Không có xe -> hiển thị thông báo
+                return;
+            }
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.detail || `API Error: ${response.statusText}`);
@@ -37,16 +45,22 @@
         }
     }
 
-    function displayCars(cars) {
+
+        function displayCars(cars) {
         const container = document.getElementById("cars-container");
         container.innerHTML = "";
 
         if (cars.length === 0) {
-            container.innerHTML = `<p class="text-muted">Không có xe nào được tìm thấy.</p>`;
+            container.innerHTML = `<h5 class="text-muted">Không có xe </h5>`;
             return;
         }
 
         cars.forEach(car => {
+            const isInactive = car.status === "Inactive";
+            const buttonHtml = isInactive
+                ? `<button class="btn btn-secondary w-100" disabled>Đang duyệt</button>`
+                : `<button class="btn btn-outline-primary w-100" onclick="viewCar(${car.carId})">Xem chi tiết</button>`;
+
             const carCard = `
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4">
@@ -58,13 +72,38 @@
                             <p class="card-text mb-1"><strong>Biển số:</strong> ${car.licensePlate}</p>
                             <p class="card-text mb-3"><strong>Màu:</strong> ${car.color}</p>
                             <div class="mt-auto">
-                                <button class="btn btn-outline-primary w-100" onclick="viewCar(${car.carId})">Xem chi tiết</button>
+                                ${buttonHtml}
                             </div>
                         </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML("beforeend", carCard);
+        });
+    }
+        async function setupAddCarButton() {
+        const addCarBtn = document.getElementById("add-car-btn");
+
+        addCarBtn.addEventListener("click", async () => {
+            try {
+                const response = await fetchWithAuth("https://localhost:7191/api/User/having-driver-license-yet");
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || `API Error: ${response.statusText}`);
+                }
+
+                const hasLicense = await response.json();
+                if (!hasLicense) {
+                    showToast("Bạn không thể thêm xe vì chưa có giấy phép lái xe được duyệt.");
+                    return;
+                }
+
+                // Nếu có license hợp lệ
+                window.location.href = "/wireless-charging/vehicles/addcar";
+            } catch (error) {
+                console.error("Error checking license:", error);
+                showToast("Lỗi khi kiểm tra giấy phép lái xe");
+            }
         });
     }
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -22,7 +23,8 @@ namespace API.Controllers
             _testService = testService;
             _userService = userService;
         }
-        [Authorize("Admin")]
+        [AllowAnonymous]
+        [EnableRateLimiting("Login")]
         [HttpGet]
         public ActionResult getAllRoles()
         {
@@ -32,14 +34,14 @@ namespace API.Controllers
         }
 
 
-        [AllowAnonymous]
+        [Authorize("AdminOrOperator")]
         [HttpPost("create-test-user")]
         public async Task<ActionResult> createTestUser([FromBody] CreateTestAccountRequest request)
         {
             try
             {
                 await _userService.CreateTestAccount(request.Email, request.Password, request.RoleId);
-                return Ok(new { Message = "Test user created successfully." });
+                return Ok(new { Message = "Tạo tài khoản test thành công." });
             }
             catch (ArgumentException e)
             {
@@ -70,14 +72,14 @@ namespace API.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [Authorize("AdminOrOperator")]
         [HttpDelete("delete-real-user")]
         public async Task<ActionResult> deleteRealUser([FromBody] int userid)
         {
             try
             {
                 await _userService.DeleteUserReal(userid);
-                return Ok(new { Message = "Real user deleted successfully." });
+                return Ok(new { Message = "Xoá người dùng thành công." });
             }
             catch (ArgumentException e)
             {

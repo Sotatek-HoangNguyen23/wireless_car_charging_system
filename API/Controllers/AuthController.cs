@@ -4,6 +4,7 @@ using DataAccess.DTOs.Auth;
 using DataAccess.DTOs.CarDTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers
@@ -20,7 +21,7 @@ namespace API.Controllers
             _userService = userService;
         }
 
-
+        [EnableRateLimiting("Register")]
         [HttpPost("register")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
@@ -28,14 +29,14 @@ namespace API.Controllers
             try
             {
                 await _userService.RegisterAsync(request);
-                return Ok(new { result = "Register Success" });
+                return Ok(new { result = "Đăng kí thành công" });
             }
             catch (InvalidOperationException ex)
             {
                 return Conflict(new
                 {
                     Title = "Conflict",
-                    Error = "Dublicate",
+                    Error = "Trùng lặp",
                     Detail = ex.Message
                 });
             }
@@ -59,11 +60,13 @@ namespace API.Controllers
             }
            
         }
+        [EnableRateLimiting("Login")]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] AuthenticateRequest request)
         {
             try
             {
+
                 var response = await _authService.Authenticate(request);
                 if (response == null)
                 {
@@ -108,16 +111,11 @@ namespace API.Controllers
         {
             try
             {
-                if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
-                {
-                    return BadRequest(new {
-                        Title = "Invalid Request",
-                        Detail = "Không tìm thấy refresh token",
-                        Status = 400
-                    });
-                }
 
-                await _authService.Logout(refreshToken);
+                if (Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+                {
+                    await _authService.Logout(refreshToken);
+                }
                 Response.Cookies.Delete("refreshToken", new CookieOptions
                 {
                     HttpOnly = true,
@@ -126,7 +124,7 @@ namespace API.Controllers
                     Path = "/"
                 });
 
-                return Ok(new { Result = "Successfully logged out" });
+                return Ok(new { Result = "Đăng xuất thành công" });
             }
             catch (ArgumentException e)
             {

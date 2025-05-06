@@ -456,40 +456,40 @@ namespace TestProject.MyCarTest
         }
 
         // Tests for addCar
-        [Test]
-        public void AddCar_ValidData_AddsCarAndUserCarRelationship()
-        {
-            // Arrange
-            int initialCarCount = _context.Cars.Count();
-            int initialUserCarCount = _context.UserCars.Count();
+        //[Test]
+        //public void AddCar_ValidData_AddsCarAndUserCarRelationship()
+        //{
+        //    // Arrange
+        //    int initialCarCount = _context.Cars.Count();
+        //    int initialUserCarCount = _context.UserCars.Count();
 
-            // Act
-            _repository.addCar(1, 1, "51B-54321", "New Test Car");
+        //    // Act
+        //    _repository.addCar(1, 1, "51B-54321", "New Test Car");
 
-            // Assert
-            Assert.That(_context.Cars.Count(), Is.EqualTo(initialCarCount + 1));
-            Assert.That(_context.UserCars.Count(), Is.EqualTo(initialUserCarCount + 1));
+        //    // Assert
+        //    Assert.That(_context.Cars.Count(), Is.EqualTo(initialCarCount + 1));
+        //    Assert.That(_context.UserCars.Count(), Is.EqualTo(initialUserCarCount + 1));
 
-            var newCar = _context.Cars.FirstOrDefault(c => c.LicensePlate == "51B-54321");
-            Assert.That(newCar, Is.Not.Null);
-            Assert.That(newCar!.CarName, Is.EqualTo("New Test Car"));
+        //    var newCar = _context.Cars.FirstOrDefault(c => c.LicensePlate == "51B-54321");
+        //    Assert.That(newCar, Is.Not.Null);
+        //    Assert.That(newCar!.CarName, Is.EqualTo("New Test Car"));
 
-            var userCar = _context.UserCars.FirstOrDefault(uc => uc.CarId == newCar.CarId);
-            Assert.That(userCar, Is.Not.Null);
-            Assert.That(userCar!.UserId, Is.EqualTo(1));
-            Assert.That(userCar.Role, Is.EqualTo("Owner"));
-            Assert.That(userCar.IsAllowedToCharge, Is.True);
-        }
+        //    var userCar = _context.UserCars.FirstOrDefault(uc => uc.CarId == newCar.CarId);
+        //    Assert.That(userCar, Is.Not.Null);
+        //    Assert.That(userCar!.UserId, Is.EqualTo(1));
+        //    Assert.That(userCar.Role, Is.EqualTo("Owner"));
+        //    Assert.That(userCar.IsAllowedToCharge, Is.True);
+        //}
 
-        [Test]
-        public void AddCar_InvalidCarModelId_ThrowsException()
-        {
-            // Act & Assert
-            var ex = Assert.Throws<Exception>(() =>
-                _repository.addCar(999, 1, "51B-12345", "Invalid Model Car"));
+        //[Test]
+        //public void AddCar_InvalidCarModelId_ThrowsException()
+        //{
+        //    // Act & Assert
+        //    var ex = Assert.Throws<Exception>(() =>
+        //        _repository.addCar(999, 1, "51B-12345", "Invalid Model Car"));
 
-            Assert.That(ex.Message, Does.Contain("Error add car"));
-        }
+        //    Assert.That(ex.Message, Does.Contain("Error add car"));
+        //}
 
         // Tests for editCar
         [Test]

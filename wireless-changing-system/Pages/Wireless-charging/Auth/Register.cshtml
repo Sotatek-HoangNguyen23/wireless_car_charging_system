@@ -128,6 +128,11 @@
                             <li id="rule-special"><i class="bi bi-x-circle rule-icon"></i> Ít nhất 1 ký tự đặc biệt</li>
                         </ul>
                     </div>
+                    <div class="mb-3">
+
+                    <div class="g-recaptcha align-content-center" data-sitekey="6Le05ysrAAAAAKjW94Id17ZPQkTrMlAtn1PqIM6H"></div>
+                    </div>
+
                 </div>
             </div>
             <div class="form-check mb-3">
@@ -282,8 +287,16 @@
             e.preventDefault();
             if(!(allValid&&validCCCDFront&&validCCCDBack)) return;
             regisBtn.disabled=true; regisBtn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+            const captchaToken = grecaptcha.getResponse(); // Lấy token reCAPTCHA
+            if (!captchaToken) {
+              showToast("Vui lòng xác minh Captcha trước khi đăng kí");
+              regisBtn.disabled = false;
+              regisBtn.textContent = 'Đăng ký';
+              return;
+            }
             try{
                 const formData=new FormData(this);
+                formData.append('CaptchaToken', captchaToken); // Thêm captchaToken vào FormData
                 const res=await fetch('https://localhost:7191/api/auth/register',{
                     method:'POST',
                     body:formData
@@ -292,9 +305,16 @@
                 if(!res.ok) {
                     throw new Error(data.detail||'Đăng ký thất bại');
                 }
-                await sendActivateEmail(document.getElementById('email').value);
-                showSuccessToast('Đăng ký thành công!');
-                setTimeout(()=>location.href='./',2000);
+                var emailSend=document.getElementById('email').value;
+                await sendActivateEmail(emailSend);
+                setTimeout(() => {
+                  // Dùng URLSearchParams để build query string
+                  const params = new URLSearchParams({
+                    Email: emailSend,
+                    ActionType: 'register'
+                  });
+                  window.location.href = `/wireless-charging/auth/Confirm-OTP?${params}`;
+                }, 2000);
             }catch(err){
                 showToast(err.message);
             }finally{
@@ -304,13 +324,14 @@
         });
         async function sendActivateEmail(email) {
             try {
-                const res = await fetch('https://localhost:7191/api/otp/activation-token', {
+                const res = await fetch('https://localhost:7191/api/otp/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Email: email })
                 });
                 const result = await res.json();
-                if (!res.ok) throw new Error(result.detail||'Gửi email kích hoạt thất bại');
+                if (!res.ok) throw new Error(result.detail||'Gửi OTP thất bại');
+                showSuccessToast(' Vui lòng kiểm tra email của bạn để nhận OTP.');
             } catch (error) {
                 showToast(error.message);
             }

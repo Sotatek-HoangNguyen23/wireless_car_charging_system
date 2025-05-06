@@ -17,6 +17,7 @@ namespace DataAccess.DTOs.Auth
     {
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public string? CaptchaToken { get; set; }
     }
     public class AuthenticateResponse
     {
@@ -54,9 +55,18 @@ namespace DataAccess.DTOs.Auth
         [StringLength(12, MinimumLength = 9)]
         public required string CccdCode { get; set; }
         public required string PasswordHash { get; set; }
-
         public required IFormFile CCCDFrontImage { get; set; }
 
         public required IFormFile CCCDBackImage { get; set; }
+        public string? CaptchaToken { get; set; }
+
+
     }
+    public class CaptchaResponse
+    {
+        public bool success { get; set; }
+        [JsonPropertyName("error-codes")]
+        public string[]? errorCodes { get; set; }
+    }
+
 }

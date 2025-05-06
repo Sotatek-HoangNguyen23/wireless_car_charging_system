@@ -7,81 +7,59 @@ using System.Threading.Tasks;
 
 namespace API.Hubs
 {
-    public class SqlDependencyService
+    public class SqlDependencyService : BackgroundService
     {
         private readonly IHubContext<RealTimeHub> _hubContext;
         private readonly string _connectionString;
-
-        public SqlDependencyService(IHubContext<RealTimeHub> hubContext, IConfiguration configuration)
+        private DateTime? _latestTimestamp;
+        private readonly ILogger<SqlDependencyService> _logger;
+        public SqlDependencyService(
+        IHubContext<RealTimeHub> hubContext,
+        IConfiguration configuration,
+        ILogger<SqlDependencyService> logger)
         {
             _hubContext = hubContext;
-            _connectionString = configuration.GetConnectionString("value");
+            _connectionString = "server =wccsdatabase.database.windows.net; database =WCCS;uid=saodoqw;pwd=Taokobiet1@3;TrustServerCertificate=True;";
+            _logger = logger;
+        }
 
-            if (string.IsNullOrEmpty(_connectionString))
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
             {
-                throw new ArgumentNullException(nameof(_connectionString), "Connection string không được để trống!");
+                await CheckForChanges();
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // Kiểm tra mỗi 5 giây
             }
         }
 
-        public void StartListening()
+        private async Task CheckForChanges()
         {
             try
             {
-                SqlDependency.Stop(_connectionString);
-                SqlDependency.Start(_connectionString);
-                ListenForRealTimeDataChanges();
-                //ListenForChargingSessionChanges();
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    await conn.OpenAsync();
+                    _logger.LogInformation("Database connection opened.");
+
+                    using (SqlCommand cmd = new SqlCommand(
+                        "SELECT TOP 1 time_moment FROM dbo.real_time_data ORDER BY time_moment DESC", conn))
+                    {
+                        var result = await cmd.ExecuteScalarAsync();
+                        _logger.LogInformation($"Latest timestamp from DB: {result}");
+
+                        if (result != null && DateTime.TryParse(result.ToString(), out DateTime latest))
+                        {
+                            _logger.LogInformation($"Parsed latest timestamp: {latest}");
+                            // ... logic cập nhật
+                            _latestTimestamp = latest;
+                            await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "Dữ liệu bảng real_time_data đã thay đổi!");
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi khi khởi động SqlDependency: {ex.Message}");
-            }
-        }
-
-        private void ListenForRealTimeDataChanges()
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-                using (SqlCommand command = new SqlCommand(@"
-            SELECT data_id, car_id, chargingpoint_id, battery_level, 
-                   charging_power, temperature, time_moment, battery_voltage, 
-                   charging_current, charging_time, energy_consumed, cost, 
-                   powerpoint,status,license_plate
-            FROM dbo.real_time_data", connection)) // Đã sửa cột
-                {
-                    SqlDependency dependency = new SqlDependency(command);
-                    dependency.OnChange += OnDatabaseChange;
-                    command.ExecuteReader();  // Chạy query để kích hoạt SqlDependency
-                }
-            }
-        }
-        //private void ListenForChargingSessionChanges()
-        //{
-        //    using (SqlConnection connection = new SqlConnection(_connectionString))
-        //    {
-        //        connection.Open();
-        //        using (SqlCommand command = new SqlCommand(@"
-        //    SELECT session_id, car_id, charging_point_id, user_id, 
-        //           start_time, end_time, energy_consumed, cost, status
-        //    FROM dbo.charging_session", connection))
-        //        {
-        //            SqlDependency dependency = new SqlDependency(command);
-        //            dependency.OnChange += OnDatabaseChange;
-        //            command.ExecuteReader(); // Kích hoạt SqlDependency
-        //        }
-        //    }
-        //}
-
-
-
-        private async void OnDatabaseChange(object sender, SqlNotificationEventArgs e)
-        {
-            if (e.Type == SqlNotificationType.Change)
-            {
-                await _hubContext.Clients.All.SendAsync("ReceiveUpdate", "Dữ liệu bảng real_time_data đã thay đổi!");
-                ListenForRealTimeDataChanges(); // Đăng ký lại để tiếp tục lắng nghe
-                //ListenForChargingSessionChanges();
+                _logger.LogError(ex, "Error checking for database changes");
             }
         }
     }

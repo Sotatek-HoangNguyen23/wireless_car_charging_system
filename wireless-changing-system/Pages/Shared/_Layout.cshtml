@@ -36,7 +36,7 @@
                             <a class="nav-link" href="/wireless-charging/chargingstation/stationlist">Trạm Sạc</a>
                         </li>
 
-                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator, Station Owner">
+                        <li class="nav-item dropdown d-none role-based-menu" data-required-role="Operator">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Quản Lý
                             </a>
@@ -44,6 +44,7 @@
                                 <li><a class="dropdown-item" href="/wireless-charging/chargingstation/stationlist">Quản lý trạm sạc</a></li>
                                 <li><a class="dropdown-item" href="/wireless-charging/management/carlist">Quản lý xe</a></li>
                                 <li><a class="dropdown-item" href="/wireless-charging/management/userlist">Quản lý người dùng</a></li>
+                                <li><a class="dropdown-item" href="/wireless-charging/management/DriverLicenceList">Quản lý bằng lái</a></li>
                                 <li><a class="dropdown-item" href="/wireless-charging/management/feedbacklist">Quản lý phản hồi</a></li>
                             </ul>
                         </li>
@@ -53,12 +54,21 @@
                                 Thống kê
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/overview">Tổng quan</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/revenue">Doanh thu</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/session">Thống kê phiên sạc</a></li>
-                                <li><a class="dropdown-item" href="/wireless-charging/dashboard/user">Thống kê người dùng</a></li>
+                                <li class="role-based-menu" data-required-role="Operator">
+                                    <a class="dropdown-item" href="/wireless-charging/dashboard/overview">Tổng quan</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/wireless-charging/dashboard/revenue">Doanh thu</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/wireless-charging/dashboard/session">Thống kê phiên sạc</a>
+                                </li>
+                                <li class="role-based-menu" data-required-role="Operator">
+                                    <a class="dropdown-item" href="/wireless-charging/dashboard/user">Thống kê người dùng</a>
+                                </li>
                             </ul>
                         </li>
+
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/vehicles/mycars">Xe của tôi</a>
@@ -73,6 +83,10 @@
 
                         <li class="nav-item d-none role-based-menu" data-required-role="Driver">
                             <a class="nav-link" href="/wireless-charging/vehicles/rentconfirm">Danh sách thuê</a>
+                        </li>
+
+                        <li class="nav-item d-none role-based-menu" data-required-role="Operator">
+                            <a class="nav-link" href="/wireless-charging/management/documentreview">Xét duyệt</a>
                         </li>
                     </ul>
 
@@ -155,6 +169,7 @@
     <script src="~/js-cookie/js.cookie.min.js"></script>
     <script type="module" src="~/js/apiClient.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <script>
         // Tách logic cập nhật UI thành hàm riêng
