@@ -555,5 +555,14 @@ namespace DataAccess.Repositories.CarRepo
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<Car?> GetCarById(int id)
+        {
+            return await _context.Cars
+                .Include(c => c.CarModel)
+                .Include(c => c.UserCars).ThenInclude(uc => uc.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CarId == id);
+        }
     }
 }

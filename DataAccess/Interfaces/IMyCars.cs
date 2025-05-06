@@ -59,5 +59,7 @@ namespace DataAccess.Interfaces
         Task ChangeCarStatusAsync(int? carId, string newStatus);
 
         Task UpdateExpiredRentalsAsync();
+
+        Task<Car?> GetCarById(int id);
     }
 }
