@@ -27,7 +27,7 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
 //builder.Services.AddSingleton<SqlDependencyService>();
-builder.Services.AddHostedService<SqlDependencyService>();
+//builder.Services.AddHostedService<SqlDependencyService>();
 
 //=================================
 // Cloudinary configuration
