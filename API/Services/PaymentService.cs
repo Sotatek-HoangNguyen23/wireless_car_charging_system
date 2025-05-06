@@ -1,4 +1,4 @@
-﻿using DataAccess.Constants;
+﻿
 using DataAccess.DTOs.CarDTO;
 using DataAccess.Interfaces;
 using DataAccess.Models;
@@ -14,11 +14,12 @@ namespace API.Services
         private readonly PayOS _payOS;
         private readonly WccsContext _wccsContext;
         //public PaymentService();
-        public PaymentService(IBalancement balancement)
+        public PaymentService(IBalancement balancement,IConfiguration configuration) 
         {
-
-            _balanceRepo = balancement;
-            _payOS = new PayOS(Constants.clientId, Constants.apiKey, Constants.checksumKey);
+            _balanceRepo = balancement;          
+            _payOS =  new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENT_ID"),
+                Environment.GetEnvironmentVariable("PAYOS_API_KEY"),
+                Environment.GetEnvironmentVariable("PAYOS_CHECKSUM_KEY"));
         }
 
         public async Task<string> CreatePaymentLink(DepositDTO request, int userId)
