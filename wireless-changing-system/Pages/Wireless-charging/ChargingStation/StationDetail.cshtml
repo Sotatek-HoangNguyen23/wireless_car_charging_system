@@ -338,7 +338,7 @@
                                     <h5 class="card-title">${point.chargingPointName}</h5>
                                     <p class="card-text">
                                         <strong>Trạng thái:</strong> 
-                                        ${point.status === 'Available' ? 'Trống' : point.status === 'In Use' ? 'Đang sử dụng' : point.status === 'Maintenance' ? 'Bảo trì' : 'Không xác định'}
+                                        ${point.status === 'Available' ? 'Trống' : point.status === 'In Used' ? 'Đang sử dụng' : point.status === 'Maintenance' ? 'Bảo trì' : 'Không xác định'}
                                         <span class="status-dot ${getStatusClass(point.status)}"></span>
                                     </p>
                                     <p class="card-text"><strong>Công suất tối đa:</strong> ${point.maxPower}kW</p>
@@ -365,7 +365,7 @@
             switch (status.toLowerCase()) {
                 case "available":
                     return "bg-success";  // Xanh lá
-                case "in use":
+                case "in used":
                     return "bg-danger";     // Đỏ
                 case "maintenance":
                     return "bg-warning"; // Vàng
