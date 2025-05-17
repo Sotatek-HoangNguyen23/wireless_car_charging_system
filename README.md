@@ -8,7 +8,7 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
 
 ### Prerequisites
 
-- .NET 6.0 SDK or later
+- .NET 8.0 SDK
 - SQL Server
 - Redis
 - Cloudinary account for image storage
@@ -26,22 +26,29 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
    - Update the connection string in `API/appsettings.json` to point to your SQL Server instance.
    - Run the migrations to create the database schema:
      ```bash
-     dotnet ef database update --project DataAccess
+     dotnet ef database update --project DataAccess --startup-project API
      ```
 
 3. Set up Redis:
    - Update the Redis connection string in `API/appsettings.json`.
 
-4. Set up Cloudinary:
-   - Add your Cloudinary URL to the environment variables.
+4. Set up Jwt:
+   - Add your Audience and Issuer in `API/appsettings.json`.
 
 5. Set up SMTP:
-   - Add your SMTP server details to the environment variables.
+   - Add your SMTP server details in `API/appsettings.json`.
 
-6. Run the application:
+6. Create .env file
+   - Create a `.env` file in the root directory or use the sample `.env.example` file.
+  
+7. Run the application:
    ```bash
    dotnet run --project API
    ```
+
+
+
+
 
 ## Project Structure and Key Components
 
