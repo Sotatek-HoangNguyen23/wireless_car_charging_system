@@ -43,6 +43,21 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
    dotnet run --project API
    ```
 
+### Create .env file
+
+Create a `.env` file in the root directory or use the sample `.env.example` file.
+
+### Configure Database Connection String
+
+Open the `API/appsettings.json` file and update the connection string to point to your SQL Server instance.
+
+## Running Tests
+
+To run tests, use the following command in the `TestProject` directory:
+```bash
+dotnet test
+```
+
 ## Project Structure and Key Components
 
 The project is structured into three main directories:
