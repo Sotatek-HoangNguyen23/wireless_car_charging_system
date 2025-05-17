@@ -8,7 +8,7 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
 
 ### Prerequisites
 
-- .NET 6.0 SDK or later
+- .NET 8.0 SDK
 - SQL Server
 - Redis
 - Cloudinary account for image storage
