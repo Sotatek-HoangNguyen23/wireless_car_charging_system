@@ -26,7 +26,7 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
    - Update the connection string in `API/appsettings.json` to point to your SQL Server instance.
    - Run the migrations to create the database schema:
      ```bash
-     dotnet ef database update --project DataAccess
+     dotnet ef database update --project DataAccess --startup-project API
      ```
 
 3. Set up Redis:
