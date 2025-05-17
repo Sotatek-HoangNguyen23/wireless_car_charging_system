@@ -32,31 +32,23 @@ The Wireless Car Charging System is a project aimed at providing a seamless and 
 3. Set up Redis:
    - Update the Redis connection string in `API/appsettings.json`.
 
-4. Set up Cloudinary:
-   - Add your Cloudinary URL to the environment variables.
+4. Set up Jwt:
+   - Add your Audience and Issuer in `API/appsettings.json`.
 
 5. Set up SMTP:
-   - Add your SMTP server details to the environment variables.
+   - Add your SMTP server details in `API/appsettings.json`.
 
-6. Run the application:
+6. Create .env file
+   - Create a `.env` file in the root directory or use the sample `.env.example` file.
+  
+7. Run the application:
    ```bash
    dotnet run --project API
    ```
 
-### Create .env file
 
-Create a `.env` file in the root directory or use the sample `.env.example` file.
 
-### Configure Database Connection String
 
-Open the `API/appsettings.json` file and update the connection string to point to your SQL Server instance.
-
-## Running Tests
-
-To run tests, use the following command in the `TestProject` directory:
-```bash
-dotnet test
-```
 
 ## Project Structure and Key Components
 
