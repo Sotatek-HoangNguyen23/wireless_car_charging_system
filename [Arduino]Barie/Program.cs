@@ -38,7 +38,7 @@ namespace _Arduino_Barie
                         }
                         else
                         {
-                            Console.WriteLine("Vehicle not registered.");
+                            Console.WriteLine("Vehicle not registered. Please try again!");
                             arduinoPort.Write("CLOSE");
                         }
                     }
@@ -67,7 +67,7 @@ namespace _Arduino_Barie
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Error at: " + ex.Message);
                 return false;
             }
         }
