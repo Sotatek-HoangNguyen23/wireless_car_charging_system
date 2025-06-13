@@ -67,7 +67,7 @@ namespace _Arduino_Barie
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Error at: " + ex.Message);
                 return false;
             }
         }
