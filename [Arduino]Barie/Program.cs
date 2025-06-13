@@ -38,7 +38,7 @@ namespace _Arduino_Barie
                         }
                         else
                         {
-                            Console.WriteLine("Vehicle not registered.");
+                            Console.WriteLine("Vehicle not registered. Please try again!");
                             arduinoPort.Write("CLOSE");
                         }
                     }
