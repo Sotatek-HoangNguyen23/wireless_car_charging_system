@@ -13,7 +13,7 @@ namespace _Arduino_ChargingPoint1
         private static string user_id = null;
         private static bool hasReceivedLicensePlate = false;
         private static DateTime? start_time;
-        private static bool hasAddToDatabase2 = false;
+        private static bool hasAddToDatabase2 = true;
 
         class ChargingSession
         {
